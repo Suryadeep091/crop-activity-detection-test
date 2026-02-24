@@ -386,7 +386,7 @@ def process_parcel_data(run_id, coordinates, end_str):
             crop_intensity = count_crop_cycles(df_all['NDVI'].values, df_all['date'].values)
         summary_dict['crop_intensity'] = crop_intensity
         print(f"Crop Intensity (number of valid NDVI peaks): {crop_intensity}")
-        return df_all, summary_dict
+        return df_all, summary_dict, df_dw
         
     except Exception as e:
         print(f"Error processing parcel data: {e}")

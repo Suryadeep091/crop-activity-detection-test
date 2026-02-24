@@ -1,0 +1,380 @@
+import os
+import pandas as pd
+import numpy as np
+import io
+import base64
+import matplotlib
+matplotlib.use('Agg') 
+import matplotlib.pyplot as plt
+import plotly.graph_objs as go
+import plotly.io as pio
+from data_loader import create_test_data, process_parcel_data
+from test_model import predict_from_pickle
+from datetime import datetime
+
+def summarize_crop_activity_table_data(predictions, start_date, end_date):
+                """
+                Summarizes crop activity into a table-ready format for PDF.
+
+                Args:
+                    predictions (pd.DataFrame): Must have 'date' and 'prediction' columns.
+                    start_date (datetime): Start date of the analysis.
+                    end_date (datetime): End date of the analysis.
+
+                Returns:
+                    month_labels: List of month-year labels with Rabi/Kharif tags.
+                    table_data: List of (label, [bool per month]) for Crop, No Crop, Missing.
+                    start_month: Integer month of the first entry.
+                    start_year: Integer year of the first entry.
+                """
+                df = predictions.copy()
+                df["date"] = pd.to_datetime(df["date"])
+                df["Month"] = df["date"].dt.month
+                df["Year"] = df["date"].dt.year
+
+                # Generate list of months from start_date to end_date
+                month_range = pd.date_range(start=start_date, end=end_date, freq="MS")
+                month_labels = []
+                month_activity = {}
+
+                for dt in month_range:
+                    month_num = dt.month
+                    year_num = dt.year
+
+                    # Assign Rabi or Kharif
+                    if month_num in [11, 12, 1, 2, 3, 4]:
+                        season = "Rabi"
+                    else:
+                        season = "Kharif"
+
+                    # Label format: Jan-2025 (Rabi)
+                    label = f"{dt.strftime('%b-%Y')} ({season})"
+                    month_labels.append(label)
+
+                    # Filter predictions for this month-year
+                    month_df = df[(df["Month"] == month_num) & (df["Year"] == year_num)]
+                    if len(month_df) == 0:
+                        month_activity[label] = None
+                    else:
+                        crop_count = (month_df["prediction"] == "Crop-Activity").sum()
+                        no_crop_count = (
+                            month_df["prediction"] == "No Crop-Activity"
+                        ).sum()
+
+                        if crop_count > no_crop_count:
+                            month_activity[label] = True
+                        elif crop_count < no_crop_count:
+                            month_activity[label] = False
+                        else:
+                            month_activity[label] = True  # Tie
+
+                # Create table data for PDF
+                # Inside summarize_crop_activity_table_data
+                table_data = [
+                    {
+                        "label": "Crop Activity",
+                        "values": [month_activity[label] is True for label in month_labels],
+                    },
+                    {
+                        "label": "No Crop Activity",
+                        "values": [month_activity[label] is False for label in month_labels],
+                    },
+                    {
+                        "label": "Missing Data",
+                        "values": [month_activity[label] is None for label in month_labels],
+                    },
+                ]
+
+                return {
+                    "labels": month_labels,
+                    "rows": table_data,
+                    "start_month": month_range[0].month,
+                    "start_year": month_range[0].year
+                }
+
+
+def summarize_indices_for_table(df):
+        peak_data = []
+        missing_periods = []
+
+        month_map = {
+            1: "January", 2: "February", 3: "March", 4: "April",
+            5: "May", 6: "June", 7: "July", 8: "August",
+            9: "September", 10: "October", 11: "November", 12: "December"
+        }
+
+        for index in ['NDVI', 'EVI', 'RVI']:
+            if index in df.columns:
+                grouped = df[index].groupby([df.index.year, df.index.month]).mean()
+                if not grouped.empty:
+                    (peak_year, peak_month) = grouped.idxmax()
+                    peak_value = grouped.max()
+
+                    if peak_value < 0.3:
+                        note = "Low crop activity"
+                    elif 0.3 <= peak_value < 0.6:
+                        note = "Moderate crop activity"
+                    else:
+                        note = "High crop activity"
+
+                    peak_data.append({
+                        "index": index,
+                        "full_name": {
+                            "NDVI": "Normalized Difference Vegetation Index",
+                            "EVI": "Enhanced Vegetation Index",
+                            "RVI": "Radar Vegetation Index"
+                        }[index],
+                        "peak_period": f"{month_map[peak_month]} {peak_year}",
+                        "peak_value": round(peak_value, 2),
+                        "note": note
+                    })
+
+        # Missing NDVI/EVI periods
+        if all(col in df.columns for col in ['NDVI', 'EVI']):
+            missing_months = df[['NDVI', 'EVI']].isna()
+            missing_dates = df.index[missing_months.any(axis=1)]
+            missing_ym = sorted(set((d.year, d.month) for d in missing_dates))
+            missing_periods = [f"{month_map[m]} {y}" for y, m in missing_ym]
+        
+        return peak_data, missing_periods
+
+def fig_to_base64(fig, is_plotly=False):
+    """Helper to convert plots to base64 strings without saving to disk."""
+    buf = io.BytesIO()
+    if is_plotly:
+        # Scale 2 for high-quality PDF resolution
+        pio.write_image(fig, buf, format='png', scale=2)
+    else:
+        plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+    
+    buf.seek(0)
+    img_str = base64.b64encode(buf.read()).decode('utf-8')
+    return img_str
+
+def run_full_analytics_pipeline(task_id, coords, end_date_str):
+    try:
+        # 1. Extraction (GEE)
+        extraction_result = process_parcel_data(task_id, coords, end_date_str)
+        if not extraction_result:
+            return None
+        
+        df_all, summary_dict, df_dw_raw = extraction_result
+        # We still need data_dir for the CSV predictions (optional)
+        data_dir = os.path.join("data", task_id)
+        os.makedirs(data_dir, exist_ok=True)
+        analysis_end = datetime.strptime(end_date_str, "%Y-%m-%d")
+        analysis_start = analysis_end - pd.DateOffset(years=1)
+
+        # --- 2. Dynamic World Time-Series Plot (Base64) ---
+        fig_dw = go.Figure()
+
+        # Define bands and a professional color palette
+        bands = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
+        colors = ['#1f77b4', '#2ca02c', '#94ce7b', '#17becf', '#ff7f0e', '#8c564b', '#7f7f7f', '#e377c2', '#bcbd22']
+
+        # Add traces for each land class found in the dataframe
+        for b, color in zip(bands, colors):
+            if b in df_dw_raw.columns:
+                fig_dw.add_trace(
+                    go.Scatter(
+                        x=df_dw_raw['date'],
+                        y=df_dw_raw[b],
+                        mode='lines',
+                        name=b.replace('_', ' ').title(),
+                        line=dict(color=color, width=1.5),
+                        stackgroup='one' # Optional: Use this if you want a stacked area chart
+                    )
+                )
+
+        # Update layout for consistency
+        fig_dw.update_layout(
+
+            xaxis_title="Date",
+            yaxis_title="Probability",
+            template="plotly_white",
+            xaxis=dict(
+                type="date",
+                range=[
+                    analysis_start.strftime("%Y-%m-%d"),
+                    analysis_end.strftime("%Y-%m-%d"),
+                ],
+               
+                tickformat="%b %Y",
+                dtick="M1"
+            ),
+            yaxis=dict(range=[0, 1.05]), # Probabilities range from 0 to 1
+            showlegend=True,
+            legend=dict(
+                orientation="v",
+                yanchor="top",
+                y=0.99,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.7)",
+                bordercolor="lightgrey",
+                borderwidth=1,
+                font=dict(size=10)
+            ),
+            margin=dict(l=50, r=20, t=50, b=50),
+            height=400
+        )
+
+        # Convert to Base64 for the PDF
+        dw_base64 = fig_to_base64(fig_dw, is_plotly=True)
+
+        # --- 3. ML Prediction ---
+        test_df = create_test_data(data_dir, end_date_str)
+
+        temp_df = test_df.copy()
+        temp_df['date'] = pd.to_datetime(temp_df['date'])
+        temp_df.set_index('date', inplace=True)
+        peak_data, missing_periods = summarize_indices_for_table(temp_df)
+
+        model_path = os.path.join("models", "xgb_model(2).pickle")
+        predictions = predict_from_pickle(model_path, test_df)
+
+        
+        seasonal_summary = summarize_crop_activity_table_data(predictions, analysis_start, analysis_end)
+        
+        activity_binary = (predictions["prediction"] == "Crop-Activity").astype(int)
+        predictions["date_str"] = pd.to_datetime(predictions["date"]).dt.strftime("%Y-%m-%d")
+        predictions_list = predictions.to_dict(orient="records")
+        # --- 4. Generate Plotly Activity Chart (Base64) ---
+        activity_binary = (predictions["prediction"] == "Crop-Activity").astype(
+            int
+        )
+        predictions["date_str"] = pd.to_datetime(
+            predictions["date"]
+        ).dt.strftime("%Y-%m-%d")
+        zero_indices = [i for i, val in enumerate(activity_binary) if val == 0]
+
+        fig = go.Figure()
+        fig.add_trace(
+            go.Bar(
+                x=[
+                    predictions["date_str"][i]
+                    for i, val in enumerate(activity_binary)
+                    if val == 1
+                ],
+                y=[1] * sum(activity_binary),
+                name="Crop Activity",
+                marker_color="green",
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[predictions["date_str"][i] for i in zero_indices],
+                y=[0] * len(zero_indices),
+                mode="markers",
+                name="No Crop Activity",
+                line=dict(color="red", dash="dot", width=0.5),
+                showlegend=True,
+            )
+        )
+        fig.update_layout(
+          
+            xaxis_title="Date",
+            yaxis_title="Activity (1 = Crop, 0 = No Crop)",
+            template="plotly_white",
+            xaxis_tickangle=-45,
+            yaxis=dict(tickmode="array", tickvals=[0, 1], range=[0, 1]),
+            xaxis=dict(
+                range=[
+                    analysis_start.strftime("%Y-%m-%d"),
+                    analysis_end.strftime("%Y-%m-%d"),
+                ],
+                title="Date",
+            ),
+            showlegend=True,
+            legend=dict(
+                orientation="v",      # Vertical orientation
+                yanchor="top",        # Anchor at the top of the legend box
+                y=0.99,               # Positioned at the very top (1.0 is the top edge)
+                xanchor="right",      # Anchor at the right of the legend box
+                x=0.99,               # Positioned at the very right edge
+                bgcolor="rgba(255, 255, 255, 0.5)" # Semi-transparent background
+            ),
+            margin=dict(l=50, r=20, t=50, b=50),
+            bargap=0.1,
+            height=400,
+        )
+        # ... (Scatter trace) ...
+        activity_base64 = fig_to_base64(fig, is_plotly=True)
+
+        # --- 5. Save NDVI/EVI/RVI Static Plot (Base64) ---
+        fig_indices = go.Figure()
+
+# Loop through your indices and add traces
+        for col, color in [('NDVI', 'green'), ('EVI', 'blue'), ('RVI', 'orange')]:
+            if col in test_df.columns:
+                fig_indices.add_trace(
+                    go.Scatter(
+                        x=test_df['date'],
+                        y=test_df[col],
+                        mode='lines',
+                        name=col,
+                        line=dict(color=color, width=2)
+                    )
+                )
+
+        # Update layout for top-right internal legend
+        fig_indices.update_layout(
+
+            xaxis_title="Date",
+            yaxis_title="Index Value",
+            template="plotly_white",
+            xaxis=dict(
+                type="date",
+                range=[
+                    analysis_start.strftime("%Y-%m-%d"),
+                    analysis_end.strftime("%Y-%m-%d"),
+                ],# Use the 1-year range derived earlier
+                tickformat="%b %Y",
+                dtick="M1"
+            ),
+            yaxis=dict(range=[-0.1, 1.0]), # Indices usually stay between -0.1 and 1
+            showlegend=True,
+            legend=dict(
+                orientation="v",
+                yanchor="top",
+                y=0.99,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.6)", # Slight transparency to see grid lines
+                bordercolor="lightgrey",
+                borderwidth=1
+            ),
+            margin=dict(l=50, r=20, t=50, b=50), # Expanded horizontal area
+            height=400
+        )
+
+        # Convert to Base64 for the PDF
+        ndvi_base64 = fig_to_base64(fig_indices, is_plotly=True)
+
+        print(seasonal_summary)
+
+        # --- UPDATED RETURN STATEMENT ---
+        return {
+            "summary": summary_dict,
+            "peak_analysis": peak_data,        # Added peak data
+            "missing_data": missing_periods,
+            "seasonal_activity": seasonal_summary,
+            "predictions_list": predictions_list,
+            "prediction_stats": {
+                "total": len(predictions),
+                "crop_days": int(sum(activity_binary))
+            },
+            "images": {
+                "ndvi_b64": ndvi_base64,
+                "dw_b64": dw_base64,
+                "activity_b64": activity_base64
+            },
+            # THIS IS THE MISSING PIECE
+            "metadata": {
+                "coords": coords 
+            }
+        }
+    except Exception as e:
+            print(f"Engine Error: {e}")
+            return None

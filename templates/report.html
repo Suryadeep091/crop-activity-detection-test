@@ -626,7 +626,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
     <p class="annexure-description">
         This table shows the crop activity status on specific dates, based on satellite-derived vegetation indices (NDVI, EVI, RVI) and land cover data. 
     </p>
-
+    <div style="border: 1px solid #ccc; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
     <div class="table-main-header">
         Predictions Over Timestamps on the Parcel
     </div>
@@ -656,9 +656,27 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                     {{ row.prediction }}
                 </td>
             </tr>
+
+            {# Logic for page breaks #}
+            {% if loop.index == 26 or (loop.index > 26 and (loop.index - 26) % 32 == 0) %}
+                {% if not loop.last %}
+                </tbody></table> 
+                </div> <div style="page-break-before: always;"></div> 
+                <div style="height: 40px;"></div> {# CRITICAL: Starts a new rounded container for the next page #}
+                <div style="border: 1px solid #ccc; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+                    <table class="prediction-table"> 
+                        <thead>
+                            <tr class="table-sub-header">
+                                <th>Index</th><th>Date</th><th>NDVI</th><th>EVI</th><th>RVI</th><th>Crops</th><th>Prediction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                {% endif %}
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
+</div>
 </div>
     
 </body>

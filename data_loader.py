@@ -10,7 +10,7 @@ import scipy.signal
 def initialize_ee():
     try:
         service_account = os.getenv("GEE_SERVICE_ACCOUNT")
-        json_path = "/secrets/gee-key.json" 
+        json_path = "/secrets/gee-key.json/GOOGLE_APPLICATION_CREDENTIALS" 
         project_id = "advarisk" 
         
         if os.path.exists(json_path) and service_account:

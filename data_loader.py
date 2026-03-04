@@ -11,22 +11,26 @@ def initialize_ee():
     try:
         service_account = os.getenv("GEE_SERVICE_ACCOUNT")
         json_path = "/secrets/gee-key.json" 
-        project_id = "advarisk"  # Explicitly defined
+        project_id = "advarisk" 
         
         if os.path.exists(json_path) and service_account:
+            # PROD: Uses Secret Manager mount
             credentials = ee.ServiceAccountCredentials(service_account, json_path)
             ee.Initialize(credentials, project=project_id)
             print(f"✅ GEE Initialized via Secret Manager: {service_account}")
         elif service_account:
+            # FALLBACK: Uses Metadata Server
             credentials = ee.ServiceAccountCredentials(service_account, key_data=None)
             ee.Initialize(credentials, project=project_id)
             print(f"✅ GEE Initialized via Metadata Server: {service_account}")
         else:
+            # LOCAL: Uses your gcloud auth
             ee.Initialize(project=project_id)
             print("✅ GEE Initialized via local default credentials")
     except Exception as e:
         print(f"❌ GEE Initialization Failed: {e}")
 
+# Run the initialization
 initialize_ee()
 
 

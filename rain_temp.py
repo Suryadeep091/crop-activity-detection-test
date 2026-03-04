@@ -10,28 +10,21 @@ from datetime import datetime, timedelta
 def initialize_ee():
     try:
         service_account = os.getenv("GEE_SERVICE_ACCOUNT")
-        # This matches the 'Mount path' you set in the Cloud Run UI
         json_path = "/secrets/gee-key.json" 
+        project_id = "advarisk"  # Explicitly defined
         
         if os.path.exists(json_path) and service_account:
-            # Use the mounted secret file for production authentication
             credentials = ee.ServiceAccountCredentials(service_account, json_path)
-            ee.Initialize(credentials)
+            ee.Initialize(credentials, project=project_id)
             print(f"✅ GEE Initialized via Secret Manager: {service_account}")
-            
         elif service_account:
-            # Fallback: Cloud Run internal metadata (only if not using a key file)
             credentials = ee.ServiceAccountCredentials(service_account, key_data=None)
-            ee.Initialize(credentials)
+            ee.Initialize(credentials, project=project_id)
             print(f"✅ GEE Initialized via Metadata Server: {service_account}")
-            
         else:
-            # Local development fallback
-            ee.Initialize()
+            ee.Initialize(project=project_id)
             print("✅ GEE Initialized via local default credentials")
-            
     except Exception as e:
-        # Don't let this crash the app, or you'll get the 'Port 8080' error again
         print(f"❌ GEE Initialization Failed: {e}")
 
 initialize_ee()

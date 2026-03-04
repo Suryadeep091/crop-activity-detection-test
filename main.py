@@ -131,7 +131,10 @@ if st.sidebar.button("Run Intelligence Report"):
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         generated_task_id = f"KH_{search_khasra}_{timestamp}"
-
+        print(f"Generated Task ID: {generated_task_id}")
+        print(f"Active Coords: {active_coords}")
+        print(f"Details: {details}")
+        print(f"End Date: {datetime.now().strftime('%Y-%m-%d')}")
         payload = {
             "task_id": generated_task_id,
             "coords": active_coords,
@@ -144,7 +147,7 @@ if st.sidebar.button("Run Intelligence Report"):
         
         with st.spinner("Executing Parallel Intelligence Pipeline..."):
             try:
-                response = requests.post("http://localhost:8000/analyze/summary", json=payload)
+                response = requests.post("https://terradristi-crop-activity-413500342905.asia-south1.run.app/analyze/summary", json=payload)
                 response.raise_for_status()
                 data = response.json()
                 

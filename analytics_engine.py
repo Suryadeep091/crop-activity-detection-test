@@ -16,6 +16,8 @@ pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
 
 
+#
+
 def summarize_crop_activity_table_data(predictions, start_date, end_date):
                 """
                 Summarizes crop activity into a table-ready format for PDF.

@@ -7,6 +7,35 @@ from collections import defaultdict
 from functools import reduce
 import scipy.signal
 
+def initialize_ee():
+    try:
+        service_account = os.getenv("GEE_SERVICE_ACCOUNT")
+        # This matches the 'Mount path' you set in the Cloud Run UI
+        json_path = "/secrets/gee-key.json" 
+        
+        if os.path.exists(json_path) and service_account:
+            # Use the mounted secret file for production authentication
+            credentials = ee.ServiceAccountCredentials(service_account, json_path)
+            ee.Initialize(credentials)
+            print(f"✅ GEE Initialized via Secret Manager: {service_account}")
+            
+        elif service_account:
+            # Fallback: Cloud Run internal metadata (only if not using a key file)
+            credentials = ee.ServiceAccountCredentials(service_account, key_data=None)
+            ee.Initialize(credentials)
+            print(f"✅ GEE Initialized via Metadata Server: {service_account}")
+            
+        else:
+            # Local development fallback
+            ee.Initialize()
+            print("✅ GEE Initialized via local default credentials")
+            
+    except Exception as e:
+        # Don't let this crash the app, or you'll get the 'Port 8080' error again
+        print(f"❌ GEE Initialization Failed: {e}")
+
+
+
 # Function to count valid NDVI peaks (crop cycles) using the thumb rule
 # A valid peak: NDVI rises for >=21 days, stays high for >=35 days, falls for >=21 days (total ~77 days)
 def count_crop_cycles(ndvi_series, date_series):
@@ -48,8 +77,7 @@ def process_parcel_data(run_id, coordinates, end_str):
         end_str (str): End date in YYYY-MM-DD format. Start date will be automatically set to 2 years before.
     """
     try:
-        ee.Authenticate()
-        ee.Initialize(project="advarisk")
+        initialize_ee()
 
         # Create data directory if it doesn't exist
         data_dir = os.path.join("data", run_id)

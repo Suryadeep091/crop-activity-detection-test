@@ -30,6 +30,7 @@ async def generate_intelligence_report(data: dict):
         satellite=data.get("satellite_analytics", {}),
         logo_base64=logo_b64,
         location=data.get("location_details", {}),
+        map_details=data.get("map_details", {}),
         weather_data=data.get("weather_data", {}),
         generated_at=data.get("metadata", {}).get("timestamp", "")
     )

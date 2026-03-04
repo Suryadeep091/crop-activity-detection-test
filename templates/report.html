@@ -16,7 +16,19 @@
         .sub-header { text-align: left; color: #7f8c8d; font-size: 13px; margin-bottom: 20px; font-weight: 600; border-top: 1px solid #f0f0f0; padding-top: 5px; }
 
         /* Banners & Verdict */
-        .verdict-banner { background-color: #27ae60; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 18px; border-radius: 8px; margin-bottom: 10px; }
+        .verdict-banner { 
+            color: white; 
+            text-align: center; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+        }
+
+        /* Dynamic Classes */
+        .bg-green { background-color: #27ae60; } /* Success Green */
+        .bg-red { background-color: #e74c3c; }   /* Alert Red */
         .section-banner { background-color: #e8f4fd; color: #2c3e50; text-align: center; padding: 8px; font-weight: bold; font-size: 16px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #d1e9ff; }
 
         /* Geospatial Context Grid */
@@ -354,14 +366,14 @@
         </div>
         <div class="sub-header">Smart Agriculture Monitoring Dashboard</div>
         
-        <div class="verdict-banner">
-            Verdict: {{ 'Active Agricultural Land Detected' if satellite.summary.crops.percent > 40 else 'Low Agricultural Activity Observed' }}
+        <div class="verdict-banner {{ 'bg-green' if satellite.summary.crops.percent > 20 else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if satellite.summary.crops.percent > 20 else 'Low Agri activity detected' }}
         </div>
 
         <div class="section-banner">Land Parcel Under Analysis</div>
         <div class="geospatial-section">
             <div class="map-box">
-                <img src="data:image/png;base64,{{ location.map_image_b64 }}">
+                <img src="data:image/png;base64,{{ map_details.map_image_b64 }}">
             </div>
             <div class="sidebar-tables">
                 <table class="info-table">
@@ -396,7 +408,7 @@
             <td>
                 {% if value is mapping %}
                     {# Handle nested objects like railway station data #}
-                    {{ value.get('name', 'N/A') }}
+                    {{ value.get('name', 'N/A').capitalize }}
                 {% else %}
                     {{ value }}
                     {# Append 'km' only for distance-related keys #}
@@ -442,6 +454,7 @@ indicates how many times each type was detected.
             This table shows crop activity over the past year using satellite-based vegetation indices and land cover classifications.Active
 Cropping indicates periods when the land was likely under cultivation, while Fallow/Inactive reflects non-cropping periods.
         </p>
+
             <div class="crop-activity-container">
                 <div class="stats-column">
                     <div class="stat-card active-border">
@@ -524,7 +537,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                         </thead>
                         <tbody>
                             {% for item in satellite.peak_analysis %}
-                            {% set note_color = '#27ae60' if 'High' in item.note else '#f39c12' if 'Moderate' in item.note else '#e74c3c' %}
+                            {% set note_color = '#27ae60' if 'Very' in item.note else '#f39c12' if 'Moderately' in item.note else '#e74c3c' %}
                             <tr>
                                 <td><strong>{{ item.index }}</strong></td>
                                 <td>{{ item.peak_value }}</td>
@@ -555,7 +568,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                         <p style="text-align:center; font-weight:bold; margin-top:10px;">LAND CLASS PROBABILITIES</p>
                         <img src="data:image/png;base64,{{ satellite.images.dw_b64 }}" style="width: 100%; border-radius: 8px;">
                     </div>
-
+                    <p class="report-description">The total vertical height at any date represents 100% of the parcel's composition. By monitoring the changing thickness of each colored band, you can pinpoint exactly when the land shifts from bare soil to active seasonal growth</p>
                     <div class="table-container">
                         <table class="info-table">
                             <thead>
@@ -610,7 +623,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                 {% set is_missing = activity_data['rows'][2]['values'][index] %}
                 
                 <div class="season-card {{ 'missing-status' if is_missing else 'active-status' if is_crop else 'fallow-status' }}">
-                    <div class="season-tag">{{ 'RABI' if 'Rabi' in label else 'KHARIF' }}</div>
+                    <div class="season-tag">{{ 'RABI' if 'Rabi' in label else 'KHARIF' if 'Kharif' in label else 'ZAID' }}</div>
                     <div class="month-label">{{ label.split(" ")[0] }}</div>
                     <div class="activity-indicator">
                         {{ 'ACTIVE' if is_crop else 'MISSING' if is_missing else 'FALLOW' }}

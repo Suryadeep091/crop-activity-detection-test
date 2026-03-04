@@ -91,16 +91,31 @@ def process_parcel_data(run_id, coordinates, end_str):
                 {'NIR': img.select('B8'), 'RED': img.select('B4'), 'BLUE': img.select('B2')}
             ).rename('EVI')
             return img.addBands([ndvi,evi]).select(['NDVI','EVI'])
-
+        days_to_keep = ee.List.sequence(1, 365, 6)
+        
+        # Helper to filter collection by the sequence
+        def filter_by_stride(collection):
+            return collection.filter(ee.Filter.dayOfYear(1, 365)).filter(
+                ee.Filter.inList('system:time_start', 
+                collection.filter(ee.Filter.listContains('day_list', days_to_keep)))
+            )
+            
+        # A simpler way: Use a 'calendarRange' or just filter the existing collections
+        # after they are created to pick every Nth image
+        def limit_to_60(collection):
+            list_col = collection.toList(collection.size())
+            # Calculate the step (e.g., 175 / 60 ≈ 3)
+            step = ee.Number(collection.size()).divide(60).ceil()
+            indices = ee.List.sequence(0, collection.size().subtract(1), step)
+            return ee.ImageCollection.fromImages(indices.map(lambda i: list_col.get(i)))
         # Get Sentinel-2 collection
-        s2_col = (
-            ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+        s2_col = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
             .filterDate(start_str, end_str)
             .filterBounds(polygon)
-            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',20))
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
             .map(maskS2clouds)
-            .map(compute_indices)
-        )
+            .map(compute_indices))
+        s2_col = limit_to_60(s2_col)
 
         # Print collection sizes
         print("\nCollection sizes:")
@@ -131,12 +146,11 @@ def process_parcel_data(run_id, coordinates, end_str):
              'crops','shrub_and_scrub','built','bare','snow_and_ice']
 
         # Get Dynamic World collection
-        dw_col = (
-            ee.ImageCollection('GOOGLE/DYNAMICWORLD/V1')
+        dw_col = (ee.ImageCollection('GOOGLE/DYNAMICWORLD/V1')
             .filterDate(start_str, end_str)
             .filterBounds(polygon)
-            .select(DW_BANDS)
-        )
+            .select(DW_BANDS))
+        dw_col = limit_to_60(dw_col)
         print(f"Dynamic World images: {dw_col.size().getInfo()}")
 
         # Extract timeseries for given bands

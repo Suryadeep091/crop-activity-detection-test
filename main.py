@@ -21,7 +21,8 @@ df_khasra = load_reference_csv()
 
 # --- API HELPER ---
 def fetch_parcel_data(guid, state):
-    salt_key = "T1yZcB6wA4"
+
+    salt_key = "PAe17K1Rvfeij21TQPlq"
     url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
     try:
         response = requests.get(url)
@@ -41,6 +42,7 @@ search_khasra = st.sidebar.text_input("Enter Khasra No. (e.g., 15, 21, 73/91)")
 
 active_coords = None
 selected_details = None
+details = None
 
 if search_khasra:
     # 2. Check if Khasra exists in local CSV
@@ -83,7 +85,7 @@ if search_khasra:
                 if extracted_coords:
                     active_coords = extracted_coords
                     st.session_state["active_coords"] = extracted_coords
-                    
+                    st.session_state["details"] = properties
                     # Preview Map
                     st.markdown(f"### 🗺️ Preview: Village {properties.get('Village')}, {properties.get('District')}")
                     
@@ -91,17 +93,26 @@ if search_khasra:
                     center_lat = active_coords[0][1]
                     center_lon = active_coords[0][0]
                     
-                    m = folium.Map(location=[center_lat, center_lon], zoom_start=16, tiles='OpenStreetMap')
-                    
-                    # Convert [lon, lat] to [lat, lon] for folium drawing
+                    # ESRI Satellite Tile URL
+                    satellite_tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                    attr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+
+                    m = folium.Map(
+                        location=[center_lat, center_lon], 
+                        zoom_start=16, 
+                        tiles=satellite_tiles, 
+                        attr=attr
+                    )
+
+                    # Your existing polygon code
                     folium.Polygon(
                         locations=[[c[1], c[0]] for c in active_coords], 
-                        color="blue", 
+                        color="yellow",  # Yellow or white often pops better on dark satellite imagery
                         weight=2,
                         fill=True,
                         fill_opacity=0.4
                     ).add_to(m)
-                    
+
                     st_folium(m, width="100%", height=400, key="khasra_map")
                 else:
                     st.sidebar.error("Failed to parse coordinate structure.")
@@ -112,6 +123,7 @@ if search_khasra:
 # --- API TRIGGER ---
 if st.sidebar.button("Run Intelligence Report"):
     active_coords = st.session_state.get("active_coords")
+    details = st.session_state.get("details", {})
     
     if active_coords:
         if active_coords[0] != active_coords[-1]:
@@ -123,7 +135,8 @@ if st.sidebar.button("Run Intelligence Report"):
         payload = {
             "task_id": generated_task_id,
             "coords": active_coords,
-            "end_date": datetime.now().strftime("%Y-%m-%d")
+            "end_date": datetime.now().strftime("%Y-%m-%d"),
+            "properties": details
         }
         
         start_time_dt = datetime.now()

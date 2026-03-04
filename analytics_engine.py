@@ -12,6 +12,10 @@ from data_loader import create_test_data, process_parcel_data
 from test_model import predict_from_pickle
 from datetime import datetime
 
+pd.set_option('display.max_columns', None)  # Show all columns
+pd.set_option('display.max_rows', 100)      # Show more rows
+
+
 def summarize_crop_activity_table_data(predictions, start_date, end_date):
                 """
                 Summarizes crop activity into a table-ready format for PDF.
@@ -42,10 +46,12 @@ def summarize_crop_activity_table_data(predictions, start_date, end_date):
                     year_num = dt.year
 
                     # Assign Rabi or Kharif
-                    if month_num in [11, 12, 1, 2, 3, 4]:
+                    if month_num in [11, 12, 1, 2, 3]:
                         season = "Rabi"
-                    else:
+                    elif month_num in [6, 7, 8, 9, 10]:
                         season = "Kharif"
+                    else:
+                        season = "Zaid"
 
                     # Label format: Jan-2025 (Rabi)
                     label = f"{dt.strftime('%b-%Y')} ({season})"
@@ -111,11 +117,11 @@ def summarize_indices_for_table(df):
                     peak_value = grouped.max()
 
                     if peak_value < 0.3:
-                        note = "Low crop activity"
+                        note = "Low health vegetation"
                     elif 0.3 <= peak_value < 0.6:
-                        note = "Moderate crop activity"
+                        note = "Moderately healthy vegetation"
                     else:
-                        note = "High crop activity"
+                        note = "Very healthy vegetation"
 
                     peak_data.append({
                         "index": index,
@@ -151,6 +157,65 @@ def fig_to_base64(fig, is_plotly=False):
     buf.seek(0)
     img_str = base64.b64encode(buf.read()).decode('utf-8')
     return img_str
+
+def apply_empirical_logic(row):
+    # Extract signals and month
+    date_val = pd.to_datetime(row.get('date'))
+    month = date_val.month
+    
+    ndvi = row.get('NDVI', 0)
+    rvi = row.get('RVI', 0)
+    # Combine AI classes
+    crops = row.get('crops', 0)
+    flooded_veg = row.get('flooded_vegetation', 0)
+    crop_prob = crops + flooded_veg
+    tree_prob = row.get('trees', 0)
+    built = row.get('built', 0)
+    water = row.get('water', 0)
+    bare = row.get('bare', 0)
+    shrubs = row.get('shrub_and_scrub', 0)
+    snow = row.get('snow_and_ice', 0)
+    
+    # Global Tree Filter
+    if tree_prob > 0.50 or tree_prob > crop_prob:
+        return "No Crop-Activity"
+    if built > 0.50 or built > crop_prob:
+        return "No Crop-Activity"
+    if water > 0.50 or water > crop_prob:
+        return "No Crop-Activity"
+    if bare > 0.50 or bare > crop_prob:
+        return "No Crop-Activity"
+    if shrubs > 0.50 or shrubs > crop_prob:
+        return "No Crop-Activity"
+    if snow > 0.50 or snow > crop_prob:
+        return "No Crop-Activity"
+
+    # --- SOWING DETECTION (Catching the start of the cycle) ---
+    # If the AI sees Flooded Veg (Paddy) or if we see early structure with some AI confidence
+    # We use much lower NDVI thresholds here.
+    if flooded_veg > 0.40 and rvi > 0.30:
+        return "Crop-Activity" # Early Paddy sowing detected
+    
+    if crop_prob > 0.35 and (ndvi > 0.25 and rvi > 0.35):
+        return "Crop-Activity" # Early Rabi/Zaid growth detected
+
+    # --- FULL VEGETATIVE LOGIC (Your existing thresholds for peak) ---
+    # June to October (Kharif)
+    if 6 <= month <= 10:
+        if (rvi > 0.45 and crop_prob > 0.40) or (ndvi > 0.35 and crop_prob > 0.50):
+            return "Crop-Activity"
+
+    # November to March (Rabi)
+    elif month in [11, 12, 1, 2, 3]:
+        if ndvi > 0.40 and (crop_prob > 0.40 or rvi > 0.35):
+            return "Crop-Activity"
+
+    # April to May (Zaid)
+    elif month in [4, 5]:
+        if ndvi > 0.45 and rvi > 0.40:
+            return "Crop-Activity"
+
+    return "No Crop-Activity"
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
     try:
@@ -191,7 +256,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         fig_dw.update_layout(
 
             xaxis_title="Date",
-            yaxis_title="Probability",
+            yaxis_title="Probability Share of Classes",
             template="plotly_white",
             xaxis=dict(
                 type="date",
@@ -223,24 +288,62 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # Convert to Base64 for the PDF
         dw_base64 = fig_to_base64(fig_dw, is_plotly=True)
 
-        # --- 3. ML Prediction ---
-        test_df = create_test_data(data_dir, end_date_str)
+        # --- 2. Create Dataset & Apply Empirical Labels (SKIP PICKLE) ---
+        # Merge DW raw data with S2/S1 data for the labeling logic
+        # 'outer' keeps dates from BOTH dataframes even if they don't match
+        # --- 2. Create Dataset & Apply Empirical Labels ---
+        # Step A: Perform Outer Join to align all sensors
+        # --- 2. Create Dataset & Apply Empirical Labels ---
+        
+        # A. Force both dataframes to have identical datetime formats for merging
+        # --- 2. Create Dataset & Apply Empirical Labels ---
+        
+        # A. Normalize Dates
+        df_all['date'] = pd.to_datetime(df_all['date']).dt.normalize()
+        df_dw_raw['date'] = pd.to_datetime(df_dw_raw['date']).dt.normalize()
 
+        # B. REMOVE DUPLICATES: Drop DW columns from df_all before merging
+        # This prevents the creation of _x and _y columns
+        dw_cols = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
+        df_all_clean = df_all.drop(columns=[c for c in dw_cols if c in df_all.columns])
+
+        # C. Perform Outer Join (Now creates a single 'crops' column)
+        dataset_df = df_all_clean.merge(df_dw_raw, on='date', how='outer').sort_values('date')
+
+        # D. Interpolate ALL critical bands
+        indices_cols = ['NDVI', 'EVI', 'RVI']
+        cols_to_fix = [c for c in dw_cols + indices_cols if c in dataset_df.columns]
+        
+        # This will now correctly fill the 0s in rows 1, 3, and 4
+        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(
+            method='linear', limit_direction='both'
+        )
+
+        # E. Final Sanitize & Apply Logic
+        dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
+        
+        # Now the logic will find 'crops' and 'flooded_vegetation' successfully
+        dataset_df['prediction'] = dataset_df.apply(apply_empirical_logic, axis=1)
+        
+        predictions = dataset_df.copy()
+        test_df = dataset_df.copy()
+
+        # --- 3. Rest of your existing plotting and summary logic ---
+        # (Peak analysis, Plotly charts, etc. use the 'predictions' df created above)
+        
+        # Peak summary calculation
         temp_df = test_df.copy()
         temp_df['date'] = pd.to_datetime(temp_df['date'])
         temp_df.set_index('date', inplace=True)
         peak_data, missing_periods = summarize_indices_for_table(temp_df)
-
-        model_path = os.path.join("models", "xgb_model(2).pickle")
-        predictions = predict_from_pickle(model_path, test_df)
-
         
         seasonal_summary = summarize_crop_activity_table_data(predictions, analysis_start, analysis_end)
         
         activity_binary = (predictions["prediction"] == "Crop-Activity").astype(int)
         predictions["date_str"] = pd.to_datetime(predictions["date"]).dt.strftime("%Y-%m-%d")
         predictions_list = predictions.to_dict(orient="records")
-        # --- 4. Generate Plotly Activity Chart (Base64) ---
+
+    
         activity_binary = (predictions["prediction"] == "Crop-Activity").astype(
             int
         )

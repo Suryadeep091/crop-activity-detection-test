@@ -28,6 +28,7 @@ class AnalysisRequest(BaseModel):
     task_id: str
     coords: List[List[float]]
     end_date: str
+    properties: dict = {}
 
 # --- WORKERS (Same as before) ---
 def satellite_worker(task_id, coords, end_date):
@@ -184,7 +185,8 @@ async def get_combined_analysis(request: AnalysisRequest):
         full_data = {
             "task_id": request.task_id,
             "satellite_analytics": sat_res,
-            "location_details": loc_res,
+            "location_details": request.properties,
+            "map_details": loc_res,
             "weather_data": weather_res,
             "metadata": {
                 "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
@@ -201,7 +203,8 @@ async def get_combined_analysis(request: AnalysisRequest):
             "task_id": request.task_id,
             "pdf_report_path": pdf_path,
             "satellite_analytics": sat_res, # Still sending data for UI display
-            "location_details": loc_res,
+            "location_details": request.properties,
+            "map_details": loc_res
             # "weather_data": weather_res
         }
 

@@ -1,0 +1,28 @@
+# Web Framework & Server
+fastapi
+uvicorn[standard]
+pydantic
+requests
+
+# Data Processing & Math
+pandas
+numpy
+python-dateutil
+
+# Geospatial Analytics
+earthengine-api
+shapely
+geopy
+
+# Plotting & Image Export
+matplotlib
+plotly
+kaleido==0.2.1
+Pillow
+
+# PDF Generation
+jinja2
+xhtml2pdf
+
+# Parallelism
+asyncio

@@ -3,6 +3,7 @@ fastapi
 uvicorn[standard]
 pydantic
 requests
+rdp
 
 # Data Processing & Math
 pandas

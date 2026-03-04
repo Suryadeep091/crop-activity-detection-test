@@ -19,8 +19,11 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 3. Copy all project files (including location.py, etc.)
 COPY . .
 
+# 4. CRITICAL: Add /app to the Python path so local imports work
+ENV PYTHONPATH=/app
 
-# This tells Cloud Run to run the FastAPI app inside api.py
+# Start the FastAPI backend
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8080"]

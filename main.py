@@ -1,3 +1,5 @@
+import base64
+
 import streamlit as st
 import requests
 import json
@@ -149,34 +151,30 @@ if st.sidebar.button("Run Intelligence Report"):
             try:
                 response = requests.post("https://terradristi-crop-activity-413500342905.asia-south1.run.app/analyze/summary", json=payload)
                 response.raise_for_status()
-                data = response.json()
-                
-                # --- 1. DATA EXTRACTION ---
-                pdf_bytes = response.content 
-        
-                # 3. GET METADATA FROM HEADERS (Since the response is a file, not JSON)
-                # Note: If your API still returns JSON for some parts, you will need to 
-                # modify the API to send metadata via headers or use a Multi-part response.
-                # FOR NOW: Let's assume you want the download working immediately.
+                data = response.json() # This will now work!
 
+                # --- 1. DATA EXTRACTION FOR CHARTS ---
+                sat_analytics = data.get("satellite_analytics", {})
+                # ... (Your existing chart/metric code) ...
+
+                # --- 2. PDF DOWNLOAD LOGIC ---
+                pdf_base64 = data.get("pdf_base64")
                 st.markdown("---")
                 st.subheader("📄 Official Intelligence Report")
-                
-                if pdf_bytes:
+
+                if pdf_base64:
+                    # Decode the string back into bytes
+                    pdf_bytes = base64.b64decode(pdf_base64)
+                    
                     st.download_button(
                         label="📥 Download Full PDF Report",
                         data=pdf_bytes,
-                        file_name=f"TerraDrishti_Report_{generated_task_id}.pdf",
+                        file_name=f"TerraDrishti_{generated_task_id}.pdf",
                         mime="application/pdf",
                         use_container_width=True
                     )
-                    st.success("Report successfully retrieved from Pipeline!")
                 else:
-                    st.warning("Could not retrieve PDF data from the server.")
-
-                # Performance Metrics
-                duration = datetime.now() - start_time_dt
-                st.info(f"⚡ Analysis & Report Transfer completed in {duration.total_seconds():.2f} seconds")
+                    st.warning("PDF data missing from response.")
 
             except Exception as e:
                 st.error(f"UI Error: {e}")

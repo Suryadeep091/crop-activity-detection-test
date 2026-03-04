@@ -199,11 +199,17 @@ async def get_combined_analysis(request: AnalysisRequest):
         pdf_path = await generate_intelligence_report(full_data)
 
         # 4. RETURN RESPONSE WITH PDF PATH
-        return FileResponse(
-            path=pdf_path, 
-            filename=f"{request.task_id}.pdf", 
-            media_type='application/pdf'
-        )
+        with open(pdf_path, "rb") as pdf_file:
+            encoded_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
+
+        return {
+            "status": "success",
+            "task_id": request.task_id,
+            "pdf_base64": encoded_pdf,  # The file is now inside this string
+            "satellite_analytics": sat_res,
+            "location_details": loc_res,
+            "map_details": weather_res # or loc_res depending on your structure
+        }
 
     except Exception as e:
         import traceback

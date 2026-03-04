@@ -27,3 +27,4 @@ xhtml2pdf
 
 # Parallelism
 asyncio
+scipy

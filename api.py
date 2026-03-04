@@ -14,6 +14,7 @@ import matplotlib
 matplotlib.use('Agg')
 import plotly.graph_objs as go
 import plotly.io as pio
+from fastapi.responses import FileResponse
 
 # Module Imports
 from analytics_engine import run_full_analytics_pipeline
@@ -198,15 +199,11 @@ async def get_combined_analysis(request: AnalysisRequest):
         pdf_path = await generate_intelligence_report(full_data)
 
         # 4. RETURN RESPONSE WITH PDF PATH
-        return {
-            "status": "success",
-            "task_id": request.task_id,
-            "pdf_report_path": pdf_path,
-            "satellite_analytics": sat_res, # Still sending data for UI display
-            "location_details": request.properties,
-            "map_details": loc_res
-            # "weather_data": weather_res
-        }
+        return FileResponse(
+            path=pdf_path, 
+            filename=f"{request.task_id}.pdf", 
+            media_type='application/pdf'
+        )
 
     except Exception as e:
         import traceback

@@ -1,30 +1,32 @@
-# Web Framework & Server
+# --- Core Framework & Server ---
 fastapi
 uvicorn[standard]
 pydantic
 requests
+jinja2
+python-multipart
+
+# --- Geospatial & Earth Engine ---
+earthengine-api
+folium
+streamlit-folium
+geopandas
+shapely
 rdp
 
-# Data Processing & Math
+# --- Data Science & Analytics ---
 pandas
 numpy
-python-dateutil
+scikit-learn
+scipy
+joblib
 
-# Geospatial Analytics
-earthengine-api
-shapely
-geopy
-
-# Plotting & Image Export
+# --- Visualization & PDF Generation ---
 matplotlib
 plotly
 kaleido==0.2.1
+playwright
 Pillow
 
-# PDF Generation
-jinja2
-xhtml2pdf
-
-# Parallelism
-asyncio
-scipy
+# --- Utilities ---
+python-dateutil

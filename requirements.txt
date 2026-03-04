@@ -13,6 +13,7 @@ streamlit-folium
 geopandas
 shapely
 rdp
+geopy
 
 # --- Data Science & Analytics ---
 pandas

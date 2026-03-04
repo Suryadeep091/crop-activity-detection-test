@@ -21,5 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Cloud Run listens on port 8080 by default
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+
+# This tells Cloud Run to run the FastAPI app inside api.py
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8080"]

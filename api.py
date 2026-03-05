@@ -16,6 +16,7 @@ matplotlib.use('Agg')
 import plotly.graph_objs as go
 import plotly.io as pio
 from google.cloud import storage
+import google.auth
 
 # Module Imports
 from analytics_engine import run_full_analytics_pipeline
@@ -35,20 +36,23 @@ class AnalysisRequest(BaseModel):
 
 
 def upload_report_to_gcs(local_file_path, task_id):
-    # 1. FIX: Changed to match your bucket name in image_3322c5.png
     bucket_name = "terradrishti" 
     client = storage.Client()
     bucket = client.bucket(bucket_name)
-    
-    # 2. MATCH FOLDER STRUCTURE: As seen in image_3322c5.png
     blob = bucket.blob(f"reports/{task_id}.pdf")
     blob.upload_from_filename(local_file_path)
     
-    # 3. GENERATE SIGNED URL: Because public access is prevented
+    # NEW: Get the service account email automatically
+    
+    _, project_id = google.auth.default()
+    service_account_email = f"413500342905-compute@developer.gserviceaccount.com"
+
+    # FIX: Use service_account_email to trigger remote signing
     url = blob.generate_signed_url(
         version="v4",
-        expiration=timedelta(minutes=60), # Valid for 1 hour
-        method="GET"
+        expiration=timedelta(minutes=60),
+        method="GET",
+        service_account_email=service_account_email # This is the key fix
     )
     return url
 

@@ -31,3 +31,5 @@ Pillow
 
 # --- Utilities ---
 python-dateutil
+google-cloud-storage
+google-auth

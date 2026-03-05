@@ -247,9 +247,9 @@ async def get_combined_analysis(request: AnalysisRequest):
             "status": "success",
             "task_id": request.task_id,
             "report_url": report_url, # Now returning a URL instead of a massive Base64 string
-            "satellite_analytics": sat_res,
-            "location_details": request.properties,
-            "map_details": loc_res
+            # "satellite_analytics": sat_res,
+            # "location_details": request.properties,
+            # "map_details": loc_res
         }
     except Exception as e:
         import traceback

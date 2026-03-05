@@ -36,23 +36,28 @@ class AnalysisRequest(BaseModel):
 
 
 def upload_report_to_gcs(local_file_path, task_id):
-    bucket_name = "terradrishti" 
-    client = storage.Client()
+    bucket_name = "terradrishti"
+    
+    # 1. Initialize credentials with the required scope for signing
+    credentials, project_id = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    
+    # 2. Pass these credentials to the client
+    client = storage.Client(credentials=credentials, project=project_id)
+    
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(f"reports/{task_id}.pdf")
     blob.upload_from_filename(local_file_path)
     
-    # NEW: Get the service account email automatically
-    
-    _, project_id = google.auth.default()
-    service_account_email = f"413500342905-compute@developer.gserviceaccount.com"
+    service_account_email = "413500342905-compute@developer.gserviceaccount.com"
 
-    # FIX: Use service_account_email to trigger remote signing
+    # 3. Generate the URL (The library will now call the IAM API remotely)
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(minutes=60),
         method="GET",
-        service_account_email=service_account_email # This is the key fix
+        service_account_email=service_account_email
     )
     return url
 

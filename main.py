@@ -153,28 +153,21 @@ if st.sidebar.button("Run Intelligence Report"):
                 response.raise_for_status()
                 data = response.json() # This will now work!
 
-                # --- 1. DATA EXTRACTION FOR CHARTS ---
-                sat_analytics = data.get("satellite_analytics", {})
-                # ... (Your existing chart/metric code) ...
-
-                # --- 2. PDF DOWNLOAD LOGIC ---
-                pdf_base64 = data.get("pdf_base64")
-                st.markdown("---")
-                st.subheader("📄 Official Intelligence Report")
-
-                if pdf_base64:
-                    # Decode the string back into bytes
-                    pdf_bytes = base64.b64decode(pdf_base64)
+                if data.get("status") == "success":
+                    report_url = data.get("report_url")
                     
-                    st.download_button(
-                        label="📥 Download Full PDF Report",
-                        data=pdf_bytes,
-                        file_name=f"TerraDrishti_{generated_task_id}.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
-                else:
-                    st.warning("PDF data missing from response.")
-
+                    st.markdown("---")
+                    st.subheader("📄 Official Intelligence Report")
+                    
+                    if report_url:
+                        # Option 1: Direct link (Opens in new tab)
+                        st.link_button("📥 View & Download Full PDF Report", report_url, use_container_width=True)
+                        
+                        # Option 2: Embed PDF in a secure iframe (Optional)
+                        st.info("Report is hosted securely on Google Cloud Storage.")
+                    else:
+                        st.warning("Analysis complete, but report URL could not be generated.")
+                duration = datetime.now() - start_time_dt
+                st.info(f"⚡ Analysis & Report Transfer completed in {duration.total_seconds():.2f} seconds")
             except Exception as e:
                 st.error(f"UI Error: {e}")

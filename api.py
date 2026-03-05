@@ -1,10 +1,11 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 import uvicorn
-from datetime import datetime
+from datetime import datetime, timedelta
 from location import get_static_map_b64
 import matplotlib.pyplot as plt
 import io
@@ -14,7 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 import plotly.graph_objs as go
 import plotly.io as pio
-from fastapi.responses import FileResponse
+from google.cloud import storage
 
 # Module Imports
 from analytics_engine import run_full_analytics_pipeline
@@ -24,6 +25,7 @@ from pdf_generator import generate_intelligence_report # Your new module
 
 app = FastAPI(title="TerraDrishti 3-Branch Parallel Engine")
 executor = ThreadPoolExecutor(max_workers=20)
+BUCKET_NAME = "terradrishti"
 
 class AnalysisRequest(BaseModel):
     task_id: str
@@ -31,6 +33,27 @@ class AnalysisRequest(BaseModel):
     end_date: str
     properties: dict = {}
 
+
+def upload_to_gcs_and_get_url(local_path, task_id):
+    """Uploads PDF to GCS and generates a secure Signed URL."""
+    try:
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob(f"reports/{task_id}.pdf")
+        
+        # Upload
+        blob.upload_from_filename(local_path)
+        
+        # Generate Signed URL (valid for 60 minutes)
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(minutes=60),
+            method="GET"
+        )
+        return url
+    except Exception as e:
+        print(f"GCS Upload Error: {e}")
+        return None
 # --- WORKERS (Same as before) ---
 def satellite_worker(task_id, coords, end_date):
     return run_full_analytics_pipeline(task_id, coords, end_date)
@@ -196,21 +219,22 @@ async def get_combined_analysis(request: AnalysisRequest):
 
         # 3. TRIGGER PDF GENERATION (In-Memory / Buffer Flow)
         # This happens on the backend before the response is sent
-        pdf_path = await generate_intelligence_report(full_data)
+        local_pdf_path = await generate_intelligence_report(full_data)
 
-        # 4. RETURN RESPONSE WITH PDF PATH
-        with open(pdf_path, "rb") as pdf_file:
-            encoded_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
+        report_url = upload_to_gcs_and_get_url(local_pdf_path, request.task_id)
+
+        # 4. CLEANUP LOCAL FILE (Save Disk Space)
+        if os.path.exists(local_pdf_path):
+            os.remove(local_pdf_path)
 
         return {
             "status": "success",
             "task_id": request.task_id,
-            "pdf_base64": encoded_pdf,  # The file is now inside this string
+            "report_url": report_url, # Now returning a URL instead of a massive Base64 string
             "satellite_analytics": sat_res,
-            "location_details": loc_res,
-            "map_details": weather_res # or loc_res depending on your structure
+            "location_details": request.properties,
+            "map_details": loc_res
         }
-
     except Exception as e:
         import traceback
         print(traceback.format_exc())

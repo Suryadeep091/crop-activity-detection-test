@@ -25,7 +25,7 @@ from pdf_generator import generate_intelligence_report # Your new module
 
 app = FastAPI(title="TerraDrishti 3-Branch Parallel Engine")
 executor = ThreadPoolExecutor(max_workers=20)
-BUCKET_NAME = "terradrishti"
+
 
 class AnalysisRequest(BaseModel):
     task_id: str
@@ -34,26 +34,24 @@ class AnalysisRequest(BaseModel):
     properties: dict = {}
 
 
-def upload_to_gcs_and_get_url(local_path, task_id):
-    """Uploads PDF to GCS and generates a secure Signed URL."""
-    try:
-        client = storage.Client()
-        bucket = client.bucket(BUCKET_NAME)
-        blob = bucket.blob(f"reports/{task_id}.pdf")
-        
-        # Upload
-        blob.upload_from_filename(local_path)
-        
-        # Generate Signed URL (valid for 60 minutes)
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=timedelta(minutes=60),
-            method="GET"
-        )
-        return url
-    except Exception as e:
-        print(f"GCS Upload Error: {e}")
-        return None
+def upload_report_to_gcs(local_file_path, task_id):
+    # 1. FIX: Changed to match your bucket name in image_3322c5.png
+    bucket_name = "terradrishti" 
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    
+    # 2. MATCH FOLDER STRUCTURE: As seen in image_3322c5.png
+    blob = bucket.blob(f"reports/{task_id}.pdf")
+    blob.upload_from_filename(local_file_path)
+    
+    # 3. GENERATE SIGNED URL: Because public access is prevented
+    url = blob.generate_signed_url(
+        version="v4",
+        expiration=timedelta(minutes=60), # Valid for 1 hour
+        method="GET"
+    )
+    return url
+
 # --- WORKERS (Same as before) ---
 def satellite_worker(task_id, coords, end_date):
     return run_full_analytics_pipeline(task_id, coords, end_date)
@@ -221,7 +219,7 @@ async def get_combined_analysis(request: AnalysisRequest):
         # This happens on the backend before the response is sent
         local_pdf_path = await generate_intelligence_report(full_data)
 
-        report_url = upload_to_gcs_and_get_url(local_pdf_path, request.task_id)
+        report_url = upload_report_to_gcs(local_pdf_path, request.task_id)
 
         # 4. CLEANUP LOCAL FILE (Save Disk Space)
         if os.path.exists(local_pdf_path):
@@ -231,9 +229,9 @@ async def get_combined_analysis(request: AnalysisRequest):
             "status": "success",
             "task_id": request.task_id,
             "report_url": report_url, # Now returning a URL instead of a massive Base64 string
-            "satellite_analytics": sat_res,
-            "location_details": request.properties,
-            "map_details": loc_res
+            # "satellite_analytics": sat_res,
+            # "location_details": request.properties,
+            # "map_details": loc_res
         }
     except Exception as e:
         import traceback

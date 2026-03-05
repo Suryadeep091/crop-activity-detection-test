@@ -155,7 +155,7 @@ if st.sidebar.button("Run Intelligence Report"):
 
                 if data.get("status") == "success":
                     report_url = data.get("report_url")
-                    
+                    st.header(report_url)
                     st.markdown("---")
                     st.subheader("📄 Official Intelligence Report")
                     

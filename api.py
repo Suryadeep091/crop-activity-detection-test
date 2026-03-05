@@ -34,6 +34,7 @@ executor = ThreadPoolExecutor(max_workers=20)
 # Load CSV once at startup for speed
 try:
     df_khasra = pd.read_csv("Telangana_Tehsil_Master.csv")
+    print(f"DEBUG: Loaded {len(df_khasra)} rows from CSV.")
 except Exception as e:
     print(f"CRITICAL: Could not load CSV: {e}")
 
@@ -232,15 +233,18 @@ async def get_analysis_by_khasra(request: KhasraRequest):
     
     # 1. Lookup GUID in the local CSV
     match = df_khasra[
-        (df_khasra['state'].str.lower() == request.state.lower()) &
-        (df_khasra['khasra_no'].astype(str) == str(request.khasra_no)) &
-        (df_khasra['district'].str.lower() == request.district.lower()) &
-        (df_khasra['tehsil'].str.lower() == request.tehsil.lower()) &
-        (df_khasra['village'].str.lower() == request.village.lower())
+        (df_khasra['state'].str.lower().str.strip() == request.state.lower().strip()) &
+        (df_khasra['district'].str.lower().str.strip() == request.district.lower().strip()) &
+        (df_khasra['village'].str.lower().str.strip() == request.village.lower().strip()) &
+        (df_khasra['khasra_no'].astype(str).str.strip() == str(request.khasra_no).strip())
     ]
     
     if match.empty:
-        raise HTTPException(status_code=404, detail=f"Khasra {request.khasra_no} not found.")
+        # Provide a descriptive error instead of a generic 500
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Khasra {request.khasra_no} not found for {request.village}, {request.district}."
+        )
     
     guid = match.iloc[0]['guid']
     

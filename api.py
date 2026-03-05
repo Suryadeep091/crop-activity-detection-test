@@ -1,42 +1,59 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import os
+import io
+import base64
+import requests
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+import plotly.graph_objs as go
+import plotly.io as pio
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-import uvicorn
 from datetime import datetime, timedelta
-from location import get_static_map_b64
-import matplotlib.pyplot as plt
-import io
-import base64
-import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import plotly.graph_objs as go
-import plotly.io as pio
 from google.auth import impersonated_credentials
 from google.cloud import storage
 import google.auth
 
-# Module Imports
+# Module Imports (Ensure these files are in your deployment directory)
 from analytics_engine import run_full_analytics_pipeline
 from data_loader import get_centroid_location, get_places_info
 from rain_temp import get_one_year_weather_data, get_five_year_weather_data
-from pdf_generator import generate_intelligence_report # Your new module
+from pdf_generator import generate_intelligence_report 
+from location import get_static_map_b64
 
-app = FastAPI(title="TerraDrishti 3-Branch Parallel Engine")
+# Configuration
+matplotlib.use('Agg')
+app = FastAPI(title="TerraDrishti Unified Khasra Engine")
 executor = ThreadPoolExecutor(max_workers=20)
 
+# --- DATA LOADING ---
+# Load CSV once at startup for speed
+try:
+    df_khasra = pd.read_csv("Telangana_Tehsil_Master.csv")
+except Exception as e:
+    print(f"CRITICAL: Could not load CSV: {e}")
 
-class AnalysisRequest(BaseModel):
-    task_id: str
-    coords: List[List[float]]
-    end_date: str
-    properties: dict = {}
+class KhasraRequest(BaseModel):
+    state: str
+    district: str
+    tehsil: str
+    village: str
+    khasra_no: str
+    end_date: str = datetime.now().strftime("%Y-%m-%d")
 
+# --- CORE UTILITIES ---
 
-
+def fetch_parcel_geojson(guid, state):
+    """Fetches geometry and properties from the external Quantasip API."""
+    salt_key = "PAe17K1Rvfeij21TQPlq"
+    url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
+    response = requests.get(url, timeout=15)
+    response.raise_for_status()
+    return response.json()
 
 def upload_report_to_gcs(local_file_path, task_id):
     bucket_name = "terradrishti"
@@ -205,56 +222,84 @@ def weather_worker(coords, end_date):
         "temp_5y_b64": temp_5y
     }
 
-@app.post("/analyze/summary")
-async def get_combined_analysis(request: AnalysisRequest):
+
+# --- UNIFIED ENDPOINT ---
+
+@app.post("/analyze/khasra")
+async def get_analysis_by_khasra(request: KhasraRequest):
+    """The master endpoint: Lookup -> Fetch -> Analyze -> Report."""
     loop = asyncio.get_event_loop()
     
+    # 1. Lookup GUID in the local CSV
+    match = df_khasra[
+        (df_khasra['state'].str.lower() == request.state.lower()) &
+        (df_khasra['khasra_no'].astype(str) == str(request.khasra_no))
+    ]
+    
+    if match.empty:
+        raise HTTPException(status_code=404, detail=f"Khasra {request.khasra_no} not found.")
+    
+    guid = match.iloc[0]['guid']
+    
+    # 2. Fetch Live Geometry and Properties
     try:
-        # 1. TRIGGER TRIPLE CONCURRENCY FOR DATA GATHERING
-        b1 = loop.run_in_executor(executor, satellite_worker, request.task_id, request.coords, request.end_date)
-        b2 = loop.run_in_executor(executor, location_worker, request.task_id, request.coords)
-        b3 = loop.run_in_executor(executor, weather_worker, request.coords, request.end_date)
+        geo_data = fetch_parcel_geojson(guid, request.state)
+        feature = geo_data["features"][0]
+        coords = feature["geometry"]["coordinates"]
+        properties = feature.get("properties", {})
+        
+        # Robust unnesting of coordinates
+        while isinstance(coords[0][0], list):
+            coords = coords[0]
+        if coords[0] != coords[-1]:
+            coords.append(coords[0])
+            
+        task_id = f"KH_{request.khasra_no}_{datetime.now().strftime('%Y%m%d_%H%M')}"
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Geometry Fetch Error: {str(e)}")
 
-        # Wait for data processing to finish
+    # 3. Parallel Analytics Execution
+    try:
+        b1 = loop.run_in_executor(executor, satellite_worker, task_id, coords, request.end_date)
+        b2 = loop.run_in_executor(executor, location_worker, task_id, coords)
+        b3 = loop.run_in_executor(executor, weather_worker, coords, request.end_date)
+
         sat_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
 
         if not sat_res:
-            raise HTTPException(status_code=500, detail="Satellite Analytics branch returned no data.")
+            raise HTTPException(status_code=500, detail="Satellite branch failed.")
 
-        # 2. CONSTRUCT FINAL DATA OBJECT
+        # 4. Generate & Secure the Report
         full_data = {
-            "task_id": request.task_id,
+            "task_id": task_id,
             "satellite_analytics": sat_res,
-            "location_details": request.properties,
+            "location_details": properties, # Using fetched live properties
             "map_details": loc_res,
             "weather_data": weather_res,
-            "metadata": {
-                "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
-            }
+            "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
 
-        # 3. TRIGGER PDF GENERATION (In-Memory / Buffer Flow)
-        # This happens on the backend before the response is sent
         local_pdf_path = await generate_intelligence_report(full_data)
+        report_url = upload_report_to_gcs(local_pdf_path, task_id)
 
-        report_url = upload_report_to_gcs(local_pdf_path, request.task_id)
-
-        # 4. CLEANUP LOCAL FILE (Save Disk Space)
+        # Cleanup
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
         return {
             "status": "success",
-            "task_id": request.task_id,
-            "report_url": report_url, # Now returning a URL instead of a massive Base64 string
-            # "satellite_analytics": sat_res,
-            # "location_details": request.properties,
-            # "map_details": loc_res
+            "task_id": task_id,
+            "report_url": report_url,
+            "village": properties.get("Village"),
+            "district": properties.get("District")
         }
+
     except Exception as e:
         import traceback
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Pipeline Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pipeline Crash: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Use environment PORT for Cloud Run compatibility
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

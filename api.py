@@ -233,7 +233,10 @@ async def get_analysis_by_khasra(request: KhasraRequest):
     # 1. Lookup GUID in the local CSV
     match = df_khasra[
         (df_khasra['state'].str.lower() == request.state.lower()) &
-        (df_khasra['khasra_no'].astype(str) == str(request.khasra_no))
+        (df_khasra['khasra_no'].astype(str) == str(request.khasra_no)) &
+        (df_khasra['district'].str.lower() == request.district.lower()) &
+        (df_khasra['tehsil'].str.lower() == request.tehsil.lower()) &
+        (df_khasra['village'].str.lower() == request.village.lower())
     ]
     
     if match.empty:

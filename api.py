@@ -15,6 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 import plotly.graph_objs as go
 import plotly.io as pio
+from google.auth import impersonated_credentials
 from google.cloud import storage
 import google.auth
 
@@ -35,29 +36,37 @@ class AnalysisRequest(BaseModel):
     properties: dict = {}
 
 
+
+
 def upload_report_to_gcs(local_file_path, task_id):
     bucket_name = "terradrishti"
     
-    # 1. Initialize credentials with the required scope for signing
-    credentials, project_id = google.auth.default(
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    # 1. Get the base default credentials
+    source_creds, project_id = google.auth.default()
+    
+    # 2. Create impersonated credentials specifically for signing
+    # This uses the "Token Creator" role you already granted
+    target_principal = "413500342905-compute@developer.gserviceaccount.com"
+    creds = impersonated_credentials.Credentials(
+        source_credentials=source_creds,
+        target_principal=target_principal,
+        target_scopes=["https://www.googleapis.com/auth/devstorage.read_write"],
+        lifetime=3600
     )
     
-    # 2. Pass these credentials to the client
-    client = storage.Client(credentials=credentials, project=project_id)
+    # 3. Use these special credentials for the storage client
+    client = storage.Client(credentials=creds, project=project_id)
     
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(f"reports/{task_id}.pdf")
     blob.upload_from_filename(local_file_path)
     
-    service_account_email = "413500342905-compute@developer.gserviceaccount.com"
-
-    # 3. Generate the URL (The library will now call the IAM API remotely)
+    # 4. Generate the URL
+    # Because 'creds' now has signing capabilities, this will work
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(minutes=60),
-        method="GET",
-        service_account_email=service_account_email
+        method="GET"
     )
     return url
 

@@ -149,8 +149,13 @@ if st.sidebar.button("Run Intelligence Report"):
         
         with st.spinner("Executing Parallel Intelligence Pipeline..."):
             try:
-                response = requests.post("https://terradristi-crop-activity-413500342905.asia-south1.run.app/analyze/summary", json=payload)
+                response = requests.post(
+                    "https://terradristi-crop-activity-413500342905.asia-south1.run.app/analyze/summary", 
+                    json=payload,
+                    timeout=(10, 120) # 10s to connect, 120s to wait for the PDF
+                )
                 response.raise_for_status()
+              
                 data = response.json() # This will now work!
 
                 if data.get("status") == "success":

@@ -33,7 +33,7 @@ executor = ThreadPoolExecutor(max_workers=20)
 # --- DATA LOADING ---
 # Load CSV once at startup for speed
 try:
-    df_khasra = pd.read_csv("Telangana_Tehsil_master.csv")
+    df_khasra = pd.read_csv("Andhra Pradesh_Tehsil_master.csv")
     print(f"DEBUG: Loaded {len(df_khasra)} rows from CSV.")
 except Exception as e:
     print(f"CRITICAL: Could not load CSV: {e}")
@@ -50,6 +50,7 @@ class KhasraRequest(BaseModel):
 
 def fetch_parcel_geojson(guid, state):
     salt_key = "PAe17K1Rvfeij21TQPlq"
+   
     url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
     try:
         response = requests.get(url, timeout=15)

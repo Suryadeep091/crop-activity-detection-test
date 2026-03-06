@@ -33,7 +33,7 @@ executor = ThreadPoolExecutor(max_workers=20)
 # --- DATA LOADING ---
 # Load CSV once at startup for speed
 try:
-    df_khasra = pd.read_csv("Telangana_Tehsil_Master.csv")
+    df_khasra = pd.read_csv("Telangana_Tehsil_master.csv")
     print(f"DEBUG: Loaded {len(df_khasra)} rows from CSV.")
 except Exception as e:
     print(f"CRITICAL: Could not load CSV: {e}")

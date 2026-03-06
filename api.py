@@ -49,12 +49,21 @@ class KhasraRequest(BaseModel):
 # --- CORE UTILITIES ---
 
 def fetch_parcel_geojson(guid, state):
-    """Fetches geometry and properties from the external Quantasip API."""
     salt_key = "PAe17K1Rvfeij21TQPlq"
     url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
-    response = requests.get(url, timeout=15)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(url, timeout=15)
+        if response.status_code == 500:
+             # Custom log for your Cloud Run console
+             print(f"EXTERNAL API CRASH for GUID: {guid}") 
+             return None
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Network Error: {e}")
+        return None
+
+
 
 def upload_report_to_gcs(local_file_path, task_id):
     bucket_name = "terradrishti"
@@ -250,7 +259,13 @@ async def get_analysis_by_khasra(request: KhasraRequest):
     
     # 2. Fetch Live Geometry and Properties
     try:
+        # Inside get_analysis_by_khasra:
         geo_data = fetch_parcel_geojson(guid, request.state)
+        if not geo_data:
+            raise HTTPException(
+                status_code=502, # Bad Gateway: The upstream server failed
+                detail=f"The external geometry service is currently unavailable for Khasra {request.khasra_no}."
+            )
         feature = geo_data["features"][0]
         properties = feature.get("properties", {})
         geometry = feature.get("geometry", {})

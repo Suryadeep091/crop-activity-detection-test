@@ -252,13 +252,27 @@ async def get_analysis_by_khasra(request: KhasraRequest):
     try:
         geo_data = fetch_parcel_geojson(guid, request.state)
         feature = geo_data["features"][0]
-        coords = feature["geometry"]["coordinates"]
         properties = feature.get("properties", {})
+        geometry = feature.get("geometry", {})
+        raw_coords = geometry.get("coordinates", [])
         
         # Robust unnesting of coordinates
-        while isinstance(coords[0][0], list):
-            coords = coords[0]
-        if coords[0] != coords[-1]:
+        coords = None
+                
+        # The API response shows coordinates as a list of [lon, lat] pairs directly.
+        # Check if the first element is a list (a coordinate pair)
+        if isinstance(raw_coords[0], list):
+            # If it's [ [lon, lat], ... ]
+            if isinstance(raw_coords[0][0], (int, float)):
+                coords = raw_coords
+            # If it's [ [ [lon, lat], ... ] ]
+            elif isinstance(raw_coords[0][0], list):
+                coords = raw_coords[0]
+                # Handle deeper nesting if it's MultiPolygon [[[[lon, lat]]]]
+                if isinstance(coords[0][0], list):
+                    coords = coords[0]
+
+        if coords and coords[0] != coords[-1]:
             coords.append(coords[0])
             
         task_id = f"KH_{request.khasra_no}_{datetime.now().strftime('%Y%m%d_%H%M')}"

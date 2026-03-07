@@ -366,8 +366,8 @@
         </div>
         <div class="sub-header">Smart Agriculture Monitoring Dashboard</div>
         
-        <div class="verdict-banner {{ 'bg-green' if satellite.summary.crops.percent > 20 else 'bg-red' }}">
-            Verdict: {{ 'Agri activity detected' if satellite.summary.crops.percent > 20 else 'Low Agri activity detected' }}
+        <div class="verdict-banner {{ 'bg-green' if satellite.land use/ land cover details.crops.percent > 20 else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if satellite.land use/ land cover details.crops.percent > 20 else 'Low Agri activity detected' }}
         </div>
 
         <div class="section-banner">Land Parcel Under Analysis</div>
@@ -434,7 +434,7 @@ indicates how many times each type was detected.
                     <tr><th>Land Cover Type</th><th style="width: 50%;">Occurrence Trend</th><th>Share (%)</th></tr>
                 </thead>
                 <tbody>
-                    {% for land_type, data in satellite.summary.items() if land_type not in ['crop_intensity', '_warning'] %}
+                    {% for land_type, data in satellite.land use/ land cover details.items() if land_type not in ['crop_intensity', '_warning'] %}
                     <tr>
                         <td class="label-cell">{{ land_type.replace('_', ' ').title() }}</td>
                         <td>
@@ -459,12 +459,12 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                 <div class="stats-column">
                     <div class="stat-card active-border">
                         <div class="stat-title">Instances of Active Cropping</div>
-                        <div class="stat-value active-text">{{ satellite.prediction_stats.crop_days }}</div>
+                        <div class="stat-value active-text">{{ satellite.crop_activity_prediction_stats.crop_days }}</div>
                         <div class="stat-subtext">Periods under cultivation</div>
                     </div>
                     <div class="stat-card inactive-border">
                         <div class="stat-title">Instances of Fallow/Inactive Land</div>
-                        <div class="stat-value inactive-text">{{ satellite.prediction_stats.total - satellite.prediction_stats.crop_days }}</div>
+                        <div class="stat-value inactive-text">{{ satellite.crop_activity_prediction_stats.total - satellite.crop_activity_prediction_stats.crop_days }}</div>
                         <div class="stat-subtext">Non-cropping periods</div>
                     </div>
                 </div>
@@ -473,7 +473,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                     <h3 style="margin:0; color:#475569; font-size: 16px; letter-spacing: 0.5px;">ANNUAL CROP ACTIVITY</h3>
                     
                     <div class="percentage-display">
-                        {% set active_p = (satellite.prediction_stats.crop_days / satellite.prediction_stats.total * 100) | round(2) %}
+                        {% set active_p = (satellite.crop_activity_prediction_stats.crop_days / satellite.crop_activity_prediction_stats.total * 100) | round(2) %}
                         {{ active_p }}%
                     </div>
 
@@ -536,7 +536,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in satellite.peak_analysis %}
+                            {% for item in satellite.vegetation_peak_analysis %}
                             {% set note_color = '#27ae60' if 'Very' in item.note else '#f39c12' if 'Moderately' in item.note else '#e74c3c' %}
                             <tr>
                                 <td><strong>{{ item.index }}</strong></td>
@@ -580,7 +580,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for land_type, data in satellite.summary.items() if land_type not in ['crop_intensity', '_warning'] %}
+                                {% for land_type, data in satellite.land use/ land cover details.items() if land_type not in ['crop_intensity', '_warning'] %}
                                 <tr>
                                     <td><strong>{{ land_type.replace('_', ' ').title() }}</strong></td>
                                     <td>{{ data.count }}</td>
@@ -657,7 +657,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
             </tr>
         </thead>
         <tbody>
-            {% for row in satellite.predictions_list %}
+            {% for row in satellite.crop_activity_predictions_list %}
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ row.date_str }}</td>

@@ -327,8 +327,9 @@ async def get_analysis_by_khasra(request: KhasraRequest):
             "status": "success",
             "task_id": task_id,
             "report_url": report_url,
-            "village": properties.get("Village"),
-            "district": properties.get("District")
+            "satellite_analytics": sat_res,
+            "map_details": loc_res,
+            "weather_data": weather_res,
         }
 
     except Exception as e:

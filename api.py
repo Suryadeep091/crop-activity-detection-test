@@ -66,14 +66,11 @@ def fetch_parcel_geojson(guid, state):
 
 
 
-def upload_report_to_gcs(local_file_path, task_id):
+def upload_private_to_gcs(data, destination_blob_name, content_type, is_file=False):
     bucket_name = "terradrishti"
-    
-    # 1. Get the base default credentials
     source_creds, project_id = google.auth.default()
     
-    # 2. Create impersonated credentials specifically for signing
-    # This uses the "Token Creator" role you already granted
+    # Impersonation for V4 Signing
     target_principal = "413500342905-compute@developer.gserviceaccount.com"
     creds = impersonated_credentials.Credentials(
         source_credentials=source_creds,
@@ -82,21 +79,21 @@ def upload_report_to_gcs(local_file_path, task_id):
         lifetime=3600
     )
     
-    # 3. Use these special credentials for the storage client
     client = storage.Client(credentials=creds, project=project_id)
-    
     bucket = client.bucket(bucket_name)
-    blob = bucket.blob(f"reports/{task_id}.pdf")
-    blob.upload_from_filename(local_file_path)
+    blob = bucket.blob(destination_blob_name)
     
-    # 4. Generate the URL
-    # Because 'creds' now has signing capabilities, this will work
-    url = blob.generate_signed_url(
+    if is_file:
+        blob.upload_from_filename(data, content_type=content_type)
+    else:
+        blob.upload_from_string(data, content_type=content_type)
+    
+    # 7-Day Private Link
+    return blob.generate_signed_url(
         version="v4",
-        expiration=timedelta(minutes=60),
+        expiration=timedelta(days=7),
         method="GET"
     )
-    return url
 
 # --- WORKERS (Same as before) ---
 def satellite_worker(task_id, coords, end_date):
@@ -317,19 +314,47 @@ async def get_analysis_by_khasra(request: KhasraRequest):
         }
 
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_report_to_gcs(local_pdf_path, task_id)
 
         # Cleanup
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
+        # --- Inside /analyze/khasra endpoint ---
+
+        # 1. Process the Map Image
+        map_b64 = loc_res.pop("map_image_b64", None) # Remove Base64 to keep response clean
+        map_url = None
+
+        if map_b64:
+            map_bytes = base64.b64decode(map_b64)
+            map_url = upload_private_to_gcs(
+                data=map_bytes, 
+                destination_blob_name=f"maps/{task_id}.png", 
+                content_type="image/png"
+            )
+
+        # 2. Process the PDF Report
+        report_url = upload_private_to_gcs(
+            data=local_pdf_path, 
+            destination_blob_name=f"reports/{task_id}.pdf", 
+            content_type="application/pdf", 
+            is_file=True
+        )
+
+        # 3. Final Combined Return
         return {
             "status": "success",
             "task_id": task_id,
             "report_url": report_url,
+            "map_url": map_url,
+            "location_details": loc_res, # Contains Address, Water Sources, etc.
             "satellite_analytics": sat_res,
-            "map_details": loc_res,
             "weather_data": weather_res,
+            "metadata": {
+                "village": properties.get("Village"),
+                "district": properties.get("District"),
+                "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
+            }
         }
 
     except Exception as e:

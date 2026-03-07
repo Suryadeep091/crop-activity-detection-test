@@ -489,6 +489,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 "dw_b64": dw_base64,
                 "activity_b64": activity_base64
             },
+            "metadata": {
+                "coords": coords 
+            }
         }
     except Exception as e:
             print(f"Engine Error: {e}")

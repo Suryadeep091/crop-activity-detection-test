@@ -310,7 +310,7 @@ async def get_analysis_by_khasra(request: KhasraRequest):
         full_data = {
             "task_id": task_id,
             "satellite_analytics": sat_res,
-            "location_details": properties, # Using fetched live properties
+            "location_details": properties, 
             "map_details": loc_res,
             "weather_data": weather_res,
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
@@ -340,8 +340,8 @@ async def get_analysis_by_khasra(request: KhasraRequest):
             content_type="application/pdf", 
             is_file=True
         )
-        sat_data = sat_res.pop("images", None) 
-        # Cleanup~
+        sat_res.pop("images", None) 
+       
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
@@ -352,8 +352,8 @@ async def get_analysis_by_khasra(request: KhasraRequest):
             "report_time": datetime.now().strftime("%d %b %Y, %I:%M %p"),
             "report_url": report_url,
             "map_url": map_url,
-            "location_details": loc_res, # Contains Address, Water Sources, etc.
-            "satellite_analytics": sat_data,
+            "location_details": loc_res, 
+            "satellite_analytics": sat_res,
             "daily_weather": weather_res.get("daily_weather_data"),
             "monthly_weather": weather_res.get("monthly_weather_data"),
         }

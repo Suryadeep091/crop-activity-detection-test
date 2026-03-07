@@ -366,8 +366,8 @@
         </div>
         <div class="sub-header">Smart Agriculture Monitoring Dashboard</div>
         
-        <div class="verdict-banner {{ 'bg-green' if satellite.land use/ land cover details.crops.percent > 20 else 'bg-red' }}">
-            Verdict: {{ 'Agri activity detected' if satellite.land use/ land cover details.crops.percent > 20 else 'Low Agri activity detected' }}
+        <div class="verdict-banner {{ 'bg-green' if satellite['land use/ land cover details']['crops']['percent'] > 20 else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if satellite['land use/ land cover details']['crops']['percent'] > 20 else 'Low Agri activity detected' }}
         </div>
 
         <div class="section-banner">Land Parcel Under Analysis</div>
@@ -434,7 +434,7 @@ indicates how many times each type was detected.
                     <tr><th>Land Cover Type</th><th style="width: 50%;">Occurrence Trend</th><th>Share (%)</th></tr>
                 </thead>
                 <tbody>
-                    {% for land_type, data in satellite.land use/ land cover details.items() if land_type not in ['crop_intensity', '_warning'] %}
+                    {% for land_type, data in satellite['land use/ land cover details'].items() if land_type not in ['crop_intensity', '_warning'] %}
                     <tr>
                         <td class="label-cell">{{ land_type.replace('_', ' ').title() }}</td>
                         <td>
@@ -580,7 +580,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for land_type, data in satellite.land use/ land cover details.items() if land_type not in ['crop_intensity', '_warning'] %}
+                                {% for land_type, data in satellite['land use/ land cover details'].items() if land_type not in ['crop_intensity', '_warning'] %}
                                 <tr>
                                     <td><strong>{{ land_type.replace('_', ' ').title() }}</strong></td>
                                     <td>{{ data.count }}</td>

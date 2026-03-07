@@ -315,10 +315,6 @@ async def get_analysis_by_khasra(request: KhasraRequest):
 
         local_pdf_path = await generate_intelligence_report(full_data)
 
-        # Cleanup
-        if os.path.exists(local_pdf_path):
-            os.remove(local_pdf_path)
-
         # --- Inside /analyze/khasra endpoint ---
 
         # 1. Process the Map Image
@@ -340,6 +336,10 @@ async def get_analysis_by_khasra(request: KhasraRequest):
             content_type="application/pdf", 
             is_file=True
         )
+
+        # Cleanup~
+        if os.path.exists(local_pdf_path):
+            os.remove(local_pdf_path)
 
         # 3. Final Combined Return
         return {

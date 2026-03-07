@@ -116,6 +116,7 @@ def location_worker(task_id, coords):
     
     # 4. Return combined dictionary
     location_details["map_image_b64"] = map_b64
+    location_details["coordinates"] = [{"lat": lat, "lon": lon} for lon, lat in coords] # Convert back to lat/lon dicts
     return location_details
 
 def fig_to_base64(fig, is_plotly=False):
@@ -227,7 +228,9 @@ def weather_worker(coords, end_date):
         "rain_1y_b64": rain_1y,
         "temp_1y_b64": temp_1y,
         "rain_5y_b64": rain_5y,
-        "temp_5y_b64": temp_5y
+        "temp_5y_b64": temp_5y,
+        "daily_weather_data": df_daily.to_dict(orient="records"),
+        "monthly_weather_data": df_monthly.to_dict(orient="records")
     }
 
 
@@ -318,7 +321,8 @@ async def get_analysis_by_khasra(request: KhasraRequest):
         # --- Inside /analyze/khasra endpoint ---
 
         # 1. Process the Map Image
-        map_b64 = loc_res.pop("map_image_b64", None) # Remove Base64 to keep response clean
+        map_b64 = loc_res.pop("map_image_b64", None) 
+        
         map_url = None
 
         if map_b64:
@@ -336,7 +340,7 @@ async def get_analysis_by_khasra(request: KhasraRequest):
             content_type="application/pdf", 
             is_file=True
         )
-
+        sat_data = sat_res.pop("images", None) 
         # Cleanup~
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
@@ -345,16 +349,13 @@ async def get_analysis_by_khasra(request: KhasraRequest):
         return {
             "status": "success",
             "task_id": task_id,
+            "report_time": datetime.now().strftime("%d %b %Y, %I:%M %p"),
             "report_url": report_url,
             "map_url": map_url,
             "location_details": loc_res, # Contains Address, Water Sources, etc.
-            "satellite_analytics": sat_res,
-            "weather_data": weather_res,
-            "metadata": {
-                "village": properties.get("Village"),
-                "district": properties.get("District"),
-                "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
-            }
+            "satellite_analytics": sat_data,
+            "daily_weather": weather_res.get("daily_weather_data"),
+            "monthly_weather": weather_res.get("monthly_weather_data"),
         }
 
     except Exception as e:

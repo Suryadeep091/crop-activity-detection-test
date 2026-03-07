@@ -459,26 +459,36 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         print(seasonal_summary)
 
+        indices_data = dataset_df[['date', 'NDVI', 'EVI', 'RVI']].copy()
+        indices_data['date'] = indices_data['date'].dt.strftime('%Y-%m-%d')
+        # Convert to list of dicts: [{'date': '2025-01-01', 'NDVI': 0.45, ...}, ...]
+        indices_raw_list = indices_data.to_dict(orient="records")
+
+        # 2. Prepare Dynamic World (DW) Raw Data
+        dw_raw_export = df_dw_raw.copy()
+        dw_raw_export['date'] = pd.to_datetime(dw_raw_export['date']).dt.strftime('%Y-%m-%d')
+        dw_raw_list = dw_raw_export.to_dict(orient="records")
+
         # --- UPDATED RETURN STATEMENT ---
         return {
-            "summary": summary_dict,
-            "peak_analysis": peak_data,        # Added peak data
+            "land use/ land cover details": summary_dict,
+            "vegetation_peak_analysis": peak_data,        # Added peak data
             "missing_data": missing_periods,
             "seasonal_activity": seasonal_summary,
-            "predictions_list": predictions_list,
-            "prediction_stats": {
+            "crop_activity_predictions_list": predictions_list,
+            "crop_activity_prediction_stats": {
                 "total": len(predictions),
                 "crop_days": int(sum(activity_binary))
+            },
+            "timeseries_data": {
+                "vegetation_indices": indices_raw_list, # NDVI, EVI, RVI points
+                "land_cover_probs": dw_raw_list         # Dynamic World probability points
             },
             "images": {
                 "ndvi_b64": ndvi_base64,
                 "dw_b64": dw_base64,
                 "activity_b64": activity_base64
             },
-            # THIS IS THE MISSING PIECE
-            "metadata": {
-                "coords": coords 
-            }
         }
     except Exception as e:
             print(f"Engine Error: {e}")

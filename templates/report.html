@@ -400,7 +400,7 @@
 
     {% for key, value in location.items() %}
         {# Filter: Skip images, coords, lat/lon, and district/state (already shown elsewhere) #}
-        {% set skip_keys = ['declared_crop', 'state_district', 'nearest_railway_station', 'map_image_b64', 'latitude', 'longitude', 'coords', 'coordinates'] %}
+        {% set skip_keys = ['city','road','postcode','declared_crop', 'state_district', 'nearest_railway_station', 'map_image_b64', 'latitude', 'longitude', 'coords', 'coordinates'] %}
         
         {% if key.lower() not in skip_keys and value and value != 'N/A' %}
         <tr>

@@ -6,6 +6,22 @@ import numpy as np
 from collections import defaultdict
 from functools import reduce
 import scipy.signal
+import google.auth
+
+try:
+    # Use the default service account credentials provided by Cloud Run
+    source_creds, project_id = google.auth.default()
+    
+    # Initialize Earth Engine with the credentials
+    ee.Initialize(
+        source_creds, 
+        project=project_id, 
+        opt_url='https://earthengine-highvolume.googleapis.com' # Best for APIs
+    )
+    print("DEBUG: Earth Engine initialized successfully.")
+except Exception as e:
+    print(f"CRITICAL: Earth Engine failed to initialize: {e}")
+
 
 def initialize_ee():
     try:

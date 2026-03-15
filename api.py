@@ -54,21 +54,21 @@ def parse_kml_string(kml_str: str):
     return coords
 # --- CORE UTILITIES ---
 
-def fetch_parcel_geojson(guid, state):
-    salt_key = "PAe17K1Rvfeij21TQPlq"
+# def fetch_parcel_geojson(guid, state):
+#     salt_key = "PAe17K1Rvfeij21TQPlq"
    
-    url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
-    try:
-        response = requests.get(url, timeout=15)
-        if response.status_code == 500:
-             # Custom log for your Cloud Run console
-             print(f"EXTERNAL API CRASH for GUID: {guid}") 
-             return None
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"Network Error: {e}")
-        return None
+#     url = f"https://test-client.quantasip.com/api/parcelData?saltKey={salt_key}&guid={guid}&state={state}"
+#     try:
+#         response = requests.get(url, timeout=15)
+#         if response.status_code == 500:
+#              # Custom log for your Cloud Run console
+#              print(f"EXTERNAL API CRASH for GUID: {guid}") 
+#              return None
+#         response.raise_for_status()
+#         return response.json()
+#     except Exception as e:
+#         print(f"Network Error: {e}")
+#         return None
 
 
 

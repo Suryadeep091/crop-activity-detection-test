@@ -17,6 +17,8 @@ from datetime import datetime, timedelta
 from google.auth import impersonated_credentials
 from google.cloud import storage
 import google.auth
+import pickle
+import traceback
 
 # Module Imports (Ensure these files are in your deployment directory)
 from analytics_engine import run_full_analytics_pipeline
@@ -32,20 +34,24 @@ executor = ThreadPoolExecutor(max_workers=20)
 
 # --- DATA LOADING ---
 # Load CSV once at startup for speed
-try:
-    df_khasra = pd.read_csv("Andhra Pradesh_Tehsil_master.csv")
-    print(f"DEBUG: Loaded {len(df_khasra)} rows from CSV.")
-except Exception as e:
-    print(f"CRITICAL: Could not load CSV: {e}")
 
-class KhasraRequest(BaseModel):
-    state: str
-    district: str
-    tehsil: str
-    village: str
-    khasra_no: str
+
+class GeometryRequest(BaseModel):
+    task_id: str 
+    kml_coordinates: str 
     end_date: str = datetime.now().strftime("%Y-%m-%d")
 
+def parse_kml_string(kml_str: str):
+    """Parses KML <coordinates> string into [[lon, lat], ...]"""
+    points = kml_str.strip().split()
+    coords = []
+    for p in points:
+        parts = p.split(',')
+        if len(parts) >= 2:
+            coords.append([float(parts[0]), float(parts[1])])
+    if coords and coords[0] != coords[-1]:
+        coords.append(coords[0])
+    return coords
 # --- CORE UTILITIES ---
 
 def fetch_parcel_geojson(guid, state):
@@ -67,7 +73,7 @@ def fetch_parcel_geojson(guid, state):
 
 
 def upload_private_to_gcs(data, destination_blob_name, content_type, is_file=False):
-    bucket_name = "terradrishti"
+    bucket_name = "test-terradrishti"
     source_creds, project_id = google.auth.default()
     
     # Impersonation for V4 Signing
@@ -235,135 +241,76 @@ def weather_worker(coords, end_date):
 
 
 # --- UNIFIED ENDPOINT ---
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PICKLE_DIR = os.path.join(PROJECT_DIR, "accuracy_tests")
+os.makedirs(PICKLE_DIR, exist_ok=True)
 
-@app.post("/analyze/khasra")
-async def get_analysis_by_khasra(request: KhasraRequest):
-    """The master endpoint: Lookup -> Fetch -> Analyze -> Report."""
+@app.post("/test/accuracy")
+async def test_accuracy_by_geometry(request: GeometryRequest):
     loop = asyncio.get_event_loop()
-    
-    # 1. Lookup GUID in the local CSV
-    match = df_khasra[
-        (df_khasra['state'].str.lower().str.strip() == request.state.lower().strip()) &
-        (df_khasra['district'].str.lower().str.strip() == request.district.lower().strip()) &
-        (df_khasra['village'].str.lower().str.strip() == request.village.lower().strip()) &
-        (df_khasra['khasra_no'].astype(str).str.strip() == str(request.khasra_no).strip())
-    ]
-    
-    if match.empty:
-        # Provide a descriptive error instead of a generic 500
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Khasra {request.khasra_no} not found for {request.village}, {request.district}."
-        )
-    
-    guid = match.iloc[0]['guid']
-    
-    # 2. Fetch Live Geometry and Properties
-    try:
-        # Inside get_analysis_by_khasra:
-        geo_data = fetch_parcel_geojson(guid, request.state)
-        if not geo_data:
-            raise HTTPException(
-                status_code=502, # Bad Gateway: The upstream server failed
-                detail=f"The external geometry service is currently unavailable for Khasra {request.khasra_no}."
-            )
-        feature = geo_data["features"][0]
-        properties = feature.get("properties", {})
-        geometry = feature.get("geometry", {})
-        raw_coords = geometry.get("coordinates", [])
-        
-        # Robust unnesting of coordinates
-        coords = None
-                
-        # The API response shows coordinates as a list of [lon, lat] pairs directly.
-        # Check if the first element is a list (a coordinate pair)
-        if isinstance(raw_coords[0], list):
-            # If it's [ [lon, lat], ... ]
-            if isinstance(raw_coords[0][0], (int, float)):
-                coords = raw_coords
-            # If it's [ [ [lon, lat], ... ] ]
-            elif isinstance(raw_coords[0][0], list):
-                coords = raw_coords[0]
-                # Handle deeper nesting if it's MultiPolygon [[[[lon, lat]]]]
-                if isinstance(coords[0][0], list):
-                    coords = coords[0]
+    coords = parse_kml_string(request.kml_coordinates)
+    task_id = request.task_id
 
-        if coords and coords[0] != coords[-1]:
-            coords.append(coords[0])
-            
-        task_id = f"KH_{request.khasra_no}_{datetime.now().strftime('%Y%m%d_%H%M')}"
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Geometry Fetch Error: {str(e)}")
-
-    # 3. Parallel Analytics Execution
     try:
+        # Step 1: Execute Extraction Workers
         b1 = loop.run_in_executor(executor, satellite_worker, task_id, coords, request.end_date)
         b2 = loop.run_in_executor(executor, location_worker, task_id, coords)
         b3 = loop.run_in_executor(executor, weather_worker, coords, request.end_date)
 
         sat_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
 
-        if not sat_res:
-            raise HTTPException(status_code=500, detail="Satellite branch failed.")
+        # Step 2: Extract ONLY raw signals for future model testing
+        # We ignore 'prediction_stats' and 'seasonal_activity' here
+        raw_signals_payload = {
+            "task_id": task_id,
+            "coords": coords,
+            "vegetation_indices": sat_res.get("timeseries_data", {}).get("vegetation_indices"),
+            "land_cover_probs": sat_res.get("timeseries_data", {}).get("land_cover_probs"),
+            "location_data": loc_res,
+            "weather_data": {
+                "daily": weather_res.get("daily_weather_data"),
+                "monthly": weather_res.get("monthly_weather_data")
+            }
+        }
+        
+        # Step 3: Save to Local Project Directory
+        pickle_bytes = pickle.dumps(raw_signals_payload)
 
-        # 4. Generate & Secure the Report
+        # 3. Upload to GCS (using your existing function)
+        pickle_url = upload_private_to_gcs(
+            data=pickle_bytes, 
+            destination_blob_name=f"accuracy_tests/{task_id}_raw.pkl", 
+            content_type="application/octet-stream", # Standard for binary files
+            is_file=False
+        )
+            
+        print(f"DEBUG: Saved test data to {pickle_url}")
+
+        # Step 4: Generate PDF using current model (for side-by-side comparison)
         full_data = {
             "task_id": task_id,
             "satellite_analytics": sat_res,
-            "location_details": properties, 
+            "location_details": loc_res,
             "map_details": loc_res,
             "weather_data": weather_res,
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
-
-        local_pdf_path = await generate_intelligence_report(full_data)
-
-        # --- Inside /analyze/khasra endpoint ---
-
-        # 1. Process the Map Image
-        map_b64 = loc_res.pop("map_image_b64", None) 
         
-        map_url = None
+        local_pdf_path = await generate_intelligence_report(full_data)
+        report_url = upload_private_to_gcs(local_pdf_path, f"tests/{task_id}.pdf", "application/pdf", is_file=True)
 
-        if map_b64:
-            map_bytes = base64.b64decode(map_b64)
-            map_url = upload_private_to_gcs(
-                data=map_bytes, 
-                destination_blob_name=f"maps/{task_id}.png", 
-                content_type="image/png"
-            )
-
-        # 2. Process the PDF Report
-        report_url = upload_private_to_gcs(
-            data=local_pdf_path, 
-            destination_blob_name=f"reports/{task_id}.pdf", 
-            content_type="application/pdf", 
-            is_file=True
-        )
-        sat_res.pop("images", None) 
-       
+        # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
-        # 3. Final Combined Return
         return {
             "status": "success",
             "task_id": task_id,
-            "report_time": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+            "local_pickle_path": pickle_url,
             "report_url": report_url,
-            "map_url": map_url,
-            "location_details": loc_res, 
-            "satellite_analytics": sat_res,
-            "daily_weather": weather_res.get("daily_weather_data"),
-            "monthly_weather": weather_res.get("monthly_weather_data"),
+            "note": "Raw signals saved for offline re-evaluation."
         }
 
     except Exception as e:
-        import traceback
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Pipeline Crash: {str(e)}")
-
-if __name__ == "__main__":
-    # Use environment PORT for Cloud Run compatibility
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+        raise HTTPException(status_code=500, detail=f"Test Pipeline Error: {str(e)}")

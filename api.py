@@ -73,7 +73,7 @@ def fetch_parcel_geojson(guid, state):
 
 
 def upload_private_to_gcs(data, destination_blob_name, content_type, is_file=False):
-    bucket_name = "test-terradrishti"
+    bucket_name = "terradrishti"
     source_creds, project_id = google.auth.default()
     
     # Impersonation for V4 Signing
@@ -297,7 +297,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         }
         
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"tests/{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"tests100/{task_id}.pdf", "application/pdf", is_file=True)
 
         # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):

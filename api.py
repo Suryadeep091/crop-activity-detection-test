@@ -351,6 +351,10 @@ async def replay_test_from_pickle(task_id: str):
 
         # 3. Reconstruct the full_data payload for the PDF generator
         # Note: We are using the exact keys saved in your /test/accuracy endpoint
+        # 2. Map data back to report format
+        # We use .get(key, {}) to prevent the 'NoneType' or 'Missing Attribute' errors
+        location_data = raw_data.get("location_data", {})
+
         full_data = {
             "task_id": task_id,
             "satellite_analytics": {
@@ -359,8 +363,10 @@ async def replay_test_from_pickle(task_id: str):
                     "land_cover_probs": raw_data.get("land_cover_probs")
                 }
             },
-            "location_details": raw_data.get("location_data"),
-            "map_details": raw_data.get("location_data"),
+            "location_details": location_data,
+            "map_details": location_data,
+            # MANUALLY ENSURE THIS KEY EXISTS IF THE TEMPLATE IS RIGID
+            "land_use_details": location_data.get("land use/ land cover details", {}), 
             "weather_data": raw_data.get("weather_data"),
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }

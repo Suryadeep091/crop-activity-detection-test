@@ -358,59 +358,63 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 @app.post("/test/replay/{task_id}")
 async def replay_test_from_pickle(task_id: str):
     try:
+        # 1. Fetch Pickle
         pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
         
         raw_data = pickle.loads(pickle_bytes)
         
-        # 1. Extract raw components
-        loc_res = raw_data.get("location_data", {})
-        veg_indices = raw_data.get("vegetation_indices", [])
-        lc_probs = raw_data.get("land_cover_probs", [])
-        weather_res = raw_data.get("weather_data", {})
-        images = raw_data.get("images", {})
+        # 2. Extract Data with strong fallbacks
+        loc_res = raw_data.get("location_data") or {}
+        veg_indices = raw_data.get("vegetation_indices") or []
+        lc_probs = raw_data.get("land_cover_probs") or []
+        weather_res = raw_data.get("weather_data") or {}
+        images = raw_data.get("images") or {}
 
-        # 2. Reconstruct Annexure
+        # 3. Reconstruct Annexure
         predictions_list = []
         for i, entry in enumerate(veg_indices):
-            current_lc_prob = lc_probs[i] if i < len(lc_probs) else {}
+            # Safe access to lc_probs
+            current_lc_prob = lc_probs[i] if (lc_probs and i < len(lc_probs)) else {}
+            
+            # Ensure NDVI is a float to prevent format() crashes in HTML
+            ndvi_val = entry.get("NDVI")
+            ndvi_val = float(ndvi_val) if ndvi_val is not None else 0.0
+
             predictions_list.append({
-                "date_str": entry.get("date"),
-                "NDVI": entry.get("NDVI"),
-                "EVI": entry.get("EVI"),
-                "RVI": entry.get("RVI"),
+                "date_str": entry.get("date", "N/A"),
+                "NDVI": ndvi_val,
+                "EVI": entry.get("EVI", 0.0),
+                "RVI": entry.get("RVI", 0.0),
                 "crops": current_lc_prob.get("crops", 0.0),
-                "prediction": "Crop-Activity" if entry.get("NDVI", 0) > 0.3 else "No Crop-Activity"
+                "prediction": "Crop-Activity" if ndvi_val > 0.3 else "No Crop-Activity"
             })
 
-        # --- 3. CALCULATE ACTIVITY RATIO & VERDICT ---
+        # 4. Calculate Stats for Verdict
         crop_days = sum(1 for r in predictions_list if r["prediction"] == "Crop-Activity")
-        total_days = len(predictions_list)
-        # Handle division by zero for empty data
-        activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
-        
-        # Apply the 15% Threshold
+        total_days = len(predictions_list) or 1
+        activity_ratio = (crop_days / total_days) * 100
         verdict = "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected"
 
-        # 4. Final HTML Payload Reconstruction
-        lu_lc = loc_res.get("land use/ land cover details", {})
-        if "crops" not in lu_lc:
-            lu_lc["crops"] = {"percent": 0.0}
+        # 5. Build Final Object
+        lu_lc = loc_res.get("land use/ land cover details") or {}
+        if "crops" not in lu_lc: lu_lc["crops"] = {"percent": 0.0}
 
         full_data = {
             "task_id": task_id,
             "satellite": {
-                "metadata": {"coords": raw_data.get("coords", [])},
+                "metadata": {"coords": raw_data.get("coords") or []},
                 "land use/ land cover details": lu_lc,
-                "crop_activity_prediction_stats": {
-                    "crop_days": crop_days,
-                    "total": total_days
-                },
+                "crop_activity_prediction_stats": {"crop_days": crop_days, "total": total_days},
                 "crop_activity_predictions_list": predictions_list,
-                "images": images,
-                "vegetation_peak_analysis": raw_data.get("peak_analysis", []),
-                "seasonal_activity": raw_data.get("seasonal_activity", { "labels": [], "rows": [] })
+                "images": {
+                    "ndvi_b64": images.get("ndvi_b64", ""),
+                    "dw_b64": images.get("dw_b64", ""),
+                    "activity_b64": images.get("activity_b64", "")
+                },
+                "vegetation_peak_analysis": raw_data.get("peak_analysis") or [],
+                "seasonal_activity": raw_data.get("seasonal_activity") or {"labels": [], "rows": []}
             },
             "location": loc_res,
             "map_details": loc_res,
@@ -418,14 +422,20 @@ async def replay_test_from_pickle(task_id: str):
             "logo_base64": "" 
         }
 
+        # 6. PDF Generation
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        # 5. Upload & Cleanup
-        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
-        if os.path.exists(local_pdf_path): 
+        # Upload with a 'new_' prefix to avoid overwriting original dummy reports
+        report_url = upload_private_to_gcs(
+            local_pdf_path, 
+            f"dummy_report/new_{task_id}.pdf", 
+            "application/pdf", 
+            is_file=True
+        )
+        
+        if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
         
-        # --- 6. UPDATED RETURN STATEMENT ---
         return {
             "status": "success",
             "task_id": task_id,
@@ -435,5 +445,7 @@ async def replay_test_from_pickle(task_id: str):
         }
 
     except Exception as e:
+        # Crucial for Batch Debugging: Log the error to console
+        print(f"CRITICAL ERROR for {task_id}: {str(e)}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

@@ -160,62 +160,54 @@ def fig_to_base64(fig, is_plotly=False):
     img_str = base64.b64encode(buf.read()).decode('utf-8')
     return img_str
 
-def apply_empirical_logic(row):
-    # Extract signals and month
+def apply_empirical_logic(row, previous_row=None):
+    # 1. Basic Data Extraction
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
-    
     ndvi = row.get('NDVI', 0)
     rvi = row.get('RVI', 0)
-    # Combine AI classes
+    
+    # AI Scores
     crops = row.get('crops', 0)
     flooded_veg = row.get('flooded_vegetation', 0)
-    crop_prob = crops + flooded_veg
-    tree_prob = row.get('trees', 0)
-    built = row.get('built', 0)
-    water = row.get('water', 0)
-    bare = row.get('bare', 0)
-    shrubs = row.get('shrub_and_scrub', 0)
-    snow = row.get('snow_and_ice', 0)
     
-    # Global Tree Filter
-    if tree_prob > 0.50 or tree_prob > crop_prob:
-        return "No Crop-Activity"
-    if built > 0.50 or built > crop_prob:
-        return "No Crop-Activity"
-    if water > 0.50 or water > crop_prob:
-        return "No Crop-Activity"
-    if bare > 0.50 or bare > crop_prob:
-        return "No Crop-Activity"
-    if shrubs > 0.50 or shrubs > crop_prob:
-        return "No Crop-Activity"
-    if snow > 0.50 or snow > crop_prob:
+    # 2. THE REFINED CROP PROBABILITY (The "Weighted" Approach)
+    # In India, "Flooded Vegetation" is almost always Rice/Paddy.
+    # We give it a 'Multiplier' during the monsoon months.
+    if 6 <= month <= 9:
+        effective_crop_prob = (crops * 1.0) + (flooded_veg * 1.2)
+    else:
+        effective_crop_prob = crops + (flooded_veg * 0.5)
+
+    # 3. DYNAMIC EXCLUSION (The "Subtraction" Rule)
+    # Instead of a hard 0.50 cutoff, we check if the Crop signal is 
+    # significantly stronger than the Noise signal.
+    non_crop_max = max(row.get('trees', 0), row.get('built', 0), row.get('water', 0))
+    if non_crop_max > (effective_crop_prob + 0.2): 
         return "No Crop-Activity"
 
-    # --- SOWING DETECTION (Catching the start of the cycle) ---
-    # If the AI sees Flooded Veg (Paddy) or if we see early structure with some AI confidence
-    # We use much lower NDVI thresholds here.
-    if flooded_veg > 0.40 and rvi > 0.30:
-        return "Crop-Activity" # Early Paddy sowing detected
-    
-    if crop_prob > 0.35 and (ndvi > 0.25 and rvi > 0.35):
-        return "Crop-Activity" # Early Rabi/Zaid growth detected
-
-    # --- FULL VEGETATIVE LOGIC (Your existing thresholds for peak) ---
-    # June to October (Kharif)
+    # 4. MONSOON (KHARIF) SPECIAL LOGIC
+    # Handles: Cloud interference and the Paddy transplanting phase.
     if 6 <= month <= 10:
-        if (rvi > 0.45 and crop_prob > 0.40) or (ndvi > 0.35 and crop_prob > 0.50):
-            return "Crop-Activity"
+        # Catching the "Transplanting" phase (High water, low greenness)
+        if flooded_veg > 0.45 and rvi > 0.25:
+            return "Crop-Activity (Kharif - Sowing)"
+        # Catching the "Peak" phase
+        if effective_crop_prob > 0.40 and (ndvi > 0.30 or rvi > 0.40):
+            return "Crop-Activity (Kharif - Growing)"
 
-    # November to March (Rabi)
+    # 5. WINTER (RABI) SPECIAL LOGIC (Nov - Mar)
+    # Focused on Wheat/Mustard/Gram. These have very clean NDVI curves.
     elif month in [11, 12, 1, 2, 3]:
-        if ndvi > 0.40 and (crop_prob > 0.40 or rvi > 0.35):
-            return "Crop-Activity"
+        if ndvi > 0.35 and (effective_crop_prob > 0.45 or rvi > 0.40):
+            return "Crop-Activity (Rabi)"
 
-    # April to May (Zaid)
+    # 6. SUMMER (ZAID) SPECIAL LOGIC (Apr - May)
+    # Very high heat; focus on irrigated crops/vegetables.
     elif month in [4, 5]:
-        if ndvi > 0.45 and rvi > 0.40:
-            return "Crop-Activity"
+        # High threshold to avoid mistaking dry shrubs/weeds for crops
+        if ndvi > 0.45 and rvi > 0.45 and effective_crop_prob > 0.50:
+            return "Crop-Activity (Zaid)"
 
     return "No Crop-Activity"
 

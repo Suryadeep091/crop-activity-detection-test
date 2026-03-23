@@ -282,16 +282,17 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 
         # Step 2: Extract ONLY raw signals for future model testing
         # We ignore 'prediction_stats' and 'seasonal_activity' here
+        # Step 2: Extract ALL signals (including images) for exact replay
         raw_signals_payload = {
             "task_id": task_id,
             "coords": coords,
             "vegetation_indices": sat_res.get("timeseries_data", {}).get("vegetation_indices"),
             "land_cover_probs": sat_res.get("timeseries_data", {}).get("land_cover_probs"),
             "location_data": loc_res,
-            "weather_data": {
-                "daily": weather_res.get("daily_weather_data"),
-                "monthly": weather_res.get("monthly_weather_data")
-            }
+            "weather_data": weather_res, # Save the full worker result (includes b64 strings)
+            "images": sat_res.get("images", {}), # CRITICAL: Save the chart strings
+            "seasonal_activity": sat_res.get("seasonal_activity", {}),
+            "peak_analysis": sat_res.get("vegetation_peak_analysis", [])
         }
         
         # Step 3: Save to Local Project Directory
@@ -324,12 +325,30 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
+        stats = sat_res.get("crop_activity_prediction_stats", {})
+        total_instances = stats.get("total", 1) # Default to 1 to avoid division by zero
+        active_instances = stats.get("crop_days", 0)
+        
+        # 2. Calculate the Activity Percentage
+        activity_ratio = (active_instances / total_instances) * 100
+        
+        # 3. Apply your 15% Threshold Logic
+        if activity_ratio > 15:
+            agri_verdict = "Crop activity detected"
+            is_active = True
+        else:
+            agri_verdict = "Low/No Crop activity detected"
+            is_active = False
+
+        # --- FINAL RETURN ---
         return {
             "status": "success",
             "task_id": task_id,
-            "local_pickle_path": pickle_url,
+            "verdict": agri_verdict,        # The text: "Crop activity detected"
+            "activity_score": f"{round(activity_ratio, 2)}%",
+            "is_active": is_active,
             "report_url": report_url,
-            "note": "Raw signals saved for offline re-evaluation."
+            "local_pickle_path": pickle_url,
         }
 
     except Exception as e:
@@ -339,42 +358,43 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 @app.post("/test/replay/{task_id}")
 async def replay_test_from_pickle(task_id: str):
     try:
-        # 1. Fetch and Load Pickle
         pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
         
         raw_data = pickle.loads(pickle_bytes)
         
-        # 2. Extract Data
+        # 1. Extract raw components
         loc_res = raw_data.get("location_data", {})
         veg_indices = raw_data.get("vegetation_indices", [])
-        lc_probs = raw_data.get("land_cover_probs", []) # This contains the crop probabilities
+        lc_probs = raw_data.get("land_cover_probs", [])
+        weather_res = raw_data.get("weather_data", {})
+        images = raw_data.get("images", {})
 
-        # 3. RECONSTRUCT THE ANNEXURE LIST (The "Crops" Fix)
-        # We must ensure every row in this list has a 'crops' key for the HTML table
+        # 2. Reconstruct Annexure
         predictions_list = []
         for i, entry in enumerate(veg_indices):
-            # Find the matching land cover probability for this specific date
-            # We assume the lists are ordered by date
             current_lc_prob = lc_probs[i] if i < len(lc_probs) else {}
-            
-            # The HTML template specifically looks for 'row.crops'
-            row = {
+            predictions_list.append({
                 "date_str": entry.get("date"),
                 "NDVI": entry.get("NDVI"),
                 "EVI": entry.get("EVI"),
                 "RVI": entry.get("RVI"),
-                "crops": current_lc_prob.get("crops", 0.0), # CRITICAL: Template needs this
+                "crops": current_lc_prob.get("crops", 0.0),
                 "prediction": "Crop-Activity" if entry.get("NDVI", 0) > 0.3 else "No Crop-Activity"
-            }
-            predictions_list.append(row)
+            })
 
-        # 4. RECONSTRUCT THE FULL PAYLOAD
-        # We must follow the exact nesting the HTML uses: satellite['land use/ land cover details']
-        lu_lc = loc_res.get("land use/ land cover details", {})
+        # --- 3. CALCULATE ACTIVITY RATIO & VERDICT ---
+        crop_days = sum(1 for r in predictions_list if r["prediction"] == "Crop-Activity")
+        total_days = len(predictions_list)
+        # Handle division by zero for empty data
+        activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
         
-        # Ensure 'crops' exists inside LULC for the Verdict Banner logic
+        # Apply the 15% Threshold
+        verdict = "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected"
+
+        # 4. Final HTML Payload Reconstruction
+        lu_lc = loc_res.get("land use/ land cover details", {})
         if "crops" not in lu_lc:
             lu_lc["crops"] = {"percent": 0.0}
 
@@ -384,46 +404,35 @@ async def replay_test_from_pickle(task_id: str):
                 "metadata": {"coords": raw_data.get("coords", [])},
                 "land use/ land cover details": lu_lc,
                 "crop_activity_prediction_stats": {
-                    "crop_days": sum(1 for r in predictions_list if r["prediction"] == "Crop-Activity"),
-                    "total": len(predictions_list)
+                    "crop_days": crop_days,
+                    "total": total_days
                 },
-                "crop_activity_predictions_list": predictions_list, # Fixed list
-                "images": {
-                    "ndvi_b64": raw_data.get("ndvi_b64", ""), # Ensure your pickle saved these!
-                    "dw_b64": raw_data.get("dw_b64", ""),
-                    "activity_b64": raw_data.get("activity_b64", "")
-                },
-                "vegetation_peak_analysis": [], # Add dummy or process from veg_indices if needed
-                "seasonal_activity": { "labels": [], "rows": [] } # Add dummy or logic
+                "crop_activity_predictions_list": predictions_list,
+                "images": images,
+                "vegetation_peak_analysis": raw_data.get("peak_analysis", []),
+                "seasonal_activity": raw_data.get("seasonal_activity", { "labels": [], "rows": [] })
             },
             "location": loc_res,
             "map_details": loc_res,
-            "weather_data": {
-                "rain_1y_b64": raw_data.get("weather_data", {}).get("rain_1y_b64", ""),
-                "temp_1y_b64": raw_data.get("weather_data", {}).get("temp_1y_b64", ""),
-                "rain_5y_b64": raw_data.get("weather_data", {}).get("rain_5y_b64", ""),
-                "temp_5y_b64": raw_data.get("weather_data", {}).get("temp_5y_b64", "")
-            },
-            "logo_base64": "" # Add your base64 logo string here
+            "weather_data": weather_res,
+            "logo_base64": "" 
         }
 
-        # 5. Generate PDF
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        agri_status = loc_res.get("status", "Analyzed")
-        print(f"✅ REPLAY SUCCESS: {task_id}.pdf | Status: {agri_status}")
-
-        report_url = upload_private_to_gcs(
-            local_pdf_path, 
-            f"dummy_report/{task_id}.pdf", 
-            "application/pdf", 
-            is_file=True
-        )
-        
-        if os.path.exists(local_pdf_path):
+        # 5. Upload & Cleanup
+        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
+        if os.path.exists(local_pdf_path): 
             os.remove(local_pdf_path)
-
-        return {"status": "success", "pdf_name": f"{task_id}.pdf", "report_url": report_url}
+        
+        # --- 6. UPDATED RETURN STATEMENT ---
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "agri_activity": verdict,
+            "activity_score": f"{round(activity_ratio, 2)}%",
+            "report_url": report_url
+        }
 
     except Exception as e:
         print(traceback.format_exc())

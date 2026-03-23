@@ -2,64 +2,83 @@ import requests
 import json
 import time
 import os
+import traceback
 
 # --- CONFIGURATION ---
-# Path to the JSON file you generated in your Downloads
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-json_file_path = os.path.join(downloads_path, "test_parcels.json")
+input_json_path = os.path.join(downloads_path, "test_parcels.json")
+output_json_path = os.path.join(downloads_path, "test_accuracy_results.json")
+
+# TARGETING THE LIVE EXTRACTION ENDPOINT
 API_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/accuracy"
 
-def run_batch_accuracy_test():
+def run_live_batch_test():
     # 1. Load the parcels
     try:
-        with open(json_file_path, "r") as f:
+        with open(input_json_path, "r") as f:
             parcels = json.load(f)
     except FileNotFoundError:
-        print(f"Error: {json_file_path} not found.")
+        print(f"❌ Error: {input_json_path} not found.")
         return
 
-    print(f"🚀 Starting batch test for {len(parcels)} parcels...")
-    print("-" * 50)
+    master_results = []
+    print(f"🚀 Starting LIVE BATCH TEST for {len(parcels)} parcels...")
+    print("⚠️  Note: This involves GEE calls and will take longer.")
+    print("-" * 65)
 
-    results_log = []
-
-    # 2. Iterate through parcels one by one
+    # 2. Iterate through parcels
     for index, parcel in enumerate(parcels):
         task_id = parcel.get("task_id")
+        kml = parcel.get("kml_coordinates")
+        
         print(f"[{index + 1}/{len(parcels)}] Processing: {task_id}...")
 
-        try:
-            # The payload matches your GeometryRequest model
-            payload = {
-                "task_id": task_id,
-                "kml_coordinates": parcel.get("kml_coordinates"),
-                "end_date": "2026-03-15" # Consistent end date for accuracy check
-            }
+        payload = {
+            "task_id": task_id,
+            "kml_coordinates": kml,
+            "end_date": "2026-03-15" # Consistent date for accuracy benchmarking
+        }
 
-            # Call the API (Waiting for it to finish)
-            response = requests.post(API_URL, json=payload, timeout=300) # 5 min timeout for GEE
+        try:
+            # High timeout (300s) because GEE extraction can be slow
+            response = requests.post(API_URL, json=payload, timeout=300)
 
             if response.status_code == 200:
                 data = response.json()
-                print(f" ✅ Success | Pickle: {data.get('local_pickle_path')}")
-                print(f" 📄 Report: {data.get('report_url')}")
-                results_log.append({"task_id": task_id, "status": "Success"})
+                
+                # Print summary to console
+                verdict = data.get("verdict", "N/A")
+                score = data.get("activity_score", "N/A")
+                print(f" ✅ SUCCESS | Verdict: {verdict} ({score})")
+                
+                # Append full response to master list
+                master_results.append(data)
             else:
-                print(f" ❌ Failed | Status: {response.status_code} | Error: {response.text}")
-                results_log.append({"task_id": task_id, "status": "Failed", "error": response.text})
+                error_entry = {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "http_code": response.status_code,
+                    "error_detail": response.text
+                }
+                master_results.append(error_entry)
+                print(f" ❌ FAILED | Status: {response.status_code}")
 
         except Exception as e:
             print(f" ⚠️ Connection Error: {e}")
-            results_log.append({"task_id": task_id, "status": "Error", "error": str(e)})
+            master_results.append({"task_id": task_id, "status": "error", "message": str(e)})
 
-        # 3. Respectful Sleep (5 seconds)
-        # This allows GEE to clear the high-volume queue for the next parcel
+        # 3. Save progress incrementally (Safety feature)
+        # This ensures that if the script crashes at parcel #50, you don't lose the first 49
+        with open(output_json_path, "w") as f:
+            json.dump(master_results, f, indent=4)
+
+        # 4. Respectful Sleep for GEE Queue
         if index < len(parcels) - 1:
-            print(f"Sleeping for 5 seconds...")
-            time.sleep(5)
+            time.sleep(3)
 
-    print("-" * 50)
-    print(f"🏁 Batch test complete. Check your accuracy_tests folder for the pickles.")
+    print("-" * 65)
+    print(f"🏁 Live Batch Test Complete.")
+    print(f"📁 Master JSON saved to: {output_json_path}")
 
 if __name__ == "__main__":
-    run_batch_accuracy_test()
+    run_live_batch_test()

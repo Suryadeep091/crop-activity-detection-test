@@ -366,8 +366,12 @@
         </div>
         <div class="sub-header">Smart Agriculture Monitoring Dashboard</div>
         
-        <div class="verdict-banner {{ 'bg-green' if satellite['land use/ land cover details']['crops']['percent'] > 20 else 'bg-red' }}">
-            Verdict: {{ 'Agri activity detected' if satellite['land use/ land cover details']['crops']['percent'] > 20 else 'Low Agri activity detected' }}
+        {% set stats = satellite.crop_activity_prediction_stats %}
+        {% set activity_ratio = (stats.crop_days / stats.total * 100) if stats.total > 0 else 0 %}
+
+        <div class="verdict-banner {{ 'bg-green' if activity_ratio > 15 else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if activity_ratio > 15 else 'Low Agri activity detected' }} 
+            ({{ activity_ratio | round(1) }}% Active)
         </div>
 
         <div class="section-banner">Land Parcel Under Analysis</div>

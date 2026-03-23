@@ -412,7 +412,7 @@ async def replay_test_from_pickle(task_id: str):
 
         full_data = {
             "task_id": task_id,
-            "satellite": {
+            "satellite_analytics": {
                 "metadata": {"coords": raw_data.get("coords") or []},
                 "land use/ land cover details": loc_res.get("land use/ land cover details", {}),
                 "crop_activity_prediction_stats": {
@@ -424,10 +424,9 @@ async def replay_test_from_pickle(task_id: str):
                 "vegetation_peak_analysis": peak_analysis,
                 "seasonal_activity": seasonal_act
             },
-            "location": loc_res,
+            "location_details": loc_res,
             "map_details": loc_res,
             "weather_data": raw_data.get("weather_data", {}),
-            "logo_base64": "",
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
 

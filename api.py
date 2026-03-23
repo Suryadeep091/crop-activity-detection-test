@@ -406,29 +406,30 @@ async def replay_test_from_pickle(task_id: str):
         if "crops" not in lu_lc:
             lu_lc["crops"] = {"percent": 0.0}
 
+
+        # 2. Reconstruct the payload to match the HTML exactly
         full_data = {
             "task_id": task_id,
-            "logo_base64": "", 
             "satellite": {
                 "metadata": {"coords": raw_data.get("coords") or []},
                 "land use/ land cover details": lu_lc,
+                
+                # --- THIS IS THE FIX ---
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days
                 },
+                # -----------------------
+
                 "crop_activity_predictions_list": predictions_list,
-                "images": {
-                    "ndvi_b64": images.get("ndvi_b64", ""),
-                    "dw_b64": images.get("dw_b64", ""),
-                    "activity_b64": images.get("activity_b64", "")
-                },
-                "vegetation_peak_analysis": peak_analysis,
-                "seasonal_activity": seasonal_act if seasonal_act.get("labels") else { "labels": [], "rows": [{"values":[]},{"values":[]},{"values":[]}] }
+                "images": images or {},
+                "vegetation_peak_analysis": raw_data.get("peak_analysis") or [],
+                "seasonal_activity": raw_data.get("seasonal_activity") or { "labels": [], "rows": [{"values":[]},{"values":[]},{"values":[]}] }
             },
             "location": loc_res,
-            "map_details": loc_res, # HTML looks for map_details.map_image_b64
+            "map_details": loc_res,
             "weather_data": weather_res,
-            "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
+            "logo_base64": "" 
         }
 
         # 6. Generate PDF

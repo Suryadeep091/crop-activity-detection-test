@@ -349,7 +349,7 @@ async def replay_test_from_pickle(task_id: str):
         
         # 2. Extract specific fields safely
         # Ensure these are NEVER None (fallback to empty list/dict)
-        crops = loc_res.get("crops", [])
+
         lu_lc = loc_res.get("land use/ land cover details", {})
         
         # 3. RECONSTRUCT THE FULL PAYLOAD (Mirroring live 'full_data')

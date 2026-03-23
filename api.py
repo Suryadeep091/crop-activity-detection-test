@@ -339,65 +339,52 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 @app.post("/test/replay/{task_id}")
 async def replay_test_from_pickle(task_id: str):
     try:
-        # 1. Fetch the pickle bytes from GCS
-        blob_path = f"accuracy_tests/{task_id}_raw.pkl"
-        pickle_bytes = download_from_gcs(blob_path)
-        
+        # 1. Download and Unpickle
+        pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
         if not pickle_bytes:
-            raise HTTPException(status_code=404, detail="Pickle file not found in GCS.")
-
-        # 2. De-serialize the data
+            raise HTTPException(status_code=404, detail="Pickle not found")
+        
         raw_data = pickle.loads(pickle_bytes)
 
-        # 3. Reconstruct the full_data payload for the PDF generator
-        # Note: We are using the exact keys saved in your /test/accuracy endpoint
-        # 2. Map data back to report format
-        # We use .get(key, {}) to prevent the 'NoneType' or 'Missing Attribute' errors
-        location_data = raw_data.get("location_data", {})
+        # 2. Extract components from the pickle
+        loc_res = raw_data.get("location_data", {})
+        veg_indices = raw_data.get("vegetation_indices", [])
+        lc_probs = raw_data.get("land_cover_probs", [])
+        weather = raw_data.get("weather_data", {})
 
+        # 3. RECONSTRUCT THE FULL PAYLOAD (Crucial Step)
+        # Your template is failing because it can't find 'land use/ land cover details'
+        # We ensure it is placed where the template expects it.
         full_data = {
             "task_id": task_id,
             "satellite_analytics": {
                 "timeseries_data": {
-                    "vegetation_indices": raw_data.get("vegetation_indices"),
-                    "land_cover_probs": raw_data.get("land_cover_probs")
-                }
+                    "vegetation_indices": veg_indices,
+                    "land_cover_probs": lc_probs
+                },
+                # If your template looks here for LC details:
+                "land use/ land cover details": loc_res.get("land use/ land cover details", {})
             },
-            "location_details": location_data,
-            "map_details": location_data,
-            # MANUALLY ENSURE THIS KEY EXISTS IF THE TEMPLATE IS RIGID
-            "land_use_details": location_data.get("land use/ land cover details", {}), 
-            "weather_data": raw_data.get("weather_data"),
+            "location_details": loc_res,
+            "map_details": loc_res,
+            "weather_data": {
+                "daily_weather_data": weather.get("daily"),
+                "monthly_weather_data": weather.get("monthly")
+            },
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
 
-        # 4. Generate the PDF (No GEE call required)
+        # 4. Generate PDF
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        # 5. Extract and print the status
-        # Assuming status is stored in the location_data from your original worker
-        agri_status = raw_data.get("location_data", {}).get("status", "Validated")
-        pdf_filename = f"{task_id}.pdf"
+        # 5. Get Status for console print
+        agri_status = loc_res.get("status", "Active")
+        print(f"📄 PDF: {task_id}.pdf | 🌾 STATUS: {agri_status}")
+
+        # 6. Upload and Return
+        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
         
-        print("-" * 30)
-        print(f"📄 PDF NAME: {pdf_filename}")
-        print(f"🌾 AGRI STATUS: {agri_status}")
-        print("-" * 30)
-
-        # 6. Upload the new report back to GCS
-        report_url = upload_private_to_gcs(
-            local_pdf_path, 
-            f"dummy_report/{pdf_filename}", 
-            "application/pdf", 
-            is_file=True
-        )
-
-        return {
-            "status": "success",
-            "pdf_name": pdf_filename,
-            "agri_activity": agri_status,
-            "report_url": report_url
-        }
+        return {"status": "success", "pdf_name": f"{task_id}.pdf", "agri_activity": agri_status, "report_url": report_url}
 
     except Exception as e:
         print(f"❌ Replay Error: {e}")

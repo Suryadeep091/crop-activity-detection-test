@@ -359,7 +359,6 @@ async def replay_test_from_pickle(task_id: str):
                 "vegetation_indices": raw_data.get("vegetation_indices", []),
                 "land_cover_probs": raw_data.get("land_cover_probs", [])
             },
-            "crops": crops,
             "land use/ land cover details": lu_lc
         }
 

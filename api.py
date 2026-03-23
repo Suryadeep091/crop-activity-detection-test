@@ -339,37 +339,35 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 @app.post("/test/replay/{task_id}")
 async def replay_test_from_pickle(task_id: str):
     try:
-        # 1. Download and Unpickle
+        # 1. Fetch and Load Pickle
         pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
         
         raw_data = pickle.loads(pickle_bytes)
-
-        # 2. Extract components from the pickle
         loc_res = raw_data.get("location_data", {})
-        veg_indices = raw_data.get("vegetation_indices", [])
-        lc_probs = raw_data.get("land_cover_probs", [])
-        weather = raw_data.get("weather_data", {})
+        
+        # 2. Extract specific fields to avoid 'AttributeError' in Jinja2
+        crops = loc_res.get("crops", [])
+        lu_lc = loc_res.get("land use/ land cover details", {})
 
-        # 3. RECONSTRUCT THE FULL PAYLOAD (Crucial Step)
-        # Your template is failing because it can't find 'land use/ land cover details'
-        # We ensure it is placed where the template expects it.
+        # 3. RECONSTRUCT THE FULL PAYLOAD
+        # We inject 'crops' and 'lu_lc' into BOTH possible locations
         full_data = {
             "task_id": task_id,
             "satellite_analytics": {
                 "timeseries_data": {
-                    "vegetation_indices": veg_indices,
-                    "land_cover_probs": lc_probs
+                    "vegetation_indices": raw_data.get("vegetation_indices", []),
+                    "land_cover_probs": raw_data.get("land_cover_probs", [])
                 },
-                # If your template looks here for LC details:
-                "land use/ land cover details": loc_res.get("land use/ land cover details", {})
+                "crops": crops,
+                "land use/ land cover details": lu_lc
             },
-            "location_details": loc_res,
+            "location_details": loc_res, # This contains crops and lu_lc at top level
             "map_details": loc_res,
             "weather_data": {
-                "daily_weather_data": weather.get("daily"),
-                "monthly_weather_data": weather.get("monthly")
+                "daily_weather_data": raw_data.get("weather_data", {}).get("daily"),
+                "monthly_weather_data": raw_data.get("weather_data", {}).get("monthly")
             },
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
@@ -377,15 +375,24 @@ async def replay_test_from_pickle(task_id: str):
         # 4. Generate PDF
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        # 5. Get Status for console print
-        agri_status = loc_res.get("status", "Active")
-        print(f"📄 PDF: {task_id}.pdf | 🌾 STATUS: {agri_status}")
+        # 5. Print Status and Upload
+        agri_status = loc_res.get("status", "Analyzed")
+        print(f"✅ REPLAY SUCCESS: {task_id}.pdf | Status: {agri_status}")
 
-        # 6. Upload and Return
-        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(
+            local_pdf_path, 
+            f"dummy_report/{task_id}.pdf", 
+            "application/pdf", 
+            is_file=True
+        )
         
-        return {"status": "success", "pdf_name": f"{task_id}.pdf", "agri_activity": agri_status, "report_url": report_url}
+        return {
+            "status": "success", 
+            "pdf_name": f"{task_id}.pdf", 
+            "agri_activity": agri_status, 
+            "report_url": report_url
+        }
 
     except Exception as e:
-        print(f"❌ Replay Error: {e}")
+        print(f"❌ Replay Error for {task_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -37,36 +37,18 @@ executor = ThreadPoolExecutor(max_workers=20)
 
 
 class GeometryRequest(BaseModel):
-    state: str = "Madhya Pradesh"
-    district: str
-    tehsil: str
-    village: str
-    khasra_no: str
-    area_ac: float = 0.0  # Added for area injection
-    crop: str = "N/A"
+    task_id: str 
     kml_coordinates: str 
-    task_id: str = None 
     end_date: str = datetime.now().strftime("%Y-%m-%d")
 
 def parse_kml_string(kml_str: str):
-    """Parses KML <coordinates> string into [[lon, lat], ...] 
-    Handles both lon,lat and lon,lat,alt formats."""
-    # Clean up whitespace and split by space
+    """Parses KML <coordinates> string into [[lon, lat], ...]"""
     points = kml_str.strip().split()
     coords = []
-    
     for p in points:
         parts = p.split(',')
         if len(parts) >= 2:
-            try:
-                # Always extract first two (lon, lat)
-                lon = float(parts[0])
-                lat = float(parts[1])
-                coords.append([lon, lat])
-            except ValueError:
-                continue
-                
-    # Ensure the polygon is closed for Earth Engine
+            coords.append([float(parts[0]), float(parts[1])])
     if coords and coords[0] != coords[-1]:
         coords.append(coords[0])
     return coords
@@ -144,7 +126,7 @@ def download_from_gcs(blob_name, bucket_name="terradrishti"):
 def satellite_worker(task_id, coords, end_date):
     return run_full_analytics_pipeline(task_id, coords, end_date)
 
-def location_worker(task_id, coords, khasra_no):
+def location_worker(task_id, coords):
     """Fetches Address, Water Sources, and the Static Map Image."""
     # 1. Get standard metadata
     centroid, location_details = get_centroid_location(coords)
@@ -157,7 +139,7 @@ def location_worker(task_id, coords, khasra_no):
     
     # 3. Generate the Static Map Image as Base64
     google_api_key = "AIzaSyBFrNDdn6wpjvVPeHa_aYsVYNPifp7MkF0" # Use your real key
-    map_b64 = get_static_map_b64(coords, khasra_no, google_api_key)
+    map_b64 = get_static_map_b64(coords, khasra_label, google_api_key)
     
     # 4. Return combined dictionary
     location_details["map_image_b64"] = map_b64
@@ -288,33 +270,20 @@ os.makedirs(PICKLE_DIR, exist_ok=True)
 async def test_accuracy_by_geometry(request: GeometryRequest):
     loop = asyncio.get_event_loop()
     coords = parse_kml_string(request.kml_coordinates)
-    
-    # Auto-generate task_id if not provided: "Junwaniya_9-2"
-    if not request.task_id:
-        safe_khasra = request.khasra_no.replace("/", "-")
-        task_id = f"{request.village}_{safe_khasra}"
-    else:
-        task_id = request.task_id
+    task_id = request.task_id
 
     try:
         # Step 1: Execute Extraction Workers
         b1 = loop.run_in_executor(executor, satellite_worker, task_id, coords, request.end_date)
-        b2 = loop.run_in_executor(executor, location_worker, task_id, coords, request.khasra_no)
+        b2 = loop.run_in_executor(executor, location_worker, task_id, coords)
         b3 = loop.run_in_executor(executor, weather_worker, coords, request.end_date)
 
         sat_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
 
-        # Step 2: Extract RAW signals + Administrative Metadata
+        # Step 2: Extract ONLY raw signals for future model testing
+        # We ignore 'prediction_stats' and 'seasonal_activity' here
         raw_signals_payload = {
             "task_id": task_id,
-            "metadata": {
-                "state": request.state,
-                "district": request.district,
-                "tehsil": request.tehsil,
-                "village": request.village,
-                "khasra_no": request.khasra_no,
-                "declared_crop": request.crop
-            },
             "coords": coords,
             "vegetation_indices": sat_res.get("timeseries_data", {}).get("vegetation_indices"),
             "land_cover_probs": sat_res.get("timeseries_data", {}).get("land_cover_probs"),
@@ -325,26 +294,20 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
             }
         }
         
-        # Step 3: Save to GCS
+        # Step 3: Save to Local Project Directory
         pickle_bytes = pickle.dumps(raw_signals_payload)
+
+        # 3. Upload to GCS (using your existing function)
         pickle_url = upload_private_to_gcs(
             data=pickle_bytes, 
             destination_blob_name=f"accuracy_tests/{task_id}_raw.pkl", 
-            content_type="application/octet-stream",
+            content_type="application/octet-stream", # Standard for binary files
             is_file=False
         )
+            
+        print(f"DEBUG: Saved test data to {pickle_url}")
 
-        # Step 4: Generate PDF
-        # We inject the admin details into loc_res so they appear in the "Location Details" table
-        loc_res.update({
-            "village": request.village,
-            "tehsil": request.tehsil,
-            "district": request.district,
-            "khasra_no": request.khasra_no,
-            "total_area_acres": request.area_ac, # Injected for PDF
-            "declared_crop": request.crop
-        })
-
+        # Step 4: Generate PDF using current model (for side-by-side comparison)
         full_data = {
             "task_id": task_id,
             "satellite_analytics": sat_res,
@@ -357,14 +320,16 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         local_pdf_path = await generate_intelligence_report(full_data)
         report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
 
+        # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
 
         return {
             "status": "success",
             "task_id": task_id,
-            "pickle_url": pickle_url,
-            "report_url": report_url
+            "local_pickle_path": pickle_url,
+            "report_url": report_url,
+            "note": "Raw signals saved for offline re-evaluation."
         }
 
     except Exception as e:

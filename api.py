@@ -347,35 +347,44 @@ async def replay_test_from_pickle(task_id: str):
         raw_data = pickle.loads(pickle_bytes)
         loc_res = raw_data.get("location_data", {})
         
-        # 2. Extract specific fields to avoid 'AttributeError' in Jinja2
+        # 2. Extract specific fields safely
+        # Ensure these are NEVER None (fallback to empty list/dict)
         crops = loc_res.get("crops", [])
         lu_lc = loc_res.get("land use/ land cover details", {})
+        
+        # 3. RECONSTRUCT THE FULL PAYLOAD (Mirroring live 'full_data')
+        # We wrap the satellite results exactly as satellite_worker would
+        sat_res_mock = {
+            "timeseries_data": {
+                "vegetation_indices": raw_data.get("vegetation_indices", []),
+                "land_cover_probs": raw_data.get("land_cover_probs", [])
+            },
+            "crops": crops,
+            "land use/ land cover details": lu_lc
+        }
 
-        # 3. RECONSTRUCT THE FULL PAYLOAD
-        # We inject 'crops' and 'lu_lc' into BOTH possible locations
+        # Match the weather_worker output structure exactly
+        weather_res_mock = {
+            "daily_weather_data": raw_data.get("weather_data", {}).get("daily", []),
+            "monthly_weather_data": raw_data.get("weather_data", {}).get("monthly", []),
+            # Include B64 placeholders if your template expects them
+            "rain_1y_b64": raw_data.get("weather_data", {}).get("rain_1y_b64", ""),
+            "temp_1y_b64": raw_data.get("weather_data", {}).get("temp_1y_b64", "")
+        }
+
         full_data = {
             "task_id": task_id,
-            "satellite_analytics": {
-                "timeseries_data": {
-                    "vegetation_indices": raw_data.get("vegetation_indices", []),
-                    "land_cover_probs": raw_data.get("land_cover_probs", [])
-                },
-                "crops": crops,
-                "land use/ land cover details": lu_lc
-            },
-            "location_details": loc_res, # This contains crops and lu_lc at top level
+            "satellite_analytics": sat_res_mock, # Now contains 'crops'
+            "location_details": loc_res,         # Now contains 'crops'
             "map_details": loc_res,
-            "weather_data": {
-                "daily_weather_data": raw_data.get("weather_data", {}).get("daily"),
-                "monthly_weather_data": raw_data.get("weather_data", {}).get("monthly")
-            },
+            "weather_data": weather_res_mock,
             "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
 
         # 4. Generate PDF
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        # 5. Print Status and Upload
+        # 5. Output and Upload
         agri_status = loc_res.get("status", "Analyzed")
         print(f"✅ REPLAY SUCCESS: {task_id}.pdf | Status: {agri_status}")
 
@@ -386,6 +395,10 @@ async def replay_test_from_pickle(task_id: str):
             is_file=True
         )
         
+        # Cleanup
+        if os.path.exists(local_pdf_path):
+            os.remove(local_pdf_path)
+            
         return {
             "status": "success", 
             "pdf_name": f"{task_id}.pdf", 
@@ -394,5 +407,5 @@ async def replay_test_from_pickle(task_id: str):
         }
 
     except Exception as e:
-        print(f"❌ Replay Error for {task_id}: {str(e)}")
+        print(traceback.format_exc()) # Print the full error for debugging
         raise HTTPException(status_code=500, detail=str(e))

@@ -345,45 +345,71 @@ async def replay_test_from_pickle(task_id: str):
             raise HTTPException(status_code=404, detail="Pickle not found")
         
         raw_data = pickle.loads(pickle_bytes)
-        loc_res = raw_data.get("location_data", {})
         
-        # 2. Extract specific fields safely
-        # Ensure these are NEVER None (fallback to empty list/dict)
+        # 2. Extract Data
+        loc_res = raw_data.get("location_data", {})
+        veg_indices = raw_data.get("vegetation_indices", [])
+        lc_probs = raw_data.get("land_cover_probs", []) # This contains the crop probabilities
 
+        # 3. RECONSTRUCT THE ANNEXURE LIST (The "Crops" Fix)
+        # We must ensure every row in this list has a 'crops' key for the HTML table
+        predictions_list = []
+        for i, entry in enumerate(veg_indices):
+            # Find the matching land cover probability for this specific date
+            # We assume the lists are ordered by date
+            current_lc_prob = lc_probs[i] if i < len(lc_probs) else {}
+            
+            # The HTML template specifically looks for 'row.crops'
+            row = {
+                "date_str": entry.get("date"),
+                "NDVI": entry.get("NDVI"),
+                "EVI": entry.get("EVI"),
+                "RVI": entry.get("RVI"),
+                "crops": current_lc_prob.get("crops", 0.0), # CRITICAL: Template needs this
+                "prediction": "Crop-Activity" if entry.get("NDVI", 0) > 0.3 else "No Crop-Activity"
+            }
+            predictions_list.append(row)
+
+        # 4. RECONSTRUCT THE FULL PAYLOAD
+        # We must follow the exact nesting the HTML uses: satellite['land use/ land cover details']
         lu_lc = loc_res.get("land use/ land cover details", {})
         
-        # 3. RECONSTRUCT THE FULL PAYLOAD (Mirroring live 'full_data')
-        # We wrap the satellite results exactly as satellite_worker would
-        sat_res_mock = {
-            "timeseries_data": {
-                "vegetation_indices": raw_data.get("vegetation_indices", []),
-                "land_cover_probs": raw_data.get("land_cover_probs", [])
-            },
-            "land use/ land cover details": lu_lc
-        }
-
-        # Match the weather_worker output structure exactly
-        weather_res_mock = {
-            "daily_weather_data": raw_data.get("weather_data", {}).get("daily", []),
-            "monthly_weather_data": raw_data.get("weather_data", {}).get("monthly", []),
-            # Include B64 placeholders if your template expects them
-            "rain_1y_b64": raw_data.get("weather_data", {}).get("rain_1y_b64", ""),
-            "temp_1y_b64": raw_data.get("weather_data", {}).get("temp_1y_b64", "")
-        }
+        # Ensure 'crops' exists inside LULC for the Verdict Banner logic
+        if "crops" not in lu_lc:
+            lu_lc["crops"] = {"percent": 0.0}
 
         full_data = {
             "task_id": task_id,
-            "satellite_analytics": sat_res_mock, # Now contains 'crops'
-            "location_details": loc_res,         # Now contains 'crops'
+            "satellite": {
+                "metadata": {"coords": raw_data.get("coords", [])},
+                "land use/ land cover details": lu_lc,
+                "crop_activity_prediction_stats": {
+                    "crop_days": sum(1 for r in predictions_list if r["prediction"] == "Crop-Activity"),
+                    "total": len(predictions_list)
+                },
+                "crop_activity_predictions_list": predictions_list, # Fixed list
+                "images": {
+                    "ndvi_b64": raw_data.get("ndvi_b64", ""), # Ensure your pickle saved these!
+                    "dw_b64": raw_data.get("dw_b64", ""),
+                    "activity_b64": raw_data.get("activity_b64", "")
+                },
+                "vegetation_peak_analysis": [], # Add dummy or process from veg_indices if needed
+                "seasonal_activity": { "labels": [], "rows": [] } # Add dummy or logic
+            },
+            "location": loc_res,
             "map_details": loc_res,
-            "weather_data": weather_res_mock,
-            "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
+            "weather_data": {
+                "rain_1y_b64": raw_data.get("weather_data", {}).get("rain_1y_b64", ""),
+                "temp_1y_b64": raw_data.get("weather_data", {}).get("temp_1y_b64", ""),
+                "rain_5y_b64": raw_data.get("weather_data", {}).get("rain_5y_b64", ""),
+                "temp_5y_b64": raw_data.get("weather_data", {}).get("temp_5y_b64", "")
+            },
+            "logo_base64": "" # Add your base64 logo string here
         }
 
-        # 4. Generate PDF
+        # 5. Generate PDF
         local_pdf_path = await generate_intelligence_report(full_data)
         
-        # 5. Output and Upload
         agri_status = loc_res.get("status", "Analyzed")
         print(f"✅ REPLAY SUCCESS: {task_id}.pdf | Status: {agri_status}")
 
@@ -394,17 +420,11 @@ async def replay_test_from_pickle(task_id: str):
             is_file=True
         )
         
-        # Cleanup
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
-            
-        return {
-            "status": "success", 
-            "pdf_name": f"{task_id}.pdf", 
-            "agri_activity": agri_status, 
-            "report_url": report_url
-        }
+
+        return {"status": "success", "pdf_name": f"{task_id}.pdf", "report_url": report_url}
 
     except Exception as e:
-        print(traceback.format_exc()) # Print the full error for debugging
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

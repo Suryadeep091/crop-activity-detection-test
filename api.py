@@ -101,6 +101,27 @@ def upload_private_to_gcs(data, destination_blob_name, content_type, is_file=Fal
         method="GET"
     )
 
+def download_from_gcs(blob_name, bucket_name="terradrishti"):
+    """
+    Downloads a blob from GCS and returns it as bytes.
+    Matches the pattern of your existing upload function.
+    """
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        
+        if not blob.exists():
+            print(f"⚠️ Blob not found: {blob_name}")
+            return None
+            
+        # Download the content as bytes
+        data = blob.download_as_bytes()
+        return data
+    except Exception as e:
+        print(f"❌ GCS Download Error for {blob_name}: {e}")
+        return None
+    
 # --- WORKERS (Same as before) ---
 def satellite_worker(task_id, coords, end_date):
     return run_full_analytics_pipeline(task_id, coords, end_date)
@@ -297,7 +318,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         }
         
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"tests100/{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
 
         # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):
@@ -314,3 +335,64 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Test Pipeline Error: {str(e)}")
+    
+@app.post("/test/replay/{task_id}")
+async def replay_test_from_pickle(task_id: str):
+    try:
+        # 1. Fetch the pickle bytes from GCS
+        blob_path = f"accuracy_tests/{task_id}_raw.pkl"
+        pickle_bytes = download_from_gcs(blob_path)
+        
+        if not pickle_bytes:
+            raise HTTPException(status_code=404, detail="Pickle file not found in GCS.")
+
+        # 2. De-serialize the data
+        raw_data = pickle.loads(pickle_bytes)
+
+        # 3. Reconstruct the full_data payload for the PDF generator
+        # Note: We are using the exact keys saved in your /test/accuracy endpoint
+        full_data = {
+            "task_id": task_id,
+            "satellite_analytics": {
+                "timeseries_data": {
+                    "vegetation_indices": raw_data.get("vegetation_indices"),
+                    "land_cover_probs": raw_data.get("land_cover_probs")
+                }
+            },
+            "location_details": raw_data.get("location_data"),
+            "map_details": raw_data.get("location_data"),
+            "weather_data": raw_data.get("weather_data"),
+            "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
+        }
+
+        # 4. Generate the PDF (No GEE call required)
+        local_pdf_path = await generate_intelligence_report(full_data)
+        
+        # 5. Extract and print the status
+        # Assuming status is stored in the location_data from your original worker
+        agri_status = raw_data.get("location_data", {}).get("status", "Validated")
+        pdf_filename = f"{task_id}.pdf"
+        
+        print("-" * 30)
+        print(f"📄 PDF NAME: {pdf_filename}")
+        print(f"🌾 AGRI STATUS: {agri_status}")
+        print("-" * 30)
+
+        # 6. Upload the new report back to GCS
+        report_url = upload_private_to_gcs(
+            local_pdf_path, 
+            f"dummy_report/{pdf_filename}", 
+            "application/pdf", 
+            is_file=True
+        )
+
+        return {
+            "status": "success",
+            "pdf_name": pdf_filename,
+            "agri_activity": agri_status,
+            "report_url": report_url
+        }
+
+    except Exception as e:
+        print(f"❌ Replay Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

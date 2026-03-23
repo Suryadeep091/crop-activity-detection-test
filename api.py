@@ -19,7 +19,11 @@ from google.cloud import storage
 import google.auth
 import pickle
 import traceback
-
+from analytics_engine import (
+    apply_empirical_logic, 
+    summarize_crop_activity_table_data, 
+    summarize_indices_for_table
+)
 # Module Imports (Ensure these files are in your deployment directory)
 from analytics_engine import run_full_analytics_pipeline
 from data_loader import get_centroid_location, get_places_info
@@ -358,98 +362,90 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 @app.post("/test/replay/{task_id}")
 async def replay_test_from_pickle(task_id: str):
     try:
-        # 1. Fetch from GCS
+        # 1. Fetch and Load Pickle
         pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
-        
         raw_data = pickle.loads(pickle_bytes)
 
-        # 2. Extract components matching your payload keys exactly
-        loc_res = raw_data.get("location_data") or {}
-        # NOTE: Using the exact keys from your payload
+        # 2. Extract Raw Signals from Pickle
         veg_indices = raw_data.get("vegetation_indices") or [] 
         lc_probs = raw_data.get("land_cover_probs") or []
-        weather_res = raw_data.get("weather_data") or {}
-        images = raw_data.get("images") or {}
-        seasonal_act = raw_data.get("seasonal_activity") or {}
-        peak_analysis = raw_data.get("peak_analysis") or []
+        loc_res = raw_data.get("location_data") or {}
 
-        # 3. Reconstruct Predictions List (Annexure)
-        predictions_list = []
-        for i, entry in enumerate(veg_indices):
-            # Safe merging of land cover probabilities
-            current_lc_prob = lc_probs[i] if (lc_probs and i < len(lc_probs)) else {}
-            
-            # Ensure float conversion to prevent template 'format' filter crashes
-            ndvi_val = entry.get("NDVI")
-            ndvi_val = float(ndvi_val) if ndvi_val is not None else 0.0
+        # 3. Reconstruct DataFrame for Processing
+        df_veg = pd.DataFrame(veg_indices)
+        df_dw = pd.DataFrame(lc_probs)
+        
+        # Normalize and merge (Mirroring your analytics_engine pipeline)
+        df_veg['date'] = pd.to_datetime(df_veg['date']).dt.normalize()
+        df_dw['date'] = pd.to_datetime(df_dw['date']).dt.normalize()
+        dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
+        
+        # Fill gaps via interpolation
+        cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction']]
+        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
-            predictions_list.append({
-                "date_str": entry.get("date", "N/A"),
-                "NDVI": ndvi_val,
-                "EVI": entry.get("EVI") or 0.0,
-                "RVI": entry.get("RVI") or 0.0,
-                "crops": current_lc_prob.get("crops", 0.0),
-                "prediction": "Crop-Activity" if ndvi_val > 0.3 else "No Crop-Activity"
-            })
+        # 4. RUN YOUR ENGINE LOGIC
+        # Apply the exact same empirical logic as the live run
+        dataset_df['prediction'] = dataset_df.apply(apply_empirical_logic, axis=1)
 
-        # 4. Calculate Activity Verdict (15% Threshold)
-        crop_days = sum(1 for r in predictions_list if r["prediction"] == "Crop-Activity")
-        total_days = len(predictions_list) or 1
-        activity_ratio = (crop_days / total_days) * 100
-        verdict = "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected"
+        # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
+        analysis_end = dataset_df['date'].max()
+        analysis_start = analysis_end - pd.DateOffset(years=1)
+        
+        # Get the Rabi/Kharif grid
+        seasonal_act = summarize_crop_activity_table_data(dataset_df, analysis_start, analysis_end)
+        
+        # Get Peak Index Summary
+        temp_df = dataset_df.set_index('date')
+        peak_analysis, missing_periods = summarize_indices_for_table(temp_df)
 
-        # 5. SAT-RES Reconstruction (Matching HTML variables)
-        lu_lc = loc_res.get("land use/ land cover details") or {}
-        # Ensure 'crops' exists for the Verdict Banner logic in HTML
-        if "crops" not in lu_lc:
-            lu_lc["crops"] = {"percent": 0.0}
+        # 6. ASSEMBLE FINAL DATA FOR PDF
+        crop_days = int((dataset_df['prediction'].str.contains("Crop-Activity")).sum())
+        total_days = len(dataset_df)
+        activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
+        
+        # Format list for Annexure table
+        predictions_list = dataset_df.copy()
+        predictions_list['date_str'] = predictions_list['date'].dt.strftime('%Y-%m-%d')
 
-
-        # 2. Reconstruct the payload to match the HTML exactly
         full_data = {
             "task_id": task_id,
             "satellite": {
                 "metadata": {"coords": raw_data.get("coords") or []},
-                "land use/ land cover details": lu_lc,
-                
-                # --- THIS IS THE FIX ---
+                "land use/ land cover details": loc_res.get("land use/ land cover details", {}),
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days
                 },
-                # -----------------------
-
-                "crop_activity_predictions_list": predictions_list,
-                "images": images or {},
-                "vegetation_peak_analysis": raw_data.get("peak_analysis") or [],
-                "seasonal_activity": raw_data.get("seasonal_activity") or { "labels": [], "rows": [{"values":[]},{"values":[]},{"values":[]}] }
+                "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
+                "images": raw_data.get("images", {}), # Use B64 images already in pickle
+                "vegetation_peak_analysis": peak_analysis,
+                "seasonal_activity": seasonal_act
             },
             "location": loc_res,
             "map_details": loc_res,
-            "weather_data": weather_res,
-            "logo_base64": "" 
+            "weather_data": raw_data.get("weather_data", {}),
+            "logo_base64": "",
+            "metadata": {"timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")}
         }
 
-        # 6. Generate PDF
+        # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        
-        # 7. Final Response
         report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
-        
+            
         return {
             "status": "success",
             "task_id": task_id,
-            "agri_activity": verdict,
+            "agri_activity": "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
             "report_url": report_url
         }
 
     except Exception as e:
-        print(f"--- REPLAY ERROR [{task_id}] ---")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

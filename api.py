@@ -402,9 +402,9 @@ async def replay_test_from_pickle(task_id: str):
         peak_analysis, missing_periods = summarize_indices_for_table(temp_df)
 
         # 6. ASSEMBLE FINAL DATA FOR PDF
-        no_crop_days = int((dataset_df['prediction'].str.contains("No Crop-Activity")).sum())
+        crop_days = int((dataset_df['prediction']=="Crop-Activity").sum())
         total_days = len(dataset_df)
-        crop_days = total_days - no_crop_days
+        # crop_days = total_days - no_crop_days
         activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
         
         # Format list for Annexure table

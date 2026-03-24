@@ -405,8 +405,13 @@ async def replay_test_from_pickle(task_id: str):
         crop_days = int((dataset_df['prediction']=="Crop-Activity").sum())
         total_days = len(dataset_df)
         # crop_days = total_days - no_crop_days
-        activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
         
+        activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
+        if activity_ratio > 15:
+            is_active = True
+        else:
+            is_active = False
+
         # Format list for Annexure table
         predictions_list = dataset_df.copy()
         predictions_list['date_str'] = predictions_list['date'].dt.strftime('%Y-%m-%d')
@@ -443,6 +448,7 @@ async def replay_test_from_pickle(task_id: str):
             "task_id": task_id,
             "agri_activity": "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
+            "is_active": is_active,
             "report_url": report_url
         }
 

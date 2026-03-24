@@ -175,7 +175,7 @@ def apply_empirical_logic(row, prev_ndvi=None):
     # Only reject if another class is significantly dominant (>0.65)
     for noise_class in ['trees', 'built', 'water', 'bare', 'shrub_and_scrub']:
         val = row.get(noise_class, 0)
-        if val > 0.65 and val > crop_prob:
+        if val > 0.50 and val > crop_prob:
             return "No Crop-Activity"
 
     # --- MONSOON SWITCH (June - Sept: Heavy Rain / Kharif) ---

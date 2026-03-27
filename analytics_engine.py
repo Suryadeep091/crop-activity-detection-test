@@ -217,21 +217,31 @@ def apply_empirical_logic(row):
     ndvi = row.get('NDVI', 0)
     rvi = row.get('RVI', 0)
     
-    crops = row.get('crops', 0)
-    flooded_veg = row.get('flooded_vegetation', 0)
-    crop_prob = crops + flooded_veg
+    # 1. Extract Signals
+    ndvi = row.get('NDVI', 0)
+    rvi = row.get('RVI', 0)
     
-    # --- 2. THE INDEX OVERRIDE (THE FAIL-SAFE) ---
-    # If NDVI is exceptionally high, it's almost certainly a crop, 
-    # regardless of what the AI 'class' says.
-    if ndvi > 0.60:
-        return "Crop-Activity" # Force positive result due to high biomass
+    # AI Class Probabilities
+    tree_prob = row.get('trees', 0)
+    flooded_veg = row.get('flooded_vegetation', 0)
+    crop_prob = row.get('crops', 0) + flooded_veg
 
-    # --- 3. Global Guardrails ---
-    # We only run these if the NDVI didn't hit the override threshold.
-    noise_classes = ['trees', 'built', 'water', 'bare', 'shrub_and_scrub', 'snow']
-    for cls in noise_classes:
-        val = row.get(cls, 0)
+    # --- THE FOREST FILTER (The "Tree Guardrail") ---
+    # We check for trees BEFORE the high-NDVI override.
+    # If trees are the dominant class (>0.50) and are stronger than crops, 
+    # we classify as "No Crop-Activity" regardless of high NDVI.
+    if tree_prob > 0.50 and tree_prob > crop_prob:
+        return "No Crop-Activity"
+
+    # --- THE INDEX OVERRIDE (Now Safe from Forests) ---
+    # If it's NOT a forest, but NDVI is > 0.60, it's almost certainly a high-yield crop.
+    if ndvi > 0.60:
+        return "Crop-Activity"
+
+    # --- 2. Global Guardrails for Other Noise ---
+    # Built-up, Water, Bare Soil, etc.
+    for noise_class in ['built', 'water', 'bare', 'shrub_and_scrub']:
+        val = row.get(noise_class, 0)
         if val > 0.50 and val > crop_prob:
             return "No Crop-Activity"
 

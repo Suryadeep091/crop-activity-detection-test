@@ -211,59 +211,47 @@ def fig_to_base64(fig, is_plotly=False):
 #     return "No Crop-Activity"
 
 def apply_empirical_logic(row):
-    # Extract signals and month
+    # --- 1. Extract Signals ---
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
-    
     ndvi = row.get('NDVI', 0)
     rvi = row.get('RVI', 0)
-    # Combine AI classes
+    
     crops = row.get('crops', 0)
     flooded_veg = row.get('flooded_vegetation', 0)
     crop_prob = crops + flooded_veg
-    tree_prob = row.get('trees', 0)
-    built = row.get('built', 0)
-    water = row.get('water', 0)
-    bare = row.get('bare', 0)
-    shrubs = row.get('shrub_and_scrub', 0)
-    snow = row.get('snow_and_ice', 0)
     
-    # Global Tree Filter
-    if tree_prob > 0.50 or tree_prob > crop_prob:
-        return "No Crop-Activity"
-    if built > 0.50 or built > crop_prob:
-        return "No Crop-Activity"
-    if water > 0.50 or water > crop_prob:
-        return "No Crop-Activity"
-    if bare > 0.50 or bare > crop_prob:
-        return "No Crop-Activity"
-    if shrubs > 0.50 or shrubs > crop_prob:
-        return "No Crop-Activity"
-    if snow > 0.50 or snow > crop_prob:
-        return "No Crop-Activity"
+    # --- 2. THE INDEX OVERRIDE (THE FAIL-SAFE) ---
+    # If NDVI is exceptionally high, it's almost certainly a crop, 
+    # regardless of what the AI 'class' says.
+    if ndvi > 0.60:
+        return "Crop-Activity" # Force positive result due to high biomass
 
-    # --- SOWING DETECTION (Catching the start of the cycle) ---
-    # If the AI sees Flooded Veg (Paddy) or if we see early structure with some AI confidence
-    # We use much lower NDVI thresholds here.
+    # --- 3. Global Guardrails ---
+    # We only run these if the NDVI didn't hit the override threshold.
+    noise_classes = ['trees', 'built', 'water', 'bare', 'shrub_and_scrub', 'snow']
+    for cls in noise_classes:
+        val = row.get(cls, 0)
+        if val > 0.50 and val > crop_prob:
+            return "No Crop-Activity"
+
+    # --- 4. SOWING DETECTION ---
     if flooded_veg > 0.40 and rvi > 0.30:
-        return "Crop-Activity" # Early Paddy sowing detected
+        return "Crop-Activity" 
     
     if crop_prob > 0.35 and (ndvi > 0.25 and rvi > 0.35):
-        return "Crop-Activity" # Early Rabi/Zaid growth detected
+        return "Crop-Activity"
 
-    # --- FULL VEGETATIVE LOGIC (Your existing thresholds for peak) ---
-    # June to October (Kharif)
-    if 6 <= month <= 10:
+    # --- 5. SEASONAL PEAK LOGIC ---
+    if 6 <= month <= 10: # Kharif
         if (rvi > 0.45 and crop_prob > 0.40) or (ndvi > 0.35 and crop_prob > 0.50):
             return "Crop-Activity"
 
-    # November to March (Rabi)
-    elif month in [11, 12, 1, 2, 3]:
+    elif month in [11, 12, 1, 2, 3]: # Rabi
         if ndvi > 0.40 and (crop_prob > 0.40 or rvi > 0.35):
             return "Crop-Activity"
 
-    # April to May (Zaid)
-    elif month in [4, 5]:
+    elif month in [4, 5]: # Zaid
         if ndvi > 0.45 and rvi > 0.40:
             return "Crop-Activity"
 

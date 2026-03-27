@@ -235,7 +235,7 @@ def apply_empirical_logic(row):
 
     # --- THE INDEX OVERRIDE (Now Safe from Forests) ---
     # If it's NOT a forest, but NDVI is > 0.60, it's almost certainly a high-yield crop.
-    if ndvi > 0.60:
+    if ndvi > 0.70:
         return "Crop-Activity"
 
     # --- 2. Global Guardrails for Other Noise ---

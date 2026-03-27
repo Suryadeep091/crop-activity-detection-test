@@ -230,7 +230,7 @@ def apply_empirical_logic(row):
     # We check for trees BEFORE the high-NDVI override.
     # If trees are the dominant class (>0.50) and are stronger than crops, 
     # we classify as "No Crop-Activity" regardless of high NDVI.
-    if tree_prob > 0.50 and tree_prob > crop_prob:
+    if tree_prob > 0.50 or tree_prob > crop_prob:
         return "No Crop-Activity"
 
     # --- THE INDEX OVERRIDE (Now Safe from Forests) ---

@@ -164,47 +164,81 @@ def apply_empirical_logic(row, prev_ndvi=None):
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
     
-    # 1. Extract Signals
+    # 1. Signal Extraction
     ndvi = row.get('NDVI', 0)
+    evi = row.get('EVI', 0)
     rvi = row.get('RVI', 0)
+    
+    # Dynamic World Probabilities
     crops = row.get('crops', 0)
-    flooded_veg = row.get('flooded_vegetation', 0)
+    flooded_veg = row.get('flooded_vegetation', 0) # Highly indicative of Paddy (Rice)
     crop_prob = crops + flooded_veg
     
-    # 2. Global Guardrails (Keep these but make them less "aggressive")
-    # Only reject if another class is significantly dominant (>0.65)
-    for noise_class in ['trees', 'built', 'water', 'bare', 'shrub_and_scrub']:
-        val = row.get(noise_class, 0)
-        if val > 0.50 and val > crop_prob:
-            return "No Crop-Activity"
+    # 2. Dynamic World Guardrails
+    # If built-up or water is over 60%, it's almost certainly not a crop parcel
+    if row.get('built', 0) > 0.60 or row.get('water', 0) > 0.60:
+        return "No Crop-Activity"
+    
+    # Tree/Forest Guardrail: If trees are dominant and NDVI is high, it's a forest, not a farm
+    if row.get('trees', 0) > 0.50 and ndvi > 0.70:
+        return "No Crop-Activity"
 
-    # --- MONSOON SWITCH (June - Sept: Heavy Rain / Kharif) ---
-    if 6 <= month <= 9:
-        # During rain, we trust RVI over NDVI. 
-        # RVI > 0.4 usually indicates established crop structure even if cloudy.
-        if (rvi > 0.40 and crop_prob > 0.35) or (flooded_veg > 0.50 and rvi > 0.30):
-            return "Crop-Activity"
-            
-    # --- WINTER / DRY (Oct - March: Rabi) ---
-    elif month in [10, 11, 12, 1, 2, 3]:
-        # High-confidence NDVI is better for Rabi (Wheat/Mustard)
-        if (ndvi > 0.38 and crop_prob > 0.40) or (rvi > 0.45):
-            return "Crop-Activity"
+    # --- KHARIF SEASON (June - October) ---
+    # Major Crops: Rice, Maize, Cotton, Soyabean
+    if 6 <= month <= 10:
+        # Sowing Phase (June-July): Focus on Flooded Veg (Paddy) + RVI
+        if month in [6, 7]:
+            if (flooded_veg > 0.40 and rvi > 0.30) or (rvi > 0.35 and crop_prob > 0.30):
+                return "Crop-Activity (Kharif Sowing)"
+        
+        # Growth/Peak Phase (August-Sept): Heavy Clouds. Trust RVI > NDVI.
+        if month in [8, 9]:
+            # Radar sees through clouds to find biomass structure
+            if rvi > 0.42 and crop_prob > 0.35:
+                return "Crop-Activity (Kharif Peak)"
+                
+        # Harvesting/Maturity (October): NDVI/EVI start becoming reliable again
+        if month == 10:
+            if (ndvi > 0.35 or evi > 0.30) and rvi > 0.40:
+                return "Crop-Activity (Kharif Maturity)"
 
-    # --- SUMMER (April - May: Zaid) ---
+    # --- RABI SEASON (November - March) ---
+    # Major Crops: Wheat, Mustard, Gram, Barley
+    elif month in [11, 12, 1, 2, 3]:
+        # Sowing/Early Growth (Nov-Dec): Low NDVI, but EVI picks up faster
+        if month in [11, 12]:
+            if (evi > 0.25 and crop_prob > 0.40) or rvi > 0.38:
+                return "Crop-Activity (Rabi Sowing)"
+        
+        # Peak Phase (Jan-Feb): Clear skies. NDVI is king here.
+        if month in [1, 2]:
+            # Wheat/Mustard show very high NDVI peaks (0.5 - 0.8)
+            if (ndvi > 0.40 and crop_prob > 0.45) or (ndvi > 0.35 and rvi > 0.45):
+                return "Crop-Activity (Rabi Peak)"
+                
+        # Maturity/Harvest (March): Gradual drop in NDVI as crops turn yellow/brown
+        if month == 3:
+            if ndvi > 0.30 and rvi > 0.40:
+                return "Crop-Activity (Rabi Maturity)"
+
+    # --- ZAID SEASON (April - May) ---
+    # Major Crops: Moong, Cucumber, Watermelon, Fodder
     elif month in [4, 5]:
-        # Strict thresholds to avoid heat-haze noise
-        if ndvi > 0.42 and rvi > 0.40:
-            return "Crop-Activity"
+        # Intense heat and bare soil noise. Require very high crop probability.
+        # NDVI > 0.45 in peak summer usually means irrigation-backed crops.
+        if ndvi > 0.45 and evi > 0.35 and crop_prob > 0.50:
+            return "Crop-Activity (Zaid)"
 
-    # --- THE "TREND" CATCHER ---
-    # If we have a previous NDVI, check if it's growing. 
-    # Even if it doesn't hit the thresholds above, a jump is 'Activity'.
+    # --- TREND & ANOMALY CATCHER ---
+    # Catch rapid greening (sowing) or rapid browning (harvesting)
     if prev_ndvi is not None:
-        if (ndvi - prev_ndvi) > 0.08: # Significant growth detected
-             return "Crop-Activity"
+        change = ndvi - prev_ndvi
+        if change > 0.10 and crop_prob > 0.30: # Rapid Greening
+             return "Crop-Activity (Emerging)"
 
     return "No Crop-Activity"
+
+
 # def apply_empirical_logic(row):
 #     # Extract signals and month
 #     date_val = pd.to_datetime(row.get('date'))

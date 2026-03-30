@@ -212,103 +212,65 @@ def fig_to_base64(fig, is_plotly=False):
 #     return "No Crop-Activity"
 
 
-def calculate_integrity(df, cycle_info):
+def apply_empirical_logic(row, detected_seasons):
     """
-    Detailed Integrity Scoring: 
-    1. Temporal: How strong are the detected growth cycles?
-    2. Spatial: How dominant and consistent is the 'Crop' class vs others?
+    row: current data point
+    detected_seasons: list of seasons found in the full year (e.g., ['Kharif', 'Rabi'])
     """
-    # --- 1. TEMPORAL INTEGRITY ---
-    details = cycle_info.get('details', [])
-    if not details:
-        t_integrity = 0.0
-    else:
-        # Penalize if cycles are too few or prominence is low
-        scores = [min(c.get('prominence', 0) / 0.35, 1.0) for c in details]
-        t_integrity = np.mean(scores)
-
-    # --- 2. SPATIAL (DW) INTEGRITY ---
-    dw_classes = ['trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare']
+    date_val = pd.to_datetime(row.get('date'))
+    month = date_val.month
+    ndvi = row.get('NDVI', 0)
+    rvi = row.get('RVI', 0)
     
-    # Calculate mean probability for every class across the year
-    class_means = {cls: df[cls].mean() for cls in dw_classes if cls in df.columns}
+    # AI Class Probabilities
+    tree_prob = row.get('trees', 0)
+    crop_prob = row.get('crops', 0)
+    flooded_veg = row.get('flooded_vegetation', 0)
+    total_crop_signal = crop_prob + flooded_veg
     
-    # Who is the "Global Winner" for this parcel?
-    dominant_class = max(class_means, key=class_means.get)
-    dominance_margin = class_means[dominant_class] - (sum(class_means.values()) - class_means[dominant_class]) / (len(class_means)-1)
-
-    # Spatial Integrity is high if Crops are dominant OR if the AI is very certain about its winner
-    is_crop_dominant = dominant_class in ['crops', 'flooded_vegetation']
-    s_integrity = class_means.get(dominant_class, 0) * (1.2 if is_crop_dominant else 0.8)
+    # Determine current season based on month
+    current_season = None
+    if 6 <= month <= 10: current_season = "Kharif"
+    elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
+    elif month in [4, 5]: current_season = "Zaid"
     
-    return {
-        "temporal": t_integrity,
-        "spatial": min(s_integrity, 1.0),
-        "dominant_class": dominant_class,
-        "is_crop_dominant": is_crop_dominant,
-        "margin": dominance_margin,
-        "seasonal_periods": [(c['season'], c['peak_date']) for c in details]
-    }
-
-def apply_empirical_logic(row_data, integrity):
-    """
-    Advanced Decision Engine:
-    - High Cycle Integrity forces 'Crop' during the correct season.
-    - High DW Integrity blocks 'Crop' if non-crop classes dominate.
-    - Trees are the ultimate 'Kill Switch'.
-    """
-    # 1. SETUP VARIABLES
-    t_int = integrity.get('temporal', 0)
-    s_int = integrity.get('spatial', 0)
-    is_crop_dominant = integrity.get('is_crop_dominant', False)
-    dom_class = integrity.get('dominant_class', 'bare')
-    
-    curr_date = pd.to_datetime(row_data.get('date'))
-    ndvi = row_data.get('NDVI', 0)
-    tree_prob = row_data.get('trees', 0)
-    crop_prob = row_data.get('crops', 0) + row_data.get('flooded_vegetation', 0)
-    
-    # Identify non-crop competition
-    other_classes = {cls: row_data.get(cls, 0) for cls in ['built', 'bare', 'grass', 'shrub_and_scrub']}
-    max_other_val = max(other_classes.values())
-    max_other_class = max(other_classes, key=other_classes.get)
-
-    # --- 2. THE DECISION HIERARCHY ---
-
-    # RULE A: THE TREE KILL-SWITCH
-    # If trees are high (>0.4) and outperforming crops, it's an orchard/forest.
-    if tree_prob > 0.45 and tree_prob > crop_prob:
+    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
+    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
+    # it's likely a plantation or forest edge.
+    if tree_prob > 0.50 or tree_prob > total_crop_signal:
         return "No Crop-Activity"
-
-    # RULE B: HIGH CYCLE INTEGRITY (The "Temporal Force")
-    # If a cycle was detected, and we are within the growth window (±60 days of peak)
-    if t_int > 0.5:
-        for season, peak_date in integrity.get('seasonal_periods', []):
-            days_from_peak = abs((curr_date - peak_date).days)
-            if days_from_peak <= 60:
-                # Inside a validated cycle, we only reject if a non-crop class is OVERWHELMING (>0.7)
-                if max_other_val > 0.75:
-                    return "No Crop-Activity"
-                return "Crop-Activity"
-
-    # RULE C: HIGH SPATIAL INTEGRITY (The "AI Force")
-    # If the AI is very sure about its classification
-    if s_int > 0.6:
-        if is_crop_dominant:
-            # If the year-long winner is crop, and current point isn't built/bare
-            if max_other_val < 0.60:
-                return "Crop-Activity"
-        else:
-            # If the winner is Built, Bare, or Grass with high integrity
-            if max_other_val > crop_prob:
-                return "No Crop-Activity"
-
-    # RULE D: FALLBACK FOR LOW INTEGRITY / TRANSITION PERIODS
-    # Standard thresholding if neither temporal nor spatial signals are "High Integrity"
-    if crop_prob > 0.55 and ndvi > 0.25:
-        return "Crop-Activity"
     
-    if is_crop_dominant and crop_prob > 0.40 and ndvi > 0.35:
+    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
+    has_cycle_in_season = current_season in detected_seasons
+     
+    if has_cycle_in_season:
+        # If a cycle exists, we are more lenient with sensor thresholds
+        # because we know the land is dynamic.
+        if total_crop_signal > 0.30 or ndvi > 0.35 or rvi > 0.35:
+            return "Crop-Activity"
+    
+    else:
+        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
+        # If the smoothing/peak detection missed a cycle, 
+        # only classify as crop if DW class is in HEAVY MAJORITY.
+        if crop_prob > 0.65:
+            return "Crop-Activity"
+        
+        # Check for other dominant classes (Built, Grass, Bare)
+        # If any non-crop class is in majority, it's definitely not a crop.
+        other_classes = {
+            'built': row.get('built', 0),
+            'bare': row.get('bare', 0),
+            'grass': row.get('grass', 0),
+            'shrub': row.get('shrub_and_scrub', 0)
+        }
+        dominant_noise = max(other_classes, key=other_classes.get)
+        if other_classes[dominant_noise] > 0.50:
+            return "No Crop-Activity"
+
+    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
+    # Fallback if Rule 2 and 3 didn't catch it
+    if total_crop_signal > 0.55:
         return "Crop-Activity"
 
     return "No Crop-Activity"

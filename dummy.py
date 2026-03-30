@@ -26,11 +26,10 @@ from analytics_engine import (
 )
 # Module Imports (Ensure these files are in your deployment directory)
 from analytics_engine import run_full_analytics_pipeline
-from data_loader import get_centroid_location, get_places_info
+from data_loader import detect_crop_cycles, get_centroid_location, get_places_info
 from rain_temp import get_one_year_weather_data, get_five_year_weather_data
 from pdf_generator import generate_intelligence_report 
 from location import get_static_map_b64
-from data_loader import detect_crop_cycles
 
 # Configuration
 matplotlib.use('Agg')
@@ -382,7 +381,7 @@ async def replay_test_from_pickle(task_id: str):
         df_veg['date'] = pd.to_datetime(df_veg['date']).dt.normalize()
         df_dw['date'] = pd.to_datetime(df_dw['date']).dt.normalize()
         dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
-        cycle_info = detect_crop_cycles(dataset_df)
+        
         # Fill gaps via interpolation
         cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction']]
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
@@ -390,8 +389,7 @@ async def replay_test_from_pickle(task_id: str):
         # 4. RUN YOUR ENGINE LOGIC
         # Apply the exact same empirical logic as the live run
         dataset_df['prediction'] = dataset_df.apply(apply_empirical_logic, axis=1)
-
-        
+        cycle_info = detect_crop_cycles(dataset_df)
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
         analysis_end = dataset_df['date'].max()
         analysis_start = analysis_end - pd.DateOffset(years=1)
@@ -443,7 +441,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/new_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test/new_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

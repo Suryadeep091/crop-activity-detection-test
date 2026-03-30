@@ -244,9 +244,19 @@ def apply_empirical_logic(row, detected_seasons):
     has_cycle_in_season = current_season in detected_seasons
      
     if has_cycle_in_season:
-        # If a cycle exists, we are more lenient with sensor thresholds
-        # because we know the land is dynamic.
-        if total_crop_signal > 0.30 or ndvi > 0.35 or rvi > 0.35:
+        # Define season-specific threshold dictionary
+        # Format: { 'Total_Crop_Signal', 'NDVI', 'RVI' }
+        thresholds = {
+            "Kharif": {"crop": 0.35, "ndvi": 0.40, "rvi": 0.40}, # High biomass needs higher bars
+            "Rabi":   {"crop": 0.28, "ndvi": 0.35, "rvi": 0.30}, # Standard winter thresholds
+            "Zaid":   {"crop": 0.22, "ndvi": 0.28, "rvi": 0.25}  # Highly sensitive for summer
+        }
+
+        # Get thresholds for the current point's season (fallback to generic if unknown)
+        t = thresholds.get(current_season, {"crop": 0.30, "ndvi": 0.35, "rvi": 0.35})
+
+        # Apply specific logic
+        if total_crop_signal > t['crop'] or ndvi > t['ndvi'] or rvi > t['rvi']:
             return "Crop-Activity"
     
     else:

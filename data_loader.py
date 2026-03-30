@@ -97,7 +97,7 @@ def detect_crop_cycles(df):
         return (peak_val - baseline_val) >= min_amplitude
 
     # --- STEP 2: KHARIF DETECTION ---
-    kharif_mask = (df['date'].dt.month >= 6) & (df['date'].dt.month <= 10)
+    kharif_mask = (df['date'].dt.month >= 5) & (df['date'].dt.month <= 11)
     kharif_df = df[kharif_mask]
     
     if not kharif_df.empty:
@@ -109,7 +109,7 @@ def detect_crop_cycles(df):
                 break
 
     # --- STEP 3: RABI DETECTION ---
-    rabi_mask = (df['date'].dt.month >= 11) | (df['date'].dt.month <= 3)
+    rabi_mask = (df['date'].dt.month >= 10) | (df['date'].dt.month <= 4)
     rabi_df = df[rabi_mask].sort_values('date')
     
     if not rabi_df.empty:
@@ -122,7 +122,7 @@ def detect_crop_cycles(df):
                 break
 
     # --- STEP 4: ZAID DETECTION ---
-    zaid_mask = (df['date'].dt.month >= 4) & (df['date'].dt.month <= 5)
+    zaid_mask = (df['date'].dt.month >= 3) & (df['date'].dt.month <= 6)
     zaid_df = df[zaid_mask]
     
     if not zaid_df.empty:

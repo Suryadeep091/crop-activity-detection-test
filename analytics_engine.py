@@ -211,62 +211,71 @@ def fig_to_base64(fig, is_plotly=False):
 
 #     return "No Crop-Activity"
 
-def apply_empirical_logic(row):
-    # --- 1. Extract Signals ---
+# 
+
+def apply_empirical_logic(row, detected_seasons):
+    """
+    row: current data point
+    detected_seasons: list of seasons found in the full year (e.g., ['Kharif', 'Rabi'])
+    """
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
     ndvi = row.get('NDVI', 0)
     rvi = row.get('RVI', 0)
     
-    # 1. Extract Signals
-    ndvi = row.get('NDVI', 0)
-    rvi = row.get('RVI', 0)
-    
     # AI Class Probabilities
     tree_prob = row.get('trees', 0)
+    crop_prob = row.get('crops', 0)
     flooded_veg = row.get('flooded_vegetation', 0)
-    crop_prob = row.get('crops', 0) + flooded_veg
+    total_crop_signal = crop_prob + flooded_veg
 
-    # --- THE FOREST FILTER (The "Tree Guardrail") ---
-    # We check for trees BEFORE the high-NDVI override.
-    # If trees are the dominant class (>0.50) and are stronger than crops, 
-    # we classify as "No Crop-Activity" regardless of high NDVI.
-    if tree_prob > 0.50 or tree_prob > crop_prob:
+    # Determine current season based on month
+    current_season = None
+    if 6 <= month <= 10: current_season = "Kharif"
+    elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
+    elif month in [4, 5]: current_season = "Zaid"
+
+    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
+    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
+    # it's likely a plantation or forest edge.
+    if tree_prob > 0.50 and tree_prob > total_crop_signal:
         return "No Crop-Activity"
 
-    # --- THE INDEX OVERRIDE (Now Safe from Forests) ---
-    # If it's NOT a forest, but NDVI is > 0.60, it's almost certainly a high-yield crop.
-    if ndvi > 0.70:
-        return "Crop-Activity"
+    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
+    has_cycle_in_season = current_season in detected_seasons
 
-    # --- 2. Global Guardrails for Other Noise ---
-    # Built-up, Water, Bare Soil, etc.
-    for noise_class in ['built', 'water', 'bare', 'shrub_and_scrub']:
-        val = row.get(noise_class, 0)
-        if val > 0.50 and val > crop_prob:
+    if has_cycle_in_season:
+        # If a cycle exists, we are more lenient with sensor thresholds
+        # because we know the land is dynamic.
+        if total_crop_signal > 0.30 or ndvi > 0.35 or rvi > 0.35:
+            return "Crop-Activity"
+    
+    else:
+        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
+        # If the smoothing/peak detection missed a cycle, 
+        # only classify as crop if DW class is in HEAVY MAJORITY.
+        if crop_prob > 0.70:
+            return "Crop-Activity"
+        
+        # Check for other dominant classes (Built, Grass, Bare)
+        # If any non-crop class is in majority, it's definitely not a crop.
+        other_classes = {
+            'built': row.get('built', 0),
+            'bare': row.get('bare', 0),
+            'grass': row.get('grass', 0),
+            'shrub': row.get('shrub_and_scrub', 0)
+        }
+        dominant_noise = max(other_classes, key=other_classes.get)
+        if other_classes[dominant_noise] > 0.50:
             return "No Crop-Activity"
 
-    # --- 4. SOWING DETECTION ---
-    if flooded_veg > 0.40 and rvi > 0.30:
-        return "Crop-Activity" 
-    
-    if crop_prob > 0.35 and (ndvi > 0.25 and rvi > 0.35):
+    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
+    # Fallback if Rule 2 and 3 didn't catch it
+    if total_crop_signal > 0.55:
         return "Crop-Activity"
 
-    # --- 5. SEASONAL PEAK LOGIC ---
-    if 6 <= month <= 10: # Kharif
-        if (rvi > 0.45 and crop_prob > 0.40) or (ndvi > 0.35 and crop_prob > 0.50):
-            return "Crop-Activity"
-
-    elif month in [11, 12, 1, 2, 3]: # Rabi
-        if ndvi > 0.40 and (crop_prob > 0.40 or rvi > 0.35):
-            return "Crop-Activity"
-
-    elif month in [4, 5]: # Zaid
-        if ndvi > 0.45 and rvi > 0.40:
-            return "Crop-Activity"
-
     return "No Crop-Activity"
+
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
     try:
@@ -374,7 +383,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
         
         # Now the logic will find 'crops' and 'flooded_vegetation' successfully
-        dataset_df['prediction'] = dataset_df.apply(apply_empirical_logic, axis=1)
+        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1)
         
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()

@@ -416,7 +416,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 4. RUN YOUR ENGINE LOGIC
         # Apply the exact same empirical logic as the live run
-        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1)
+        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info), axis=1)
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)

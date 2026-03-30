@@ -59,83 +59,81 @@ initialize_ee()
 
 
 
-
 def detect_crop_cycles(df):
     if df.empty or len(df) < 30:
         return {"total_cycles": 0, "detected_seasons": [], "details": [], "type": "insufficient_data"}
 
-    df = df.sort_values('date')
+    df = df.sort_values('date').copy()
     
-    # --- STEP 1: SIGNAL SMOOTHING ---
-    window_rvi = 21 if len(df) > 21 else (len(df) // 2 * 2 + 1)
-    window_ndvi = 11 if len(df) > 11 else (len(df) // 2 * 2 + 1)
+    # --- STEP 1: ADAPTIVE SIGNAL SMOOTHING ---
+    # Shorter windows to prevent flattening real crop peaks
+    window_rvi = 11 if len(df) > 11 else (len(df) // 2 * 2 + 1)
+    window_ndvi = 7 if len(df) > 7 else (len(df) // 2 * 2 + 1)
     
     df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), window_rvi, 2)
     df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi, 2)
 
-    # --- NEW: PERENNIAL/FOREST FILTER ---
-    # If the NDVI never drops below 0.4, it's likely a forest or orchard, not a crop cycle
+    # --- STEP 2: PERENNIAL/FOREST FILTER (STRENGTHENED) ---
     annual_min_ndvi = df['ndvi_smooth'].min()
     annual_range = df['ndvi_smooth'].max() - annual_min_ndvi
     
-    if annual_min_ndvi > 0.45 and annual_range < 0.2:
+    if annual_min_ndvi > 0.48 and annual_range < 0.15:
         return {
             "total_cycles": 0, 
             "detected_seasons": ["Perennial/Evergreen"], 
             "details": [],
-            "note": "NDVI remains high year-round; likely forest or orchard."
+            "note": "Stable high NDVI indicates non-seasonal vegetation (Orchards/Forest)."
         }
 
-    detected_cycles = []
-    
-    # Helper to validate a peak's "Cycle Integrity"
+    # --- STEP 3: HELPER WITH SLOPE/DURATION VALIDATION ---
     def is_valid_cycle(sub_df, peak_idx, index_col, min_amplitude=0.20):
+        if peak_idx == 0: return False
+        
         peak_val = sub_df.iloc[peak_idx][index_col]
-        # Look for the minimum value BEFORE the peak in this subset
-        baseline_val = sub_df.iloc[:peak_idx][index_col].min() 
-        return (peak_val - baseline_val) >= min_amplitude
+        # Find the actual minimum BEFORE the peak in this subset
+        pre_peak_df = sub_df.iloc[:peak_idx]
+        baseline_idx = pre_peak_df[index_col].argmin()
+        baseline_val = pre_peak_df.iloc[baseline_idx][index_col]
+        
+        amplitude = peak_val - baseline_val
+        
+        # Duration Check: Real crops take time to grow (25-90 days)
+        # This kills "Weather Spikes" (False Positives like MP08)
+        days_to_peak = (sub_df.iloc[peak_idx]['date'] - pre_peak_df.iloc[baseline_idx]['date']).days
+        
+        return amplitude >= min_amplitude and 25 <= days_to_peak <= 120
 
-    # --- STEP 2: KHARIF DETECTION ---
-    kharif_mask = (df['date'].dt.month >= 6) & (df['date'].dt.month <= 10)
-    kharif_df = df[kharif_mask]
-    
-    if not kharif_df.empty:
-        peaks_rvi, _ = find_peaks(kharif_df['rvi_smooth'], prominence=0.15, distance=30)
-        for p in peaks_rvi:
-            if is_valid_cycle(kharif_df, p, 'rvi_smooth', 0.20):
-                peak_date = kharif_df.iloc[p]['date']
-                detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "RVI"})
-                break
+    detected_cycles = []
 
-    # --- STEP 3: RABI DETECTION ---
-    rabi_mask = (df['date'].dt.month >= 11) | (df['date'].dt.month <= 3)
-    rabi_df = df[rabi_mask].sort_values('date')
-    
-    if not rabi_df.empty:
-        peaks_ndvi, _ = find_peaks(rabi_df['ndvi_smooth'], prominence=0.20, distance=45)
-        for p in peaks_ndvi:
-            # For Rabi, we check the baseline before the peak (Nov/Dec)
-            if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.25):
-                peak_date = rabi_df.iloc[p]['date']
-                detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI"})
-                break
+    # --- STEP 4: BUFFERED SEASONAL DETECTION ---
+    # Kharif: Expanded to Nov 15 to catch late harvests (Solves RJ/KT misses)
+    kharif_mask = (df['date'].dt.month >= 5) & (df['date'].dt.month <= 11)
+    # Rabi: Expanded to Oct 15 to catch early sowing
+    rabi_mask = (df['date'].dt.month >= 10) | (df['date'].dt.month <= 4)
+    # Zaid: Summer crops
+    zaid_mask = (df['date'].dt.month >= 3) & (df['date'].dt.month <= 6)
 
-    # --- STEP 4: ZAID DETECTION ---
-    zaid_mask = (df['date'].dt.month >= 4) & (df['date'].dt.month <= 5)
-    zaid_df = df[zaid_mask]
-    
-    if not zaid_df.empty:
-        peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.15, distance=20)
-        if len(peaks_zaid) > 0:
-            if is_valid_cycle(zaid_df, peaks_zaid[0], 'ndvi_smooth', 0.15):
-                detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[peaks_zaid[0]]['date'], "index_used": "NDVI"})
+    seasons = [
+        ("Kharif", kharif_mask, 'rvi_smooth', 0.20, 0.15, 30),
+        ("Rabi", rabi_mask, 'ndvi_smooth', 0.18, 0.18, 45), # Lower amplitude for Rabi
+        ("Zaid", zaid_mask, 'ndvi_smooth', 0.15, 0.12, 20)
+    ]
+
+    for name, mask, col, amp, prom, dist in seasons:
+        sub_df = df[mask].sort_values('date')
+        if not sub_df.empty:
+            peaks, _ = find_peaks(sub_df[col], prominence=prom, distance=dist)
+            for p in peaks:
+                if is_valid_cycle(sub_df, p, col, amp):
+                    peak_date = sub_df.iloc[p]['date']
+                    detected_cycles.append({"season": name, "peak_date": peak_date, "index_used": col})
+                    break # Usually one major peak per season
 
     return {
         "total_cycles": len(detected_cycles),
         "detected_seasons": [c['season'] for c in detected_cycles],
         "details": detected_cycles
     }
-
 
 # Function to count valid NDVI peaks (crop cycles) using the thumb rule
 # A valid peak: NDVI rises for >=21 days, stays high for >=35 days, falls for >=21 days (total ~77 days)

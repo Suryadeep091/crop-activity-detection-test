@@ -26,7 +26,7 @@ from analytics_engine import (
 )
 # Module Imports (Ensure these files are in your deployment directory)
 from analytics_engine import run_full_analytics_pipeline
-from data_loader import get_centroid_location, get_places_info
+from data_loader import detect_crop_cycles, get_centroid_location, get_places_info
 from rain_temp import get_one_year_weather_data, get_five_year_weather_data
 from pdf_generator import generate_intelligence_report 
 from location import get_static_map_b64
@@ -389,7 +389,7 @@ async def replay_test_from_pickle(task_id: str):
         # 4. RUN YOUR ENGINE LOGIC
         # Apply the exact same empirical logic as the live run
         dataset_df['prediction'] = dataset_df.apply(apply_empirical_logic, axis=1)
-
+        cycle_info = detect_crop_cycles(dataset_df)
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
         analysis_end = dataset_df['date'].max()
         analysis_start = analysis_end - pd.DateOffset(years=1)
@@ -428,7 +428,10 @@ async def replay_test_from_pickle(task_id: str):
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
                 "images": raw_data.get("images", {}), # Use B64 images already in pickle
                 "vegetation_peak_analysis": peak_analysis,
-                "seasonal_activity": seasonal_act
+                "seasonal_activity": seasonal_act,
+                "crop_cycles_count": cycle_info["total_cycles"],
+                "detected_seasons": cycle_info["detected_seasons"],
+                "cycle_details": cycle_info["details"]
             },
             "location_details": loc_res,
             "map_details": loc_res,

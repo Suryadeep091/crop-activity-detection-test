@@ -89,12 +89,11 @@ def detect_crop_cycles(df):
     detected_cycles = []
     
     # Helper to validate a peak's "Cycle Integrity"
-    def is_valid_cycle(sub_df, peak_idx, index_col, min_amplitude=0.25):
+    def is_valid_cycle(sub_df, peak_idx, index_col, min_amplitude=0.20):
         peak_val = sub_df.iloc[peak_idx][index_col]
-        # Look at the start of the window
-        start_val = sub_df.iloc[0][index_col]
-        # Check if there is a significant rise (Amplitude)
-        return (peak_val - start_val) >= min_amplitude
+        # Look for the minimum value BEFORE the peak in this subset
+        baseline_val = sub_df.iloc[:peak_idx][index_col].min() 
+        return (peak_val - baseline_val) >= min_amplitude
 
     # --- STEP 2: KHARIF DETECTION ---
     kharif_mask = (df['date'].dt.month >= 6) & (df['date'].dt.month <= 10)

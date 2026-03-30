@@ -61,75 +61,61 @@ initialize_ee()
 
 
 def detect_crop_cycles(df):
-    if df.empty or len(df) < 30:
+    if df.empty or len(df) < 30: # 30 is the bare minimum for a 60-point year
         return {"total_cycles": 0, "detected_seasons": [], "details": [], "type": "insufficient_data"}
 
     df = df.sort_values('date').copy()
     
-    # --- STEP 1: ADAPTIVE SMOOTHING ---
-    # Reducing window size slightly to avoid "chopping" the tops of sharp peaks
-    df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), 11, 2)
-    df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), 11, 2)
+    # --- STEP 1: LIGHT SMOOTHING (For Sparse Data) ---
+    # Window 7 is safer for 60 points to avoid over-flattening
+    df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), 7, 2)
+    df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), 7, 2)
 
-    # --- STEP 2: REFINED PERENNIAL FILTER ---
-    # Using 10th percentile for min to avoid being fooled by one cloudy day
-    annual_min_ndvi = np.percentile(df['ndvi_smooth'], 10)
+    # --- STEP 2: ROBUST BASELINE ---
+    # Use 20th percentile to ignore extreme low outliers in sparse data
+    annual_min_ndvi = np.percentile(df['ndvi_smooth'], 20)
     annual_range = df['ndvi_smooth'].max() - annual_min_ndvi
     
-    if annual_min_ndvi > 0.48 and annual_range < 0.18:
-        return {
-            "total_cycles": 0, 
-            "detected_seasons": ["Perennial/Evergreen"], 
-            "details": [],
-            "note": "Stable high vegetation signature (Orchard/Forest)."
-        }
+    # Orchard filter (Adjusted for 60 pts)
+    if annual_min_ndvi > 0.45 and annual_range < 0.20:
+        return {"total_cycles": 0, "detected_seasons": ["Perennial"], "details": []}
 
-    # --- STEP 3: THE "SLOPE & DURATION" VALIDATOR ---
     def is_valid_cycle(sub_df, peak_idx, index_col, min_amplitude=0.18):
         peak_val = sub_df.iloc[peak_idx][index_col]
-        
-        # Look at data before the peak
         pre_peak = sub_df.iloc[:peak_idx]
-        if pre_peak.empty: return False
+        if len(pre_peak) < 3: return False # Need at least 3 points to define a 'rise'
         
-        # Use 10th percentile as baseline to handle noise
-        baseline_val = np.percentile(pre_peak[index_col], 10)
-        baseline_idx = (pre_peak[index_col] - baseline_val).abs().argmin()
+        # Sparse-data baseline (20th percentile is more stable than 10th here)
+        baseline_val = np.percentile(pre_peak[index_col], 20)
         
-        amplitude = peak_val - baseline_val
+        # Duration: Lowered to 18 days to catch 3-point pulses
+        days_to_peak = (sub_df.iloc[peak_idx]['date'] - pre_peak.iloc[0]['date']).days
         
-        # DURATION CHECK (The Weed Killer):
-        # Real crops take 30-100 days to reach peak. Weeds/Noise take <20.
-        days_to_peak = (sub_df.iloc[peak_idx]['date'] - pre_peak.iloc[baseline_idx]['date']).days
-        
-        return amplitude >= min_amplitude and 25 <= days_to_peak <= 120
+        return (peak_val - baseline_val) >= min_amplitude and 18 <= days_to_peak <= 160
 
     detected_cycles = []
-
-    # --- STEP 4: OVERLAPPING SEASONAL WINDOWS ---
-    # We expand the months so a late Kharif peak (Nov) or early Rabi rise (Oct) is captured
+    # Expanded masks to ensure we don't miss peaks on the edges
     windows = [
-        ("Kharif", (df['date'].dt.month >= 5) & (df['date'].dt.month <= 11), 'rvi_smooth', 0.15, 30),
-        ("Rabi",   (df['date'].dt.month >= 10) | (df['date'].dt.month <= 4), 'ndvi_smooth', 0.20, 45),
-        ("Zaid",   (df['date'].dt.month >= 3) & (df['date'].dt.month <= 6),  'ndvi_smooth', 0.12, 20)
+        ("Kharif", (df['date'].dt.month >= 5) & (df['date'].dt.month <= 11), 'rvi_smooth', 0.18, 25),
+        ("Rabi",   (df['date'].dt.month >= 10) | (df['date'].dt.month <= 4), 'ndvi_smooth', 0.18, 35),
+        ("Zaid",   (df['date'].dt.month >= 3) & (df['date'].dt.month <= 6),  'ndvi_smooth', 0.12, 15)
     ]
 
-    for season_name, mask, col, prominence, distance in windows:
+    for name, mask, col, prom, dist in windows:
         sub_df = df[mask].sort_values('date')
         if sub_df.empty: continue
         
-        peaks, props = find_peaks(sub_df[col], prominence=prominence, distance=distance)
+        # 'distance' must be small for sparse data (e.g., 3-4 points)
+        peaks, props = find_peaks(sub_df[col], prominence=prom, distance=5)
         
         for i, p in enumerate(peaks):
             if is_valid_cycle(sub_df, p, col):
-                peak_date = sub_df.iloc[p]['date']
                 detected_cycles.append({
-                    "season": season_name,
-                    "peak_date": peak_date,
-                    "index_used": col,
+                    "season": name, 
+                    "peak_date": sub_df.iloc[p]['date'], 
                     "prominence": props['prominences'][i]
                 })
-                break # Avoid double-counting within the same expanded window
+                break 
 
     return {
         "total_cycles": len(detected_cycles),

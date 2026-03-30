@@ -253,7 +253,7 @@ def apply_empirical_logic(row, detected_seasons):
         # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
         # If the smoothing/peak detection missed a cycle, 
         # only classify as crop if DW class is in HEAVY MAJORITY.
-        if crop_prob > 0.65:
+        if crop_prob > 0.55:
             return "Crop-Activity"
         
         # Check for other dominant classes (Built, Grass, Bare)
@@ -262,7 +262,8 @@ def apply_empirical_logic(row, detected_seasons):
             'built': row.get('built', 0),
             'bare': row.get('bare', 0),
             'grass': row.get('grass', 0),
-            'shrub': row.get('shrub_and_scrub', 0)
+            'shrub': row.get('shrub_and_scrub', 0),
+            'snow': row.get('snow_and_ice', 0)
         }
         dominant_noise = max(other_classes, key=other_classes.get)
         if other_classes[dominant_noise] > 0.50:

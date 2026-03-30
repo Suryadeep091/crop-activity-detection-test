@@ -381,6 +381,33 @@ async def replay_test_from_pickle(task_id: str):
         # Normalize and merge (Mirroring your analytics_engine pipeline)
         df_veg['date'] = pd.to_datetime(df_veg['date']).dt.normalize()
         df_dw['date'] = pd.to_datetime(df_dw['date']).dt.normalize()
+        ############
+        # 1. Define all Dynamic World classes
+        all_dw_classes = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
+
+        # 2. Determine the dominant class for every single timestamp in the pickle data
+        def get_dominant_class(row):
+            # Filter only the valid DW class columns
+            valid_vals = {k: row[k] for k in all_dw_classes if k in row and not pd.isna(row[k])}
+            if not valid_vals: return "bare" # Fallback
+            return max(valid_vals, key=valid_vals.get)
+
+        # Apply classification to the dataframe reconstructed from pickle
+        df_dw['final_classification'] = df_dw.apply(get_dominant_class, axis=1)
+
+        # 3. Calculate counts and percentages for the table
+        summary_dict = {}
+        class_counts = df_dw['final_classification'].value_counts()
+        total_points = len(df_dw)
+
+        for cls in all_dw_classes:
+            count = int(class_counts.get(cls, 0))
+            summary_dict[cls] = {
+                "count": count,
+                "percent": round((count / total_points * 100), 2) if total_points > 0 else 0.0
+            }
+        
+        ###################
         dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
         cycle_info = detect_crop_cycles(dataset_df)
         # Fill gaps via interpolation
@@ -422,7 +449,7 @@ async def replay_test_from_pickle(task_id: str):
             "task_id": task_id,
             "satellite_analytics": {
                 "metadata": {"coords": raw_data.get("coords") or []},
-                "land use/ land cover details": loc_res.get("land use/ land cover details", {}),
+                "land use/ land cover details": summary_dict,
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days

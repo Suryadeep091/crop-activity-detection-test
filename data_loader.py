@@ -135,6 +135,38 @@ def detect_crop_cycles(df):
         "details": detected_cycles
     }
 
+
+# Function to count valid NDVI peaks (crop cycles) using the thumb rule
+# A valid peak: NDVI rises for >=21 days, stays high for >=35 days, falls for >=21 days (total ~77 days)
+def count_crop_cycles(ndvi_series, date_series):
+    if len(ndvi_series) < 10:
+        return 0
+    # Smooth NDVI with a rolling mean (window=7)
+    ndvi = pd.Series(ndvi_series).rolling(window=7, min_periods=1, center=True).mean().values
+    dates = pd.to_datetime(date_series)
+    # Find peaks: at least 1 month apart, some prominence
+    peaks, _ = scipy.signal.find_peaks(ndvi, distance=20, prominence=0.05)
+    valid_cycles = 0
+    for peak in peaks:
+        up_start = peak - 21 if peak - 21 >= 0 else 0
+        up_trend = ndvi[up_start:peak]
+        if len(up_trend) < 7 or np.sum(np.diff(up_trend) > 0) < 7:
+            continue
+        plateau_start = peak - 17 if peak - 17 >= 0 else 0
+        plateau_end = peak + 18 if peak + 18 < len(ndvi) else len(ndvi)
+        plateau = ndvi[plateau_start:plateau_end]
+        if len(plateau) < 10 or np.max(plateau) - np.min(plateau) > 0.4:
+            continue
+        down_end = peak + 21 if peak + 21 < len(ndvi) else len(ndvi)
+        down_trend = ndvi[peak:down_end]
+        if len(down_trend) < 7 or np.sum(np.diff(down_trend) < 0) < 7:
+            continue
+        # Allow a wider cycle duration
+        if (dates[down_end-1] - dates[up_start]).days < 45 or (dates[down_end-1] - dates[up_start]).days > 150:
+            continue
+        valid_cycles += 1
+    return valid_cycles
+
 def process_parcel_data(run_id, coordinates, end_str):
     """
     Process parcel data for given coordinates and save results in a run-specific folder.
@@ -490,12 +522,12 @@ def process_parcel_data(run_id, coordinates, end_str):
         print(f"Data saved to {output_file}")
         
 
-        # # Calculate crop intensity (number of valid NDVI peaks)
-        # crop_intensity = 0
-        # if 'NDVI' in df_all.columns and 'date' in df_all.columns:
-        #     crop_intensity = count_crop_cycles(df_all['NDVI'].values, df_all['date'].values)
-        # summary_dict['crop_intensity'] = crop_intensity
-        # print(f"Crop Intensity (number of valid NDVI peaks): {crop_intensity}")
+        # Calculate crop intensity (number of valid NDVI peaks)
+        crop_intensity = 0
+        if 'NDVI' in df_all.columns and 'date' in df_all.columns:
+            crop_intensity = count_crop_cycles(df_all['NDVI'].values, df_all['date'].values)
+        summary_dict['crop_intensity'] = crop_intensity
+        print(f"Crop Intensity (number of valid NDVI peaks): {crop_intensity}")
         return df_all, summary_dict, df_dw
         
     except Exception as e:
@@ -625,7 +657,9 @@ def create_test_data(data_dir, end_str=None):
 
 # Location information retrieval function
 
-
+from shapely.geometry import Polygon
+import pandas as pd
+import math, time, os, requests
 
 # --- Haversine formula ---
 def haversine(lat1, lon1, lat2, lon2):

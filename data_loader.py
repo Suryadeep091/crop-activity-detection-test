@@ -60,6 +60,7 @@ initialize_ee()
 
 
 
+
 def detect_crop_cycles(df):
     if df.empty or len(df) < 30:
         return {"total_cycles": 0, "detected_seasons": [], "details": [], "type": "insufficient_data"}

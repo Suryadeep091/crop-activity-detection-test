@@ -7,6 +7,9 @@ from collections import defaultdict
 from functools import reduce
 import scipy.signal
 import google.auth
+from scipy.signal import savgol_filter, find_peaks
+from shapely.geometry import Polygon
+import math, time, requests
 
 try:
     # Use the default service account credentials provided by Cloud Run
@@ -53,34 +56,84 @@ initialize_ee()
 
 # Function to count valid NDVI peaks (crop cycles) using the thumb rule
 # A valid peak: NDVI rises for >=21 days, stays high for >=35 days, falls for >=21 days (total ~77 days)
-def count_crop_cycles(ndvi_series, date_series):
-    if len(ndvi_series) < 10:
-        return 0
-    # Smooth NDVI with a rolling mean (window=7)
-    ndvi = pd.Series(ndvi_series).rolling(window=7, min_periods=1, center=True).mean().values
-    dates = pd.to_datetime(date_series)
-    # Find peaks: at least 1 month apart, some prominence
-    peaks, _ = scipy.signal.find_peaks(ndvi, distance=20, prominence=0.05)
-    valid_cycles = 0
-    for peak in peaks:
-        up_start = peak - 21 if peak - 21 >= 0 else 0
-        up_trend = ndvi[up_start:peak]
-        if len(up_trend) < 7 or np.sum(np.diff(up_trend) > 0) < 7:
-            continue
-        plateau_start = peak - 17 if peak - 17 >= 0 else 0
-        plateau_end = peak + 18 if peak + 18 < len(ndvi) else len(ndvi)
-        plateau = ndvi[plateau_start:plateau_end]
-        if len(plateau) < 10 or np.max(plateau) - np.min(plateau) > 0.4:
-            continue
-        down_end = peak + 21 if peak + 21 < len(ndvi) else len(ndvi)
-        down_trend = ndvi[peak:down_end]
-        if len(down_trend) < 7 or np.sum(np.diff(down_trend) < 0) < 7:
-            continue
-        # Allow a wider cycle duration
-        if (dates[down_end-1] - dates[up_start]).days < 45 or (dates[down_end-1] - dates[up_start]).days > 150:
-            continue
-        valid_cycles += 1
-    return valid_cycles
+
+
+def detect_crop_cycles(df):
+    """
+    Analyzes temporal patterns in NDVI and RVI to identify Indian crop seasons.
+    
+    Returns:
+        dict: {
+            "total_cycles": int,
+            "detected_seasons": list,
+            "details": list
+        }
+    """
+    if df.empty or len(df) < 30:
+        return {"total_cycles": 0, "detected_seasons": [], "details": []}
+
+    # Ensure date is index and sorted
+    df = df.sort_values('date')
+    
+    # --- STEP 1: SIGNAL SMOOTHING ---
+    # Savitzky-Golay handles 'spiky' RVI better than a simple moving average
+    window_rvi = 21 if len(df) > 21 else (len(df) // 2 * 2 + 1)
+    window_ndvi = 11 if len(df) > 11 else (len(df) // 2 * 2 + 1)
+    
+    df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), window_rvi, 2)
+    df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi, 2)
+
+    detected_cycles = []
+    
+    # --- STEP 2: KHARIF DETECTION (RVI LEAD) ---
+    # Look for peaks in the Monsoon window (June - Oct)
+    kharif_mask = (df['date'].dt.month >= 6) & (df['date'].dt.month <= 10)
+    kharif_df = df[kharif_mask]
+    
+    if not kharif_df.empty:
+        # We look for RVI prominence because NDVI is often flat/cloudy here
+        peaks_rvi, props_rvi = find_peaks(kharif_df['rvi_smooth'], prominence=0.15, distance=30)
+        
+        for p in peaks_rvi:
+            peak_date = kharif_df.iloc[p]['date']
+            # "Handshake" check: Look for NDVI recovery in Oct
+            oct_recovery = df[(df['date'].dt.month == 10) & (df['ndvi_smooth'] > 0.50)]
+            
+            if not oct_recovery.empty or kharif_df.iloc[p]['rvi_smooth'] > 0.45:
+                detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "RVI"})
+                break # Count only one Kharif cycle
+
+    # --- STEP 3: RABI DETECTION (NDVI LEAD) ---
+    # Look for peaks in the Winter window (Nov - March)
+    rabi_mask = (df['date'].dt.month >= 11) | (df['date'].dt.month <= 3)
+    # Filter out dates already covered by Kharif if they overlap
+    rabi_df = df[rabi_mask].sort_values('date')
+    
+    if not rabi_df.empty:
+        # Clear skies: NDVI is highly reliable
+        peaks_ndvi, props_ndvi = find_peaks(rabi_df['ndvi_smooth'], prominence=0.20, distance=45)
+        
+        for p in peaks_ndvi:
+            peak_date = rabi_df.iloc[p]['date']
+            if rabi_df.iloc[p]['ndvi_smooth'] > 0.40:
+                detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI"})
+                break
+
+    # --- STEP 4: ZAID DETECTION (NDVI LEAD) ---
+    # Look for peaks in the Summer window (April - May)
+    zaid_mask = (df['date'].dt.month >= 4) & (df['date'].dt.month <= 5)
+    zaid_df = df[zaid_mask]
+    
+    if not zaid_df.empty:
+        peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.15, distance=20)
+        if len(peaks_zaid) > 0 and zaid_df['ndvi_smooth'].max() > 0.45:
+            detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[peaks_zaid[0]]['date'], "index_used": "NDVI"})
+
+    return {
+        "total_cycles": len(detected_cycles),
+        "detected_seasons": [c['season'] for c in detected_cycles],
+        "details": detected_cycles
+    }
 
 def process_parcel_data(run_id, coordinates, end_str):
     """
@@ -437,12 +490,12 @@ def process_parcel_data(run_id, coordinates, end_str):
         print(f"Data saved to {output_file}")
         
 
-        # Calculate crop intensity (number of valid NDVI peaks)
-        crop_intensity = 0
-        if 'NDVI' in df_all.columns and 'date' in df_all.columns:
-            crop_intensity = count_crop_cycles(df_all['NDVI'].values, df_all['date'].values)
-        summary_dict['crop_intensity'] = crop_intensity
-        print(f"Crop Intensity (number of valid NDVI peaks): {crop_intensity}")
+        # # Calculate crop intensity (number of valid NDVI peaks)
+        # crop_intensity = 0
+        # if 'NDVI' in df_all.columns and 'date' in df_all.columns:
+        #     crop_intensity = count_crop_cycles(df_all['NDVI'].values, df_all['date'].values)
+        # summary_dict['crop_intensity'] = crop_intensity
+        # print(f"Crop Intensity (number of valid NDVI peaks): {crop_intensity}")
         return df_all, summary_dict, df_dw
         
     except Exception as e:
@@ -572,9 +625,7 @@ def create_test_data(data_dir, end_str=None):
 
 # Location information retrieval function
 
-from shapely.geometry import Polygon
-import pandas as pd
-import math, time, os, requests
+
 
 # --- Haversine formula ---
 def haversine(lat1, lon1, lat2, lon2):

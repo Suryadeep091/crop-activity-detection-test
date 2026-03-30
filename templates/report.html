@@ -475,7 +475,19 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
 
                 <div class="activity-visual-card">
                     <h3 style="margin:0; color:#475569; font-size: 16px; letter-spacing: 0.5px;">ANNUAL CROP ACTIVITY</h3>
-                    
+                    <div class="season-badges" style="margin-top: 15px; display: flex; gap: 8px; justify-content: center;">
+                        {% if satellite.detected_seasons %}
+                            {% for season in satellite.detected_seasons %}
+                                <span style="background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; border: 1px solid #c7d2fe;">
+                                    {{ season | upper }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                                NO SEASON DETECTED
+                            </span>
+                        {% endif %}
+                    </div>
                     <div class="percentage-display">
                         {% set active_p = (satellite.crop_activity_prediction_stats.crop_days / satellite.crop_activity_prediction_stats.total * 100) | round(2) %}
                         {{ active_p }}%

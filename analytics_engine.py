@@ -11,6 +11,7 @@ import plotly.io as pio
 from data_loader import create_test_data, process_parcel_data
 from test_model import predict_from_pickle
 from datetime import datetime
+from data_loader import detect_crop_cycles
 
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
@@ -377,7 +378,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
-
+        cycle_info = detect_crop_cycles(dataset_df)
         # --- 3. Rest of your existing plotting and summary logic ---
         # (Peak analysis, Plotly charts, etc. use the 'predictions' df created above)
         
@@ -539,7 +540,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             },
             "metadata": {
                 "coords": coords 
-            }
+            },
+            "crop_cycles_count": cycle_info["total_cycles"],
+            "detected_seasons": cycle_info["detected_seasons"],
+            "cycle_details": cycle_info["details"],
         }
     except Exception as e:
             print(f"Engine Error: {e}")

@@ -212,65 +212,70 @@ def fig_to_base64(fig, is_plotly=False):
 #     return "No Crop-Activity"
 
 
-def apply_empirical_logic(row, detected_seasons):
+
+def calculate_integrity(df, detected_cycles):
     """
-    row: current data point
-    detected_seasons: list of seasons found in the full year (e.g., ['Kharif', 'Rabi'])
+    Returns a dictionary of integrity scores for the parcel.
     """
-    date_val = pd.to_datetime(row.get('date'))
-    month = date_val.month
-    ndvi = row.get('NDVI', 0)
-    rvi = row.get('RVI', 0)
-    
-    # AI Class Probabilities
-    tree_prob = row.get('trees', 0)
-    crop_prob = row.get('crops', 0)
-    flooded_veg = row.get('flooded_vegetation', 0)
-    total_crop_signal = crop_prob + flooded_veg
-    
-    # Determine current season based on month
-    current_season = None
-    if 6 <= month <= 10: current_season = "Kharif"
-    elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
-    elif month in [4, 5]: current_season = "Zaid"
-    
-    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
-    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
-    # it's likely a plantation or forest edge.
-    if tree_prob > 0.50 or tree_prob > total_crop_signal:
-        return "No Crop-Activity"
-    
-    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
-    has_cycle_in_season = current_season in detected_seasons
-     
-    if has_cycle_in_season:
-        # If a cycle exists, we are more lenient with sensor thresholds
-        # because we know the land is dynamic.
-        if total_crop_signal > 0.30 or ndvi > 0.35 or rvi > 0.35:
-            return "Crop-Activity"
-    
+    # --- 1. Temporal Integrity (The Curve) ---
+    if not detected_cycles['details']:
+        t_integrity = 0.0
     else:
-        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
-        # If the smoothing/peak detection missed a cycle, 
-        # only classify as crop if DW class is in HEAVY MAJORITY.
-        if crop_prob > 0.70:
+        # Average the 'quality' of all detected peaks
+        scores = []
+        for cycle in detected_cycles['details']:
+            # A good crop peak has high prominence relative to the baseline
+            prom = cycle.get('prominence', 0)
+            # Normalize: a prominence of 0.3 is a "perfect" 1.0 score
+            scores.append(min(prom / 0.3, 1.0))
+        t_integrity = np.mean(scores)
+
+    # --- 2. Spatial Integrity (The AI Class) ---
+    # How often is 'crops' the dominant class?
+    crop_series = df['crops'] + df.get('flooded_vegetation', 0)
+    
+    # Consistency: Mean probability during the growing seasons
+    avg_crop_conf = crop_series.mean()
+    
+    # Stability: Low standard deviation means the AI isn't "flickering"
+    stability = 1 - min(crop_series.std() * 2, 0.5) 
+    
+    s_integrity = (avg_crop_conf * 0.7) + (stability * 0.3)
+
+    return {"temporal": t_integrity, "spatial": s_integrity}
+
+def apply_empirical_logic(row_data, integrity):
+    """
+    The Empirical Model 2.0: Weighted Decision
+    """
+    t_int = integrity['temporal']
+    s_int = integrity['spatial']
+    
+    # Extract current point data
+    ndvi = row_data.get('NDVI', 0)
+    crop_prob = row_data.get('crops', 0)
+    tree_prob = row_data.get('trees', 0)
+
+    # --- THE WEIGHTED LOGIC ---
+    
+    # Scenario A: High Temporal Integrity (The curve is perfect)
+    # We trust the cycle even if the AI probability is mediocre (0.35)
+    if t_int > 0.6:
+        if crop_prob > 0.35 or ndvi > 0.40:
             return "Crop-Activity"
-        
-        # Check for other dominant classes (Built, Grass, Bare)
-        # If any non-crop class is in majority, it's definitely not a crop.
-        other_classes = {
-            'built': row.get('built', 0),
-            'bare': row.get('bare', 0),
-            'grass': row.get('grass', 0),
-            'shrub': row.get('shrub_and_scrub', 0)
-        }
-        dominant_noise = max(other_classes, key=other_classes.get)
-        if other_classes[dominant_noise] > 0.50:
+
+    # Scenario B: Low Temporal Integrity (No clear cycle or "spiky" noise)
+    # We require OVERWHELMING Spatial Evidence to call it a crop
+    if t_int < 0.3:
+        if crop_prob > 0.85 and tree_prob < 0.20:
+            return "Crop-Activity"
+        else:
             return "No Crop-Activity"
 
-    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
-    # Fallback if Rule 2 and 3 didn't catch it
-    if total_crop_signal > 0.60:
+    # Scenario C: The "Balanced" Middle Ground
+    # Both indicators are decent; use a combined threshold
+    combined_score = (t_int * 0.5) + (s_int * 0.5)
+    if combined_score > 0.55:
         return "Crop-Activity"
 
     return "No Crop-Activity"

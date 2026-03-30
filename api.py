@@ -20,7 +20,8 @@ import google.auth
 import pickle
 import traceback
 from analytics_engine import (
-    apply_empirical_logic, 
+    apply_empirical_logic,
+    calculate_integrity, 
     summarize_crop_activity_table_data, 
     summarize_indices_for_table
 )
@@ -410,13 +411,15 @@ async def replay_test_from_pickle(task_id: str):
         ###################
         dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
         cycle_info = detect_crop_cycles(dataset_df)
+
+        integrity = calculate_integrity(dataset_df, cycle_info['detected_seasons']) 
         # Fill gaps via interpolation
         cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction']]
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # 4. RUN YOUR ENGINE LOGIC
         # Apply the exact same empirical logic as the live run
-        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1)
+        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, integrity), axis=1)
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)

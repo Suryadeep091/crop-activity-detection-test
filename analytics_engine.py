@@ -212,62 +212,104 @@ def fig_to_base64(fig, is_plotly=False):
 #     return "No Crop-Activity"
 
 
-
-def calculate_integrity(df, detected_cycles):
+def calculate_integrity(df, cycle_info):
     """
-    Returns a dictionary of integrity scores for the parcel.
+    Detailed Integrity Scoring: 
+    1. Temporal: How strong are the detected growth cycles?
+    2. Spatial: How dominant and consistent is the 'Crop' class vs others?
     """
-    # --- 1. Temporal Integrity (The Curve) ---
-    if not detected_cycles['details']:
+    # --- 1. TEMPORAL INTEGRITY ---
+    details = cycle_info.get('details', [])
+    if not details:
         t_integrity = 0.0
     else:
-        # Average the 'quality' of all detected peaks
-        scores = []
-        for cycle in detected_cycles['details']:
-            # A good crop peak has high prominence relative to the baseline
-            prom = cycle.get('prominence', 0)
-            # Normalize: a prominence of 0.3 is a "perfect" 1.0 score
-            scores.append(min(prom / 0.3, 1.0))
+        # Penalize if cycles are too few or prominence is low
+        scores = [min(c.get('prominence', 0) / 0.35, 1.0) for c in details]
         t_integrity = np.mean(scores)
 
-    # --- 2. Spatial Integrity (The AI Class) ---
-    # How often is 'crops' the dominant class?
-    crop_series = df['crops'] + df.get('flooded_vegetation', 0)
+    # --- 2. SPATIAL (DW) INTEGRITY ---
+    dw_classes = ['trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare']
     
-    # Consistency: Mean probability during the growing seasons
-    avg_crop_conf = crop_series.mean()
+    # Calculate mean probability for every class across the year
+    class_means = {cls: df[cls].mean() for cls in dw_classes if cls in df.columns}
     
-    # Stability: Low standard deviation means the AI isn't "flickering"
-    stability = 1 - min(crop_series.std() * 2, 0.5) 
-    
-    s_integrity = (avg_crop_conf * 0.7) + (stability * 0.3)
+    # Who is the "Global Winner" for this parcel?
+    dominant_class = max(class_means, key=class_means.get)
+    dominance_margin = class_means[dominant_class] - (sum(class_means.values()) - class_means[dominant_class]) / (len(class_means)-1)
 
-    return {"temporal": t_integrity, "spatial": s_integrity}
+    # Spatial Integrity is high if Crops are dominant OR if the AI is very certain about its winner
+    is_crop_dominant = dominant_class in ['crops', 'flooded_vegetation']
+    s_integrity = class_means.get(dominant_class, 0) * (1.2 if is_crop_dominant else 0.8)
+    
+    return {
+        "temporal": t_integrity,
+        "spatial": min(s_integrity, 1.0),
+        "dominant_class": dominant_class,
+        "is_crop_dominant": is_crop_dominant,
+        "margin": dominance_margin,
+        "seasonal_periods": [(c['season'], c['peak_date']) for c in details]
+    }
 
 def apply_empirical_logic(row_data, integrity):
+    """
+    Advanced Decision Engine:
+    - High Cycle Integrity forces 'Crop' during the correct season.
+    - High DW Integrity blocks 'Crop' if non-crop classes dominate.
+    - Trees are the ultimate 'Kill Switch'.
+    """
+    # 1. SETUP VARIABLES
     t_int = integrity.get('temporal', 0)
     s_int = integrity.get('spatial', 0)
+    is_crop_dominant = integrity.get('is_crop_dominant', False)
+    dom_class = integrity.get('dominant_class', 'bare')
     
+    curr_date = pd.to_datetime(row_data.get('date'))
     ndvi = row_data.get('NDVI', 0)
-    crop_prob = row_data.get('crops', 0)
-    total_crop = crop_prob + row_data.get('flooded_vegetation', 0)
+    tree_prob = row_data.get('trees', 0)
+    crop_prob = row_data.get('crops', 0) + row_data.get('flooded_vegetation', 0)
+    
+    # Identify non-crop competition
+    other_classes = {cls: row_data.get(cls, 0) for cls in ['built', 'bare', 'grass', 'shrub_and_scrub']}
+    max_other_val = max(other_classes.values())
+    max_other_class = max(other_classes, key=other_classes.get)
 
-    # 1. If we have a decent cycle, be very lenient (Catch the 80%)
-    if t_int > 0.4:
-        if total_crop > 0.25 or ndvi > 0.30:
-            return "Crop-Activity"
+    # --- 2. THE DECISION HIERARCHY ---
 
-    # 2. If NO cycle is found, still allow high-confidence AI signals
-    # Lowered from 0.85 to 0.55 to prevent the "0% Activity" bug
-    if t_int <= 0.4:
-        if total_crop > 0.55: 
-            return "Crop-Activity"
+    # RULE A: THE TREE KILL-SWITCH
+    # If trees are high (>0.4) and outperforming crops, it's an orchard/forest.
+    if tree_prob > 0.45 and tree_prob > crop_prob:
+        return "No Crop-Activity"
 
-    # 3. The Safety Net: Combined Score
-    # If the AI and the Curve both 'kind of' see something, call it a match
-    if (t_int + s_int) / 2 > 0.45:
-        if ndvi > 0.25:
-            return "Crop-Activity"
+    # RULE B: HIGH CYCLE INTEGRITY (The "Temporal Force")
+    # If a cycle was detected, and we are within the growth window (±60 days of peak)
+    if t_int > 0.5:
+        for season, peak_date in integrity.get('seasonal_periods', []):
+            days_from_peak = abs((curr_date - peak_date).days)
+            if days_from_peak <= 60:
+                # Inside a validated cycle, we only reject if a non-crop class is OVERWHELMING (>0.7)
+                if max_other_val > 0.75:
+                    return "No Crop-Activity"
+                return "Crop-Activity"
+
+    # RULE C: HIGH SPATIAL INTEGRITY (The "AI Force")
+    # If the AI is very sure about its classification
+    if s_int > 0.6:
+        if is_crop_dominant:
+            # If the year-long winner is crop, and current point isn't built/bare
+            if max_other_val < 0.60:
+                return "Crop-Activity"
+        else:
+            # If the winner is Built, Bare, or Grass with high integrity
+            if max_other_val > crop_prob:
+                return "No Crop-Activity"
+
+    # RULE D: FALLBACK FOR LOW INTEGRITY / TRANSITION PERIODS
+    # Standard thresholding if neither temporal nor spatial signals are "High Integrity"
+    if crop_prob > 0.55 and ndvi > 0.25:
+        return "Crop-Activity"
+    
+    if is_crop_dominant and crop_prob > 0.40 and ndvi > 0.35:
+        return "Crop-Activity"
 
     return "No Crop-Activity"
 

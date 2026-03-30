@@ -35,7 +35,8 @@ def run_batch_replay_with_logging():
 
             if response.status_code == 200:
                 data = response.json()
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')})")
+                seasons = ", ".join(data.get('detected_seasons', [])) or "None"
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons}")
                 
                 # Append the full response to our list
                 master_results.append(data)

@@ -481,7 +481,9 @@ async def replay_test_from_pickle(task_id: str):
             "agri_activity": "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
-            "report_url": report_url
+            "report_url": report_url,
+            "crop_cycles_count": cycle_info["total_cycles"],
+            "detected_seasons": cycle_info["detected_seasons"]
         }
 
     except Exception as e:

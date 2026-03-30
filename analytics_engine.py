@@ -245,38 +245,29 @@ def calculate_integrity(df, detected_cycles):
     return {"temporal": t_integrity, "spatial": s_integrity}
 
 def apply_empirical_logic(row_data, integrity):
-    """
-    The Empirical Model 2.0: Weighted Decision
-    """
-    t_int = integrity['temporal']
-    s_int = integrity['spatial']
+    t_int = integrity.get('temporal', 0)
+    s_int = integrity.get('spatial', 0)
     
-    # Extract current point data
     ndvi = row_data.get('NDVI', 0)
     crop_prob = row_data.get('crops', 0)
-    tree_prob = row_data.get('trees', 0)
+    total_crop = crop_prob + row_data.get('flooded_vegetation', 0)
 
-    # --- THE WEIGHTED LOGIC ---
-    
-    # Scenario A: High Temporal Integrity (The curve is perfect)
-    # We trust the cycle even if the AI probability is mediocre (0.35)
-    if t_int > 0.6:
-        if crop_prob > 0.35 or ndvi > 0.40:
+    # 1. If we have a decent cycle, be very lenient (Catch the 80%)
+    if t_int > 0.4:
+        if total_crop > 0.25 or ndvi > 0.30:
             return "Crop-Activity"
 
-    # Scenario B: Low Temporal Integrity (No clear cycle or "spiky" noise)
-    # We require OVERWHELMING Spatial Evidence to call it a crop
-    if t_int < 0.3:
-        if crop_prob > 0.85 and tree_prob < 0.20:
+    # 2. If NO cycle is found, still allow high-confidence AI signals
+    # Lowered from 0.85 to 0.55 to prevent the "0% Activity" bug
+    if t_int <= 0.4:
+        if total_crop > 0.55: 
             return "Crop-Activity"
-        else:
-            return "No Crop-Activity"
 
-    # Scenario C: The "Balanced" Middle Ground
-    # Both indicators are decent; use a combined threshold
-    combined_score = (t_int * 0.5) + (s_int * 0.5)
-    if combined_score > 0.55:
-        return "Crop-Activity"
+    # 3. The Safety Net: Combined Score
+    # If the AI and the Curve both 'kind of' see something, call it a match
+    if (t_int + s_int) / 2 > 0.45:
+        if ndvi > 0.25:
+            return "Crop-Activity"
 
     return "No Crop-Activity"
 

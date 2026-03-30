@@ -270,7 +270,7 @@ def apply_empirical_logic(row, detected_seasons):
 
     # --- RULE 4: FINAL CROP SIGNAL CHECK ---
     # Fallback if Rule 2 and 3 didn't catch it
-    if total_crop_signal > 0.60:
+    if total_crop_signal > 0.55:
         return "Crop-Activity"
 
     return "No Crop-Activity"

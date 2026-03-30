@@ -263,7 +263,8 @@ def apply_empirical_logic(row, detected_seasons):
             'bare': row.get('bare', 0),
             'grass': row.get('grass', 0),
             'shrub': row.get('shrub_and_scrub', 0),
-            'snow': row.get('snow_and_ice', 0)
+            'snow': row.get('snow_and_ice', 0),
+            'water': row.get('water', 0)
         }
         dominant_noise = max(other_classes, key=other_classes.get)
         if other_classes[dominant_noise] > 0.50:

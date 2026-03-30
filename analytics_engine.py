@@ -211,51 +211,53 @@ def fig_to_base64(fig, is_plotly=False):
 
 #     return "No Crop-Activity"
 
-# 
-def apply_empirical_logic(row, detected_cycles_info):
+
+def apply_empirical_logic(row, detected_seasons):
     """
     row: current data point
-    detected_cycles_info: Dict output from detect_crop_cycles
+    detected_seasons: list of seasons found in the full year (e.g., ['Kharif', 'Rabi'])
     """
     date_val = pd.to_datetime(row.get('date'))
+    month = date_val.month
     ndvi = row.get('NDVI', 0)
     rvi = row.get('RVI', 0)
     
-    # Probabilities
+    # AI Class Probabilities
     tree_prob = row.get('trees', 0)
     crop_prob = row.get('crops', 0)
     flooded_veg = row.get('flooded_vegetation', 0)
     total_crop_signal = crop_prob + flooded_veg
-
-    detected_seasons = detected_cycles_info.get("detected_seasons", [])
-    cycle_details = detected_cycles_info.get("details", [])
-
-    # --- RULE 1: THE REFINED TREE GUARDRAIL ---
-    # Only block if trees are dominant AND the signal is static (not a cycle)
-    if tree_prob > 0.65 and "Perennial/Evergreen" in detected_seasons:
+    
+    # Determine current season based on month
+    current_season = None
+    if 6 <= month <= 10: current_season = "Kharif"
+    elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
+    elif month in [4, 5]: current_season = "Zaid"
+    
+    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
+    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
+    # it's likely a plantation or forest edge.
+    if tree_prob > 0.50 or tree_prob > total_crop_signal:
         return "No Crop-Activity"
-
-    # --- RULE 2: TEMPORAL PROXIMITY BOOST ---
-    # Is this specific date within 45 days of a detected peak?
-    near_peak = False
-    for cycle in cycle_details:
-        days_diff = abs((date_val - cycle['peak_date']).days)
-        if days_diff <= 45:
-            near_peak = True
-            break
-
-    # --- RULE 3: INTEGRATED DECISION MATRIX ---
-    if near_peak:
-        # High confidence because we are near a validated temporal cycle
-        if total_crop_signal > 0.25 or ndvi > 0.30 or rvi > 0.30:
+    
+    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
+    has_cycle_in_season = current_season in detected_seasons
+     
+    if has_cycle_in_season:
+        # If a cycle exists, we are more lenient with sensor thresholds
+        # because we know the land is dynamic.
+        if total_crop_signal > 0.30 or ndvi > 0.35 or rvi > 0.35:
             return "Crop-Activity"
+    
     else:
-        # No cycle peak nearby: Require much higher evidence to classify as crop
-        # This eliminates the "False Positive" noise (UP7, MP02)
-        if crop_prob > 0.85: 
+        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
+        # If the smoothing/peak detection missed a cycle, 
+        # only classify as crop if DW class is in HEAVY MAJORITY.
+        if crop_prob > 0.70:
             return "Crop-Activity"
         
-        # Check for dominant non-crop classes
+        # Check for other dominant classes (Built, Grass, Bare)
+        # If any non-crop class is in majority, it's definitely not a crop.
         other_classes = {
             'built': row.get('built', 0),
             'bare': row.get('bare', 0),
@@ -263,14 +265,16 @@ def apply_empirical_logic(row, detected_cycles_info):
             'shrub': row.get('shrub_and_scrub', 0)
         }
         dominant_noise = max(other_classes, key=other_classes.get)
-        if other_classes[dominant_noise] > 0.45:
+        if other_classes[dominant_noise] > 0.50:
             return "No Crop-Activity"
 
-    # --- RULE 4: FINAL FALLBACK ---
-    if total_crop_signal > 0.60:
+    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
+    # Fallback if Rule 2 and 3 didn't catch it
+    if total_crop_signal > 0.55:
         return "Crop-Activity"
 
     return "No Crop-Activity"
+
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
     try:

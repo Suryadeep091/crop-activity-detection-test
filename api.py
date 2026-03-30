@@ -315,7 +315,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         # Step 4: Generate PDF using current model (for side-by-side comparison)
         full_data = {
             "task_id": task_id,
-            "satellite_analytics": sat_res,
+            "satellite": sat_res,
             "location_details": loc_res,
             "map_details": loc_res,
             "weather_data": weather_res,
@@ -418,7 +418,7 @@ async def replay_test_from_pickle(task_id: str):
 
         full_data = {
             "task_id": task_id,
-            "satellite_analytics": {
+            "satellite": {
                 "metadata": {"coords": raw_data.get("coords") or []},
                 "land_cover_summary": loc_res.get("land_cover_summary", {}),
                 "crop_activity_prediction_stats": {

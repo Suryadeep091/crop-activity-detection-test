@@ -438,7 +438,7 @@ indicates how many times each type was detected.
                     <tr><th>Land Cover Type</th><th style="width: 50%;">Occurrence Trend</th><th>Share (%)</th></tr>
                 </thead>
                 <tbody>
-                    {% for land_type, data in satellite['land use/ land cover details'].items() if land_type not in ['crop_intensity', '_warning'] %}
+                    {% for land_type, data in satellite['land_cover_summary'].items() if land_type not in ['crop_intensity', '_warning'] %}
                     <tr>
                         <td class="label-cell">{{ land_type.replace('_', ' ').title() }}</td>
                         <td>
@@ -596,7 +596,7 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for land_type, data in satellite['land use/ land cover details'].items() if land_type not in ['crop_intensity', '_warning'] %}
+                                {% for land_type, data in satellite['land_cover_summary'].items() if land_type not in ['crop_intensity', '_warning'] %}
                                 <tr>
                                     <td><strong>{{ land_type.replace('_', ' ').title() }}</strong></td>
                                     <td>{{ data.count }}</td>

@@ -420,7 +420,7 @@ async def replay_test_from_pickle(task_id: str):
             "task_id": task_id,
             "satellite_analytics": {
                 "metadata": {"coords": raw_data.get("coords") or []},
-                "land use/ land cover details": loc_res.get("land use/ land cover details", {}),
+                "land_cover_summary": loc_res.get("land_cover_summary", {}),
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days
@@ -441,7 +441,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"dummy_report/new_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test/new_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

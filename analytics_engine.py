@@ -520,7 +520,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         # --- UPDATED RETURN STATEMENT ---
         return {
-            "land_cover_summary": summary_dict,
+            "land use/ land cover details": summary_dict,
             "vegetation_peak_analysis": peak_data,        # Added peak data
             "missing_data": missing_periods,
             "seasonal_activity": seasonal_summary,

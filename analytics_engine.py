@@ -237,7 +237,7 @@ def apply_empirical_logic(row, detected_seasons):
     # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
     # Even if a cycle is detected, if trees are > 50% and higher than crops, 
     # it's likely a plantation or forest edge.
-    if tree_prob > 0.50 or tree_prob > total_crop_signal:
+    if tree_prob > 0.50 and tree_prob > total_crop_signal:
         return "No Crop-Activity"
     
     # --- RULE 2: SEASONAL CYCLE VALIDATION ---
@@ -270,7 +270,7 @@ def apply_empirical_logic(row, detected_seasons):
 
     # --- RULE 4: FINAL CROP SIGNAL CHECK ---
     # Fallback if Rule 2 and 3 didn't catch it
-    if total_crop_signal > 0.55:
+    if total_crop_signal > 0.60:
         return "Crop-Activity"
 
     return "No Crop-Activity"

@@ -433,13 +433,7 @@
 indicates how many times each type was detected.
         </p>
         <div class="land-cover-container">
-            <div style="background: #ffffcc; border: 1px solid #333; padding: 10px; font-size: 10px; color: black;">
-                <strong>DEBUGGING DATA:</strong><br>
-                1. Is 'satellite' defined? {{ 'YES' if satellite else 'NO' }}<br>
-                2. Available keys in satellite: {{ satellite.keys() | list }}<br>
-                3. Type of 'land use/ land cover details': {{ satellite["land use/ land cover details"].__class__.__name__ }}<br>
-                4. Row count in loop: {{ satellite["land use/ land cover details"] | length }}
-            </div>
+            
             <table class="bar-table">
                 <thead>
                     <tr><th>Land Cover Type</th><th style="width: 50%;">Occurrence Trend</th><th>Share (%)</th></tr>

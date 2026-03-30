@@ -420,7 +420,7 @@ async def replay_test_from_pickle(task_id: str):
             "task_id": task_id,
             "satellite_analytics": {
                 "metadata": {"coords": raw_data.get("coords") or []},
-                "land_cover_summary": loc_res.get("land_cover_summary", {}),
+                "land_cover_summary": loc_res.get("land use/ land cover details", {}),
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days

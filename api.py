@@ -447,6 +447,36 @@ async def replay_test_from_pickle(task_id: str):
         predictions_list = dataset_df.copy()
         predictions_list['date_str'] = predictions_list['date'].dt.strftime('%Y-%m-%d')
 
+        activity_binary = (dataset_df['prediction'] == "Crop-Activity").astype(int)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=predictions_list["date_str"],
+            y=activity_binary,
+            mode='lines',
+            fill='tozeroy',
+            name="Active Cycle",
+            line=dict(color='green', width=0),
+            fillcolor='rgba(46, 139, 87, 0.3)'
+        ))
+        fig.add_trace(go.Scatter(
+            x=predictions_list["date_str"],
+            y=activity_binary,
+            mode='markers',
+            name="Data Points",
+            marker=dict(color=activity_binary.map({1: 'green', 0: 'red'}), size=6, symbol='circle')
+        ))
+        fig.update_layout(
+            title="Agricultural Activity Cycles",
+            yaxis=dict(tickvals=[0, 1], ticktext=["Fallow", "Active"]),
+            template="plotly_white",
+            height=400
+        )
+        activity_base64 = fig_to_base64(fig, is_plotly=True)
+
+        # Then override images in full_data:
+       
+
         full_data = {
             "task_id": task_id,
             "satellite_analytics": {
@@ -457,7 +487,10 @@ async def replay_test_from_pickle(task_id: str):
                     "total": total_days
                 },
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
-                "images": raw_data.get("images", {}), # Use B64 images already in pickle
+                 "images": {
+                    **raw_data.get("images", {}),      # keep ndvi_b64 and dw_b64 from pickle
+                    "activity_b64": activity_base64    # override only the activity chart
+                }, # Use B64 images already in pickle
                 "vegetation_peak_analysis": peak_analysis,
                 "seasonal_activity": seasonal_act,
                 "crop_cycles_count": cycle_info["total_cycles"],

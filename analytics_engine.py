@@ -424,35 +424,34 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         zero_indices = [i for i, val in enumerate(activity_binary) if val == 0]
 
         fig = go.Figure()
-        fig.add_trace(
-            go.Bar(
-                x=[
-                    predictions["date_str"][i]
-                    for i, val in enumerate(activity_binary)
-                    if val == 1
-                ],
-                y=[1] * sum(activity_binary),
-                name="Crop Activity",
-                marker_color="green",
+        fig.add_trace(go.Scatter(
+            x=predictions["date_str"],
+            y=activity_binary,
+            mode='lines',
+            fill='tozeroy', # This creates the solid green blocks for seasons
+            name="Active Cycle",
+            line=dict(color='green', width=0),
+            fillcolor='rgba(46, 139, 87, 0.3)' # SeaGreen with transparency
+        ))
+
+        # Overlay individual points for sensor readings
+        fig.add_trace(go.Scatter(
+            x=predictions["date_str"],
+            y=activity_binary,
+            mode='markers',
+            name="Data Points",
+            marker=dict(
+                color=activity_binary.map({1: 'green', 0: 'red'}),
+                size=6,
+                symbol='circle'
             )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=[predictions["date_str"][i] for i in zero_indices],
-                y=[0] * len(zero_indices),
-                mode="markers",
-                name="No Crop Activity",
-                line=dict(color="red", dash="dot", width=0.5),
-                showlegend=True,
-            )
-        )
+        ))
+
         fig.update_layout(
-          
-            xaxis_title="Date",
-            yaxis_title="Activity (1 = Crop, 0 = No Crop)",
+            title="Agricultural Activity Cycles",
+            yaxis=dict(tickvals=[0, 1], ticktext=["Fallow", "Active"]),
             template="plotly_white",
             xaxis_tickangle=-45,
-            yaxis=dict(tickmode="array", tickvals=[0, 1], range=[0, 1]),
             xaxis=dict(
                 range=[
                     analysis_start.strftime("%Y-%m-%d"),
@@ -474,6 +473,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             height=400,
         )
         # ... (Scatter trace) ...
+       
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
         # --- 5. Save NDVI/EVI/RVI Static Plot (Base64) ---

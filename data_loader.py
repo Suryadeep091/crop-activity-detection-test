@@ -86,7 +86,7 @@ def detect_crop_cycles(df):
             "details": [],
             "note": "NDVI remains high year-round; likely forest or orchard."
         }
-
+            
     detected_cycles = []
     
     # Helper to validate a peak's "Cycle Integrity"

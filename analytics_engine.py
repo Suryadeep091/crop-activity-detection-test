@@ -430,14 +430,14 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         fig = go.Figure()
 
-        # Crop Activity points only (green spikes)
+        # Crop Activity points only (green squares)
         crop_mask = activity_binary == 1
         fig.add_trace(go.Scatter(
             x=predictions.loc[crop_mask, "date_str"],
             y=activity_binary[crop_mask],
             mode='markers',
             name="Crop Activity",
-            marker=dict(color='green', size=8, symbol='square'),
+            marker=dict(color='darkgreen', size=8, symbol='square'),
         ))
 
         # No Crop Activity points only (red dots)
@@ -464,19 +464,20 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             ),
             showlegend=True,
             legend=dict(
-                orientation="v",      # Vertical orientation
-                yanchor="top",        # Anchor at the top of the legend box
-                y=0.99,               # Positioned at the very top (1.0 is the top edge)
-                xanchor="right",      # Anchor at the right of the legend box
-                x=0.99,               # Positioned at the very right edge
-                bgcolor="rgba(255, 255, 255, 0.5)" # Semi-transparent background
+                orientation="v",
+                yanchor="top",
+                y=1.15,           # Push legend ABOVE the chart
+                xanchor="right",
+                x=1.0,
+                bgcolor="rgba(255,255,255,0.8)",
+                bordercolor="lightgrey",
+                borderwidth=1,
+                font=dict(size=10)
             ),
-            margin=dict(l=50, r=20, t=50, b=50),
-            bargap=0.1,
+            margin=dict(l=50, r=20, t=80, b=50),  # Increased top margin for legend space
             height=400,
         )
-        # ... (Scatter trace) ...
-       
+
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
         # --- 5. Save NDVI/EVI/RVI Static Plot (Base64) ---

@@ -394,11 +394,16 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
         
         # Now the logic will find 'crops' and 'flooded_vegetation' successfully
-        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1)
         
+        cycle_info = detect_crop_cycles(dataset_df)
+
+        # Step 2: THEN apply logic using correct cycle info
+        dataset_df['prediction'] = dataset_df.apply(
+            lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1
+        )
+
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
-        cycle_info = detect_crop_cycles(dataset_df)
         # --- 3. Rest of your existing plotting and summary logic ---
         # (Peak analysis, Plotly charts, etc. use the 'predictions' df created above)
         

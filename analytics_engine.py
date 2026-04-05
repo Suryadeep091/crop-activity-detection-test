@@ -429,27 +429,25 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         zero_indices = [i for i, val in enumerate(activity_binary) if val == 0]
 
         fig = go.Figure()
+
+        # Crop Activity points only (green spikes)
+        crop_mask = activity_binary == 1
         fig.add_trace(go.Scatter(
-            x=predictions["date_str"],
-            y=activity_binary,
-            mode='lines',
-            fill='tozeroy', # This creates the solid green blocks for seasons
-            name="Active Cycle",
-            line=dict(color='green', width=0),
-            fillcolor='rgba(46, 139, 87, 0.3)' # SeaGreen with transparency
+            x=predictions.loc[crop_mask, "date_str"],
+            y=activity_binary[crop_mask],
+            mode='markers',
+            name="Crop Activity",
+            marker=dict(color='green', size=8, symbol='square'),
         ))
 
-        # Overlay individual points for sensor readings
+        # No Crop Activity points only (red dots)
+        no_crop_mask = activity_binary == 0
         fig.add_trace(go.Scatter(
-            x=predictions["date_str"],
-            y=activity_binary,
+            x=predictions.loc[no_crop_mask, "date_str"],
+            y=activity_binary[no_crop_mask],
             mode='markers',
-            name="Data Points",
-            marker=dict(
-                color=activity_binary.map({1: 'green', 0: 'red'}),
-                size=6,
-                symbol='circle'
-            )
+            name="No Crop Activity",
+            marker=dict(color='red', size=6, symbol='circle'),
         ))
 
         fig.update_layout(

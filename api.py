@@ -445,32 +445,27 @@ async def replay_test_from_pickle(task_id: str):
 
         # Format list for Annexure table
         predictions_list = dataset_df.copy()
+        # Regenerate activity chart from NEW predictions
         predictions_list['date_str'] = predictions_list['date'].dt.strftime('%Y-%m-%d')
-
         activity_binary = (dataset_df['prediction'] == "Crop-Activity").astype(int)
 
         fig = go.Figure()
-
-        # Crop Activity points only (green squares)
-        crop_mask = activity_binary == 1
         fig.add_trace(go.Scatter(
-            x=predictions_list.loc[crop_mask, "date_str"],
-            y=activity_binary[crop_mask],
-            mode='markers',
-            name="Crop Activity",
-            marker=dict(color='darkgreen', size=8, symbol='square'),
+            x=predictions_list["date_str"],
+            y=activity_binary,
+            mode='lines',
+            fill='tozeroy',
+            name="Active Cycle",
+            line=dict(color='green', width=0),
+            fillcolor='rgba(46, 139, 87, 0.3)'
         ))
-
-        # No Crop Activity points only (red dots)
-        no_crop_mask = activity_binary == 0
         fig.add_trace(go.Scatter(
-            x=predictions_list.loc[no_crop_mask, "date_str"],
-            y=activity_binary[no_crop_mask],
+            x=predictions_list["date_str"],
+            y=activity_binary,
             mode='markers',
-            name="No Crop Activity",
-            marker=dict(color='red', size=6, symbol='circle'),
+            name="Data Points",
+            marker=dict(color=activity_binary.map({1: 'green', 0: 'red'}), size=6, symbol='circle')
         ))
-
         fig.update_layout(
             title="Agricultural Activity Cycles",
             yaxis=dict(
@@ -478,19 +473,10 @@ async def replay_test_from_pickle(task_id: str):
                 ticktext=["No Crop Activity", "Crop Activity"]  # Changed labels
             ),
             template="plotly_white",
-            xaxis_tickangle=-45,
-            xaxis=dict(
-                range=[
-                    analysis_start.strftime("%Y-%m-%d"),
-                    analysis_end.strftime("%Y-%m-%d"),
-                ],
-                title="Date",
-            ),
-            showlegend=False,  # Legend removed
+            showlegend=False,  # Remove legend so graph covers full width
             margin=dict(l=50, r=20, t=50, b=50),
-            height=400,
+            height=400
         )
-
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
         # Then override images in full_data:

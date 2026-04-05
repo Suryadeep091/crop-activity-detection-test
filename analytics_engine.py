@@ -430,7 +430,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         fig = go.Figure()
 
-        # Crop Activity points only (green squares)
+      # Crop Activity points only (green squares)
         crop_mask = activity_binary == 1
         fig.add_trace(go.Scatter(
             x=predictions.loc[crop_mask, "date_str"],
@@ -452,7 +452,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         fig.update_layout(
             title="Agricultural Activity Cycles",
-            yaxis=dict(tickvals=[0, 1], ticktext=["Fallow", "Active"]),
+            yaxis=dict(
+                tickvals=[0, 1],
+                ticktext=["No Crop Activity", "Crop Activity"]  # Changed labels
+            ),
             template="plotly_white",
             xaxis_tickangle=-45,
             xaxis=dict(
@@ -462,19 +465,8 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 ],
                 title="Date",
             ),
-            showlegend=True,
-            legend=dict(
-                orientation="v",
-                yanchor="top",
-                y=1.15,           # Push legend ABOVE the chart
-                xanchor="right",
-                x=1.0,
-                bgcolor="rgba(255,255,255,0.8)",
-                bordercolor="lightgrey",
-                borderwidth=1,
-                font=dict(size=10)
-            ),
-            margin=dict(l=50, r=20, t=80, b=50),  # Increased top margin for legend space
+            showlegend=False,  # Legend removed
+            margin=dict(l=50, r=20, t=50, b=50),
             height=400,
         )
 

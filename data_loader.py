@@ -673,11 +673,7 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
 # --- Nearest water source finder using Overpass API ---
-def find_nearest_water_source(lat, lon, radius=50000):
-    """
-    Find the nearest water feature (lake, river, pond, reservoir, stream, waterbody) 
-    using OSM Overpass API around a given location.
-    """
+def find_nearest_water_source(lat, lon, radius=100000):
     overpass_url = "http://overpass-api.de/api/interpreter"
     query = f"""
     [out:json][timeout:25];
@@ -698,10 +694,6 @@ def find_nearest_water_source(lat, lon, radius=50000):
       way(around:{radius},{lat},{lon})[water=reservoir];
       relation(around:{radius},{lat},{lon})[water=reservoir];
 
-      node(around:{radius},{lat},{lon})[water=river];
-      way(around:{radius},{lat},{lon})[water=river];
-      relation(around:{radius},{lat},{lon})[water=river];
-
       node(around:{radius},{lat},{lon})[waterway=river];
       way(around:{radius},{lat},{lon})[waterway=river];
       relation(around:{radius},{lat},{lon})[waterway=river];
@@ -714,19 +706,28 @@ def find_nearest_water_source(lat, lon, radius=50000):
     """
 
     try:
-        response = requests.get(overpass_url, params={'data': query})
+        response = requests.get(overpass_url, params={'data': query}, timeout=30)
+        
+        # Check HTTP status first
+        if response.status_code != 200:
+            print(f"Overpass API HTTP error: {response.status_code}")
+            return None, None, 0.0
+
+        # Check if response body is empty
+        if not response.text or response.text.strip() == "":
+            print("Overpass API returned empty response")
+            return None, None, 0.0
+
         data = response.json()
         elements = data.get("elements", [])
         if not elements:
-            return None, None, None
+            return None, None, 0.0
 
         nearest, min_dist = None, float("inf")
 
         for elem in elements:
-            # nodes
             if "lat" in elem and "lon" in elem:
                 lat_w, lon_w = elem["lat"], elem["lon"]
-            # ways/relations with center
             elif "center" in elem:
                 lat_w, lon_w = elem["center"]["lat"], elem["center"]["lon"]
             else:
@@ -743,11 +744,20 @@ def find_nearest_water_source(lat, lon, radius=50000):
 
         if nearest:
             return nearest["name"], nearest["coords"], nearest["distance_km"]
-        return None, None, None
+        return None, None, 0.0
 
+    except requests.exceptions.Timeout:
+        print("Overpass API timed out")
+        return None, None, 0.0
+    except requests.exceptions.ConnectionError:
+        print("Overpass API connection error")
+        return None, None, 0.0
+    except ValueError as e:
+        print(f"Overpass API JSON parse error: {e} | Response: {response.text[:200]}")
+        return None, None, 0.0
     except Exception as e:
-        return None, None, str(e)
-
+        print(f"Overpass API unexpected error: {e}")
+        return None, None, 0.0
 
 # # --- Main function with Google + Mandi + Water ---
 # def get_centroid_location(coords, mandi_csv="Mandi_Locations.csv"):

@@ -220,13 +220,7 @@ def apply_empirical_logic(row, detected_seasons):
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
     ndvi = row.get('NDVI', 0)
-    rvi = row.get('RVI', 0)
-    
-    # AI Class Probabilities
-    tree_prob = row.get('trees', 0)
-    crop_prob = row.get('crops', 0)
-    flooded_veg = row.get('flooded_vegetation', 0)
-    total_crop_signal = crop_prob + flooded_veg
+    ndvi_slope = row.get('NDVI_slope', 0)
     
     # Determine current season based on month
     current_season = None
@@ -234,57 +228,50 @@ def apply_empirical_logic(row, detected_seasons):
     elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
     elif month in [4, 5]: current_season = "Zaid"
     
-    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
-    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
-    # it's likely a plantation or forest edge.
-    if tree_prob > 0.50 or tree_prob > total_crop_signal:
-        return "No Crop-Activity"
+    # --- PIPELINE 1: CYCLE & SLOPE CONFIDENCE ---
+    has_cycle = current_season in detected_seasons
     
-    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
-    has_cycle_in_season = current_season in detected_seasons
-     
-    if has_cycle_in_season:
-        # Define season-specific threshold dictionary
-        # Format: { 'Total_Crop_Signal', 'NDVI', 'RVI' }
-        thresholds = {
-            "Kharif": {"crop": 0.35, "ndvi": 0.40, "rvi": 0.40}, # High biomass needs higher bars
-            "Rabi":   {"crop": 0.28, "ndvi": 0.35, "rvi": 0.30}, # Standard winter thresholds
-            "Zaid":   {"crop": 0.22, "ndvi": 0.28, "rvi": 0.25}  # Highly sensitive for summer
-        }
-
-        # Get thresholds for the current point's season (fallback to generic if unknown)
-        t = thresholds.get(current_season, {"crop": 0.30, "ndvi": 0.35, "rvi": 0.35})
-
-        # Apply specific logic
-        if total_crop_signal > t['crop'] or ndvi > t['ndvi'] or rvi > t['rvi']:
-            return "Crop-Activity"
+    # Simple base index logic scaled to 100
+    base_index = min(max(ndvi * 100, 0), 100) 
     
+    # Abs slope scaling: cap at 0.05 -> 100% influence.
+    slope_mag = min((abs(ndvi_slope) / 0.05) * 100, 100)
+    
+    if has_cycle:
+        # Peak season: Trust high indices or steep slopes to mean crop activity.
+        p1_crop_conf = min(30 + 0.5 * base_index + 0.2 * slope_mag, 100)
+        p1_nocrop_conf = 100 - p1_crop_conf
     else:
-        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
-        # If the smoothing/peak detection missed a cycle, 
-        # only classify as crop if DW class is in HEAVY MAJORITY.
-        if crop_prob > 0.55:
-            return "Crop-Activity"
-        
-        # Check for other dominant classes (Built, Grass, Bare)
-        # If any non-crop class is in majority, it's definitely not a crop.
-        other_classes = {
-            'built': row.get('built', 0),
-            'bare': row.get('bare', 0),
-            'grass': row.get('grass', 0),
-            'shrub': row.get('shrub_and_scrub', 0),
-            'snow': row.get('snow_and_ice', 0),
-            'water': row.get('water', 0)
-        }
-        dominant_noise = max(other_classes, key=other_classes.get)
-        if other_classes[dominant_noise] > 0.50:
-            return "No Crop-Activity"
+        # Non-peak season: Trust low indices and flat slopes
+        p1_nocrop_conf = min(60 + 0.4 * (100 - base_index) + 0.2 * (100 - slope_mag), 100)
+        p1_crop_conf = 100 - p1_nocrop_conf
 
-    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
-    # Fallback if Rule 2 and 3 didn't catch it
-    if total_crop_signal > 0.55:
+    # --- PIPELINE 2: DYNAMIC WORLD PROBABILITY CONFIDENCE ---
+    classes = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
+    probs = {c: row.get(c, 0) for c in classes}
+    
+    # Sort classes by probability descending
+    sorted_probs = sorted(probs.items(), key=lambda x: x[1], reverse=True)
+    top_class, top_prob = sorted_probs[0]
+    runner_class, runner_prob = sorted_probs[1]
+    
+    margin = top_prob - runner_prob
+    # Base DW confidence is 50. Margin scales it linearly to 100.
+    dw_confidence = 50 + (margin * 50)
+    
+    if top_class in ['crops', 'flooded_vegetation']:
+        p2_crop_conf = dw_confidence
+        p2_nocrop_conf = 100 - dw_confidence
+    else:
+        p2_nocrop_conf = dw_confidence
+        p2_crop_conf = 100 - dw_confidence
+
+    # --- RESOLUTION: HIGHEST CONFIDENCE WINS ---
+    final_crop = max(p1_crop_conf, p2_crop_conf)
+    final_nocrop = max(p1_nocrop_conf, p2_nocrop_conf)
+    
+    if final_crop > final_nocrop:
         return "Crop-Activity"
-
     return "No Crop-Activity"
 
 
@@ -394,6 +381,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
         
         # Now the logic will find 'crops' and 'flooded_vegetation' successfully
+        
+        # Pre-calculate slopes for analytical confidence logic
+        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI'])
+        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI'])
         
         cycle_info = detect_crop_cycles(dataset_df)
 

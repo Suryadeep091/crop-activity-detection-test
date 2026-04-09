@@ -138,35 +138,29 @@ def detect_crop_cycles(df):
     }
 
 
-# Function to count valid NDVI peaks (crop cycles) using the thumb rule
-# A valid peak: NDVI rises for >=21 days, stays high for >=35 days, falls for >=21 days (total ~77 days)
+# Function to count valid NDVI peaks
 def count_crop_cycles(ndvi_series, date_series):
     if len(ndvi_series) < 10:
         return 0
     # Smooth NDVI with a rolling mean (window=7)
     ndvi = pd.Series(ndvi_series).rolling(window=7, min_periods=1, center=True).mean().values
-    dates = pd.to_datetime(date_series)
-    # Find peaks: at least 1 month apart, some prominence
-    peaks, _ = scipy.signal.find_peaks(ndvi, distance=20, prominence=0.05)
+    
+    # Calculate gradient (slope) to ensure we only pick peaks with a decent slope
+    slope = np.gradient(ndvi)
+    
+    # Find peaks: at least 30 days apart, some prominence
+    peaks, _ = scipy.signal.find_peaks(ndvi, distance=15, prominence=0.10)
+    
     valid_cycles = 0
     for peak in peaks:
-        up_start = peak - 21 if peak - 21 >= 0 else 0
-        up_trend = ndvi[up_start:peak]
-        if len(up_trend) < 7 or np.sum(np.diff(up_trend) > 0) < 7:
-            continue
-        plateau_start = peak - 17 if peak - 17 >= 0 else 0
-        plateau_end = peak + 18 if peak + 18 < len(ndvi) else len(ndvi)
-        plateau = ndvi[plateau_start:plateau_end]
-        if len(plateau) < 10 or np.max(plateau) - np.min(plateau) > 0.4:
-            continue
-        down_end = peak + 21 if peak + 21 < len(ndvi) else len(ndvi)
-        down_trend = ndvi[peak:down_end]
-        if len(down_trend) < 7 or np.sum(np.diff(down_trend) < 0) < 7:
-            continue
-        # Allow a wider cycle duration
-        if (dates[down_end-1] - dates[up_start]).days < 45 or (dates[down_end-1] - dates[up_start]).days > 150:
-            continue
-        valid_cycles += 1
+        # Check if the surrounding slope is acceptable (not just noise)
+        max_up_slope = np.max(slope[max(0, peak-15):peak]) if peak > 0 else 0
+        min_down_slope = np.min(slope[peak:min(len(slope), peak+15)]) if peak < len(slope) else 0
+        
+        # If the slope leading up to it and down from it is significant
+        if max_up_slope > 0.01 and min_down_slope < -0.01:
+            valid_cycles += 1
+            
     return valid_cycles
 
 def process_parcel_data(run_id, coordinates, end_str):

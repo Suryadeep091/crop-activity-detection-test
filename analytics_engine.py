@@ -256,13 +256,21 @@ def apply_empirical_logic(row, detected_seasons):
     runner_class, runner_prob = sorted_probs[1]
     
     margin = top_prob - runner_prob
-    # Base DW confidence is 50. Margin scales it linearly to 100.
-    dw_confidence = 50 + (margin * 50)
     
     if top_class in ['crops', 'flooded_vegetation']:
+        # Base linear confidence scaling for crops
+        dw_confidence = 50 + (margin * 50)
         p2_crop_conf = dw_confidence
         p2_nocrop_conf = 100 - dw_confidence
     else:
+        # AGGRESSIVE SCALING for No-Crop blockages (Trees, Water, etc.)
+        # Reaches 100% confidence much faster (at just a 0.50 gap instead of 1.0)
+        dw_confidence = min(50 + (margin * 100), 100)
+        
+        # Absolute Lockout Guardrail: If Tree/Water/Built is overwhelmingly high, crush P1.
+        if top_class in ['trees', 'water', 'built'] and top_prob > 0.65:
+            dw_confidence = 100
+            
         p2_nocrop_conf = dw_confidence
         p2_crop_conf = 100 - dw_confidence
 

@@ -18,6 +18,7 @@ from google.auth import impersonated_credentials
 from google.cloud import storage
 import google.auth
 import pickle
+import numpy as np
 import traceback
 from analytics_engine import (
     apply_empirical_logic,

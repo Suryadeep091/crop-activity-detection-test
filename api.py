@@ -418,7 +418,13 @@ async def replay_test_from_pickle(task_id: str):
 
         # 4. RUN YOUR ENGINE LOGIC
         # Apply the exact same empirical logic as the live run
-        dataset_df['prediction'] = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info["detected_seasons"]), axis=1)
+        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI'])
+        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI'])
+        
+        results = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info["detected_seasons"]), axis=1)
+        dataset_df['prediction'] = [r[0] for r in results]
+        dataset_df['p1_crop_conf'] = [r[1] for r in results]
+        dataset_df['p2_crop_conf'] = [r[2] for r in results]
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -523,7 +529,9 @@ async def replay_test_from_pickle(task_id: str):
             "is_active": is_active,
             "report_url": report_url,
             "crop_cycles_count": cycle_info["total_cycles"],
-            "detected_seasons": cycle_info["detected_seasons"]
+            "detected_seasons": cycle_info["detected_seasons"],
+            "p1_avg_conf": f"{round(dataset_df['p1_crop_conf'].mean(), 2)}%",
+            "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%"
         }
 
     except Exception as e:

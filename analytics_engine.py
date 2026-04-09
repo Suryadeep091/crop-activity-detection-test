@@ -270,9 +270,8 @@ def apply_empirical_logic(row, detected_seasons):
     final_crop = max(p1_crop_conf, p2_crop_conf)
     final_nocrop = max(p1_nocrop_conf, p2_nocrop_conf)
     
-    if final_crop > final_nocrop:
-        return "Crop-Activity"
-    return "No Crop-Activity"
+    prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
+    return prediction, p1_crop_conf, p2_crop_conf
 
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
@@ -389,9 +388,12 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         cycle_info = detect_crop_cycles(dataset_df)
 
         # Step 2: THEN apply logic using correct cycle info
-        dataset_df['prediction'] = dataset_df.apply(
+        results = dataset_df.apply(
             lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1
         )
+        dataset_df['prediction'] = [r[0] for r in results]
+        dataset_df['p1_crop_conf'] = [r[1] for r in results]
+        dataset_df['p2_crop_conf'] = [r[2] for r in results]
 
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
@@ -534,7 +536,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             "crop_activity_predictions_list": predictions_list,
             "crop_activity_prediction_stats": {
                 "total": len(predictions),
-                "crop_days": int(sum(activity_binary))
+                "crop_days": int(sum(activity_binary)),
+                "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
+                "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean())
             },
             "timeseries_data": {
                 "vegetation_indices": indices_raw_list, # NDVI, EVI, RVI points

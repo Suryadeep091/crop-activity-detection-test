@@ -36,7 +36,9 @@ def run_batch_replay_with_logging():
             if response.status_code == 200:
                 data = response.json()
                 seasons = ", ".join(data.get('detected_seasons', [])) or "None"
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons}")
+                p1_conf = data.get('p1_avg_conf', 'N/A')
+                p2_conf = data.get('p2_avg_conf', 'N/A')
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons} | P1 Conf: {p1_conf} | P2 Conf: {p2_conf}")
                 
                 # Append the full response to our list
                 master_results.append(data)
@@ -62,4 +64,4 @@ def run_batch_replay_with_logging():
         print(f"❌ Failed to save JSON: {e}")
 
 if __name__ == "__main__":
-    run_batch_replay_with_logging()
+    run_batch_replay_with_logging() 

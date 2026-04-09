@@ -439,8 +439,9 @@ async def replay_test_from_pickle(task_id: str):
         water_freq = (dominant_classes == 'water').mean()
         built_freq = (dominant_classes == 'built').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
+        grass_shrub_freq = (dominant_classes == 'grass').mean() + (dominant_classes == 'shrub_and_scrub').mean()
         
-        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10:
+        if tree_freq > 0.65 or water_freq > 0.60 or built_freq > 0.50 or (crop_freq < 0.05 and grass_shrub_freq > 0.85):
             dataset_df['prediction'] = "No Crop-Activity"
             dataset_df['p1_crop_conf'] = 0.0
             dataset_df['p2_crop_conf'] = 0.0
@@ -537,7 +538,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_New/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_1/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

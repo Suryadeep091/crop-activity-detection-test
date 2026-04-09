@@ -418,9 +418,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         water_freq = (dominant_classes == 'water').mean()
         built_freq = (dominant_classes == 'built').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
+        grass_shrub_freq = (dominant_classes == 'grass').mean() + (dominant_classes == 'shrub_and_scrub').mean()
         
         # Absolute Veto logic
-        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10:
+        if tree_freq > 0.65 or water_freq > 0.60 or built_freq > 0.50 or (crop_freq < 0.05 and grass_shrub_freq > 0.85):
             dataset_df['prediction'] = "No Crop-Activity"
             # Override numerical confidences to reflect the absolute veto
             dataset_df['p1_crop_conf'] = 0.0

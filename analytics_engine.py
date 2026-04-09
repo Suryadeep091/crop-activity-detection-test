@@ -243,7 +243,8 @@ def apply_empirical_logic(row, detected_seasons):
         p1_nocrop_conf = 100 - p1_crop_conf
     else:
         # Non-peak season: Trust low indices and flat slopes
-        p1_nocrop_conf = min(60 + 0.4 * (100 - base_index) + 0.2 * (100 - slope_mag), 100)
+        # Cap P1 NoCrop penalty so it doesn't unconditionally block Pipeline 2
+        p1_nocrop_conf = min(50 + 0.3 * (100 - base_index) + 0.2 * (100 - slope_mag), 85)
         p1_crop_conf = 100 - p1_nocrop_conf
 
     # --- PIPELINE 2: DYNAMIC WORLD PROBABILITY CONFIDENCE ---
@@ -258,8 +259,8 @@ def apply_empirical_logic(row, detected_seasons):
     margin = top_prob - runner_prob
     
     if top_class in ['crops', 'flooded_vegetation']:
-        # Base linear confidence scaling for crops
-        dw_confidence = 50 + (margin * 50)
+        # Base linear confidence scaling for crops (Empowered to beat P1 caps)
+        dw_confidence = min(60 + (margin * 80), 100)
         p2_crop_conf = dw_confidence
         p2_nocrop_conf = 100 - dw_confidence
     else:
@@ -409,10 +410,17 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         
         # ============================================================
         # YEAR-LONG ENVIRONMENTAL GUARDBAND
-        # If the geography averages >60% obstruction probabilities over the full 365 days,
-        # it is physically impossible to be an active arable crop farm. Exclude it flat explicitly.
+        # If the geography averages massive non-crop noise probabilities over the full 365 days,
+        # it is physically impossible to be an active arable crop farm.
         # ============================================================
-        if dataset_df['trees'].mean() > 0.60 or dataset_df['water'].mean() > 0.60 or dataset_df['built'].mean() > 0.60:
+        dominant_classes = dataset_df[['trees', 'water', 'built', 'shrub_and_scrub', 'grass', 'crops', 'flooded_vegetation', 'bare', 'snow_and_ice']].idxmax(axis=1)
+        tree_freq = (dominant_classes == 'trees').mean()
+        water_freq = (dominant_classes == 'water').mean()
+        built_freq = (dominant_classes == 'built').mean()
+        crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
+        
+        # Absolute Veto logic
+        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10:
             dataset_df['prediction'] = "No Crop-Activity"
             # Override numerical confidences to reflect the absolute veto
             dataset_df['p1_crop_conf'] = 0.0

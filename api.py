@@ -418,9 +418,13 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # 4. RUN YOUR ENGINE LOGIC
-        # Apply the exact same empirical logic as the live run
-        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI'])
-        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI'])
+        # Apply smoothing to prevent NOISY Cloud Dips from creating massive artificial slopes
+        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
+        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
+        
+        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
+        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
+        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
         
         results = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info["detected_seasons"]), axis=1)
         dataset_df['prediction'] = [r[0] for r in results]

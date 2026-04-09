@@ -387,11 +387,13 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # E. Final Sanitize & Apply Logic
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
         
-        # Now the logic will find 'crops' and 'flooded_vegetation' successfully
+        # Apply smoothing to the signals to prevent NOISY Cloud Dips from creating massive artificial slopes
+        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
+        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
         
-        # Pre-calculate slopes for analytical confidence logic
-        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI'])
-        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI'])
+        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
+        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
+        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
         
         cycle_info = detect_crop_cycles(dataset_df)
 

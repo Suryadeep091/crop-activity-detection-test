@@ -406,6 +406,19 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
         dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
         dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
+        
+        # ============================================================
+        # YEAR-LONG ENVIRONMENTAL GUARDBAND
+        # If the geography averages >60% obstruction probabilities over the full 365 days,
+        # it is physically impossible to be an active arable crop farm. Exclude it flat explicitly.
+        # ============================================================
+        if dataset_df['trees'].mean() > 0.60 or dataset_df['water'].mean() > 0.60 or dataset_df['built'].mean() > 0.60:
+            dataset_df['prediction'] = "No Crop-Activity"
+            # Override numerical confidences to reflect the absolute veto
+            dataset_df['p1_crop_conf'] = 0.0
+            dataset_df['p2_crop_conf'] = 0.0
+            dataset_df['p1_nocrop_conf'] = 100.0
+            dataset_df['p2_nocrop_conf'] = 100.0
 
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()

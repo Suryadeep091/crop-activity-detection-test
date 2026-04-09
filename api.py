@@ -432,6 +432,14 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
         dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
         dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
+        
+        # YEAR-LONG ENVIRONMENTAL GUARDBAND
+        if dataset_df['trees'].mean() > 0.60 or dataset_df['water'].mean() > 0.60 or dataset_df['built'].mean() > 0.60:
+            dataset_df['prediction'] = "No Crop-Activity"
+            dataset_df['p1_crop_conf'] = 0.0
+            dataset_df['p2_crop_conf'] = 0.0
+            dataset_df['p1_nocrop_conf'] = 100.0
+            dataset_df['p2_nocrop_conf'] = 100.0
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)

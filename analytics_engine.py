@@ -394,6 +394,8 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df['prediction'] = [r[0] for r in results]
         dataset_df['p1_crop_conf'] = [r[1] for r in results]
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
+        dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
+        dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
 
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
@@ -538,7 +540,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 "total": len(predictions),
                 "crop_days": int(sum(activity_binary)),
                 "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
-                "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean())
+                "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
+                "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),
+                "p2_nocrop_avg_conf": float(dataset_df['p2_nocrop_conf'].mean())
             },
             "timeseries_data": {
                 "vegetation_indices": indices_raw_list, # NDVI, EVI, RVI points

@@ -36,9 +36,11 @@ def run_batch_replay_with_logging():
             if response.status_code == 200:
                 data = response.json()
                 seasons = ", ".join(data.get('detected_seasons', [])) or "None"
-                p1_conf = data.get('p1_avg_conf', 'N/A')
-                p2_conf = data.get('p2_avg_conf', 'N/A')
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons} | P1 Conf: {p1_conf} | P2 Conf: {p2_conf}")
+                p1_crop = data.get('p1_avg_conf', 'N/A')
+                p1_nocrop = data.get('p1_nocrop_avg_conf', 'N/A')
+                p2_crop = data.get('p2_avg_conf', 'N/A')
+                p2_nocrop = data.get('p2_nocrop_avg_conf', 'N/A')
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
                 
                 # Append the full response to our list
                 master_results.append(data)

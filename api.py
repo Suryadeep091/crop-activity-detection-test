@@ -426,6 +426,8 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df['prediction'] = [r[0] for r in results]
         dataset_df['p1_crop_conf'] = [r[1] for r in results]
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
+        dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
+        dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -532,7 +534,9 @@ async def replay_test_from_pickle(task_id: str):
             "crop_cycles_count": cycle_info["total_cycles"],
             "detected_seasons": cycle_info["detected_seasons"],
             "p1_avg_conf": f"{round(dataset_df['p1_crop_conf'].mean(), 2)}%",
-            "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%"
+            "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%",
+            "p1_nocrop_avg_conf": f"{round(dataset_df['p1_nocrop_conf'].mean(), 2)}%",
+            "p2_nocrop_avg_conf": f"{round(dataset_df['p2_nocrop_conf'].mean(), 2)}%"
         }
 
     except Exception as e:

@@ -183,10 +183,20 @@ def apply_empirical_logic(row, detected_seasons):
     elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
     elif month in [4, 5]: current_season = "Zaid"
     
-    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
-    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
-    # it's likely a plantation or forest edge.
+    # --- RULE 1: ABSOLUTE NOISE GUARDRAIL (High Priority) ---
+    # Even if a cycle is detected, if water, trees, snow, or built structures are dominant, 
+    # it's likely noise or a permanent non-crop feature.
+    water_prob = row.get('water', 0)
+    built_prob = row.get('built', 0)
+    snow_prob = row.get('snow_and_ice', 0)
+    
     if tree_prob > 0.50 or tree_prob > total_crop_signal:
+        return "No Crop-Activity"
+    if water_prob > 0.50 or water_prob > total_crop_signal:
+        return "No Crop-Activity"
+    if built_prob > 0.50 or built_prob > total_crop_signal:
+        return "No Crop-Activity"
+    if snow_prob > 0.50 or snow_prob > total_crop_signal:
         return "No Crop-Activity"
     
     # --- RULE 2: SEASONAL CYCLE VALIDATION ---

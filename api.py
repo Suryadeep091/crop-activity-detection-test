@@ -418,10 +418,34 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # 4. RUN YOUR ENGINE LOGIC
-        detected_seasons = cycle_info.get("detected_seasons", [])
-        dataset_df['prediction'] = dataset_df.apply(
-            lambda row: apply_empirical_logic(row, detected_seasons), axis=1
-        )
+        # Apply smoothing to prevent NOISY Cloud Dips from creating massive artificial slopes
+        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
+        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
+        
+        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
+        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
+        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
+        
+        results = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info["detected_seasons"]), axis=1)
+        dataset_df['prediction'] = [r[0] for r in results]
+        dataset_df['p1_crop_conf'] = [r[1] for r in results]
+        dataset_df['p2_crop_conf'] = [r[2] for r in results]
+        dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
+        dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
+        
+        # YEAR-LONG ENVIRONMENTAL GUARDBAND
+        dominant_classes = dataset_df[['trees', 'water', 'built', 'shrub_and_scrub', 'grass', 'crops', 'flooded_vegetation', 'bare', 'snow_and_ice']].idxmax(axis=1)
+        tree_freq = (dominant_classes == 'trees').mean()
+        water_freq = (dominant_classes == 'water').mean()
+        built_freq = (dominant_classes == 'built').mean()
+        crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
+        
+        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10:
+            dataset_df['prediction'] = "No Crop-Activity"
+            dataset_df['p1_crop_conf'] = 0.0
+            dataset_df['p2_crop_conf'] = 0.0
+            dataset_df['p1_nocrop_conf'] = 100.0
+            dataset_df['p2_nocrop_conf'] = 100.0
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -513,7 +537,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_1/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_New/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
@@ -526,7 +550,11 @@ async def replay_test_from_pickle(task_id: str):
             "is_active": is_active,
             "report_url": report_url,
             "crop_cycles_count": cycle_info["total_cycles"],
-            "detected_seasons": cycle_info["detected_seasons"]
+            "detected_seasons": cycle_info["detected_seasons"],
+            "p1_avg_conf": f"{round(dataset_df['p1_crop_conf'].mean(), 2)}%",
+            "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%",
+            "p1_nocrop_avg_conf": f"{round(dataset_df['p1_nocrop_conf'].mean(), 2)}%",
+            "p2_nocrop_avg_conf": f"{round(dataset_df['p2_nocrop_conf'].mean(), 2)}%"
         }
 
     except Exception as e:

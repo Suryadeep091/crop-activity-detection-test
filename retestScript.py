@@ -6,7 +6,7 @@ import os
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
 input_json_path = os.path.join(downloads_path, "test_parcels.json")
-output_json_path = os.path.join(downloads_path, "batch_results_empirical.json") # NEW FILE
+output_json_path = os.path.join(downloads_path, "batch_results_dual_pipeline_3.json") # NEW FILE
 BASE_REPLAY_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/replay"
 
 def run_batch_replay_with_logging():
@@ -36,7 +36,11 @@ def run_batch_replay_with_logging():
             if response.status_code == 200:
                 data = response.json()
                 seasons = ", ".join(data.get('detected_seasons', [])) or "None"
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons}")
+                p1_crop = data.get('p1_avg_conf', 'N/A')
+                p1_nocrop = data.get('p1_nocrop_avg_conf', 'N/A')
+                p2_crop = data.get('p2_avg_conf', 'N/A')
+                p2_nocrop = data.get('p2_nocrop_avg_conf', 'N/A')
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
                 
                 # Append the full response to our list
                 master_results.append(data)

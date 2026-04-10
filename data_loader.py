@@ -119,9 +119,11 @@ def detect_crop_cycles(df):
     # --- STEP 1: SIGNAL SMOOTHING ---
     window_rvi = 21 if len(df) > 21 else (len(df) // 2 * 2 + 1)
     window_ndvi = 11 if len(df) > 11 else (len(df) // 2 * 2 + 1)
+    window_ndvi_short = 7 if len(df) > 7 else (len(df) // 2 * 2 + 1)
     
     df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), window_rvi, 2)
     df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi, 2)
+    df['ndvi_short_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi_short, 2)
 
     # --- NEW: PERENNIAL/FOREST FILTER ---
     # If the NDVI never drops below 0.4, it's likely a forest or orchard, not a crop cycle
@@ -151,11 +153,22 @@ def detect_crop_cycles(df):
     
     if not kharif_df.empty:
         peaks_rvi, _ = find_peaks(kharif_df['rvi_smooth'], prominence=0.10, distance=30)
+        found = False
         for p in peaks_rvi:
             if is_valid_cycle(kharif_df, p, 'rvi_smooth', 0.10):
                 peak_date = kharif_df.iloc[p]['date']
                 detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "RVI"})
+                found = True
                 break
+        
+        if not found:
+            # Short-cycle kernel
+            peaks_short, _ = find_peaks(kharif_df['ndvi_short_smooth'], prominence=0.08, distance=15)
+            for p in peaks_short:
+                if is_valid_cycle(kharif_df, p, 'ndvi_short_smooth', 0.10):
+                    peak_date = kharif_df.iloc[p]['date']
+                    detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "NDVI-Short"})
+                    break
 
     # --- STEP 3: RABI DETECTION ---
     rabi_mask = (df['date'].dt.month >= 10) | (df['date'].dt.month <= 4)
@@ -163,12 +176,22 @@ def detect_crop_cycles(df):
     
     if not rabi_df.empty:
         peaks_ndvi, _ = find_peaks(rabi_df['ndvi_smooth'], prominence=0.12, distance=45)
+        found = False
         for p in peaks_ndvi:
             # For Rabi, we check the baseline before the peak (Nov/Dec)
             if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.15):
                 peak_date = rabi_df.iloc[p]['date']
                 detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI"})
+                found = True
                 break
+        if not found:
+            # Short-cycle kernel
+            peaks_short, _ = find_peaks(rabi_df['ndvi_short_smooth'], prominence=0.08, distance=15)
+            for p in peaks_short:
+                if is_valid_cycle(rabi_df, p, 'ndvi_short_smooth', 0.10):
+                    peak_date = rabi_df.iloc[p]['date']
+                    detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI-Short"})
+                    break
 
     # --- STEP 4: ZAID DETECTION ---
     zaid_mask = (df['date'].dt.month >= 3) & (df['date'].dt.month <= 6)
@@ -176,9 +199,21 @@ def detect_crop_cycles(df):
     
     if not zaid_df.empty:
         peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.10, distance=20)
-        if len(peaks_zaid) > 0:
-            if is_valid_cycle(zaid_df, peaks_zaid[0], 'ndvi_smooth', 0.10):
-                detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[peaks_zaid[0]]['date'], "index_used": "NDVI"})
+        found = False
+        for p in peaks_zaid:
+            if is_valid_cycle(zaid_df, p, 'ndvi_smooth', 0.10):
+                detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[p]['date'], "index_used": "NDVI"})
+                found = True
+                break
+        
+        if not found:
+            # Short-cycle kernel
+            peaks_short, _ = find_peaks(zaid_df['ndvi_short_smooth'], prominence=0.08, distance=15)
+            for p in peaks_short:
+                if is_valid_cycle(zaid_df, p, 'ndvi_short_smooth', 0.10):
+                    peak_date = zaid_df.iloc[p]['date']
+                    detected_cycles.append({"season": "Zaid", "peak_date": peak_date, "index_used": "NDVI-Short"})
+                    break
 
     conf_scores = calculate_cycle_confidence(df, detected_cycles)
     for c in detected_cycles:

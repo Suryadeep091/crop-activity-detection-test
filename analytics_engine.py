@@ -270,14 +270,23 @@ def apply_empirical_logic(row, detected_seasons):
         
         # Absolute Lockout Guardrail: If Tree/Water/Built is overwhelmingly high, crush P1.
         if top_class in ['trees', 'water', 'built'] and top_prob > 0.65:
-            dw_confidence = 100
+            # Sigmoid Scaling allows a strong NDVI signal to "fight back" against weak noise.
+            scale_factor = (top_prob - 0.65) / (1.0 - 0.65)
+            dw_confidence = min(dw_confidence + (100 - dw_confidence) * (scale_factor ** 0.5), 100)
             
         p2_nocrop_conf = dw_confidence
         p2_crop_conf = 100 - dw_confidence
 
-    # --- RESOLUTION: HIGHEST CONFIDENCE WINS ---
-    final_crop = max(p1_crop_conf, p2_crop_conf)
-    final_nocrop = max(p1_nocrop_conf, p2_nocrop_conf)
+    # --- RESOLUTION: CONSENSUS LOGIC ---
+    if p2_crop_conf > 80: # AI is certain
+        final_crop = p2_crop_conf * 0.7 + p1_crop_conf * 0.3
+    elif p1_crop_conf > 80: # Physics is certain
+        final_crop = p1_crop_conf * 0.8 + p2_crop_conf * 0.2
+    else:
+        # If neither is certain, they must support each other
+        final_crop = (p1_crop_conf * p2_crop_conf) ** 0.5 
+    
+    final_nocrop = 100 - final_crop
     
     prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
     return prediction, p1_crop_conf, p2_crop_conf

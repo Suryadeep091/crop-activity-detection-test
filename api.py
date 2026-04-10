@@ -410,9 +410,7 @@ async def replay_test_from_pickle(task_id: str):
         
         ###################
         dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
-        cycle_info = detect_crop_cycles(dataset_df)
 
-        # integrity = calculate_integrity(dataset_df, cycle_info) 
         # Fill gaps via interpolation
         cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction']]
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
@@ -425,6 +423,8 @@ async def replay_test_from_pickle(task_id: str):
         # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
         dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
         dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
+        
+        cycle_info = detect_crop_cycles(dataset_df)
         
         results = dataset_df.apply(lambda row: apply_empirical_logic(row, cycle_info["detected_seasons"]), axis=1)
         dataset_df['prediction'] = [r[0] for r in results]

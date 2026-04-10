@@ -61,6 +61,55 @@ initialize_ee()
 
 
 
+def calculate_cycle_confidence(df, season_details):
+    """
+    Evaluates the 'Biological Plausibility' of the detected cycles.
+    """
+    conf_scores = {}
+    
+    for cycle in season_details:
+        season = cycle['season']
+        peak_date = cycle['peak_date']
+        
+        # 1. Define the Window (approx 60 days around peak)
+        window = df[(df['date'] >= peak_date - pd.Timedelta(days=30)) & 
+                    (df['date'] <= peak_date + pd.Timedelta(days=30))]
+        
+        if window.empty:
+            continue
+
+        # --- Metric A: Persistence (Duration) ---
+        # Real crops stay green. If it's a spike, it's noise.
+        days_above_threshold = (window['ndvi_smooth'] > 0.35).sum()
+        persistence_score = min((days_above_threshold / 45) * 100, 100)
+
+        # --- Metric B: Signal Stability (Residuals) ---
+        # Measures how much the raw data 'jittered' around your smoothed line.
+        residuals = np.abs(window['NDVI'] - window['ndvi_smooth']).mean()
+        stability_score = max(0, 100 - (residuals * 500)) # Penalize jitter
+
+        # --- Metric C: SAR Correlation (The Gold Standard) ---
+        # Crops gain greenness (NDVI) AND structure (RVI) at the same time.
+        correlation = window['NDVI'].corr(window['RVI'])
+        sar_sync_score = max(0, correlation * 100) if not np.isnan(correlation) else 50
+
+        # --- Metric D: Growth Velocity (Slope Guardrail) ---
+        # Biological limit: plants don't grow faster than ~0.05 NDVI/day.
+        max_slope = window['ndvi_smooth'].diff().max()
+        slope_score = 100 if max_slope <= 0.05 else max(0, 100 - (max_slope - 0.05) * 1000)
+
+        # Final Weighted Confidence
+        total_conf = (
+            (persistence_score * 0.35) + 
+            (stability_score * 0.15) + 
+            (sar_sync_score * 0.30) + 
+            (slope_score * 0.20)
+        )
+        
+        conf_scores[season] = round(total_conf, 2)
+        
+    return conf_scores
+
 def detect_crop_cycles(df):
     if df.empty or len(df) < 30:
         return {"total_cycles": 0, "detected_seasons": [], "details": [], "type": "insufficient_data"}
@@ -130,6 +179,10 @@ def detect_crop_cycles(df):
         if len(peaks_zaid) > 0:
             if is_valid_cycle(zaid_df, peaks_zaid[0], 'ndvi_smooth', 0.10):
                 detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[peaks_zaid[0]]['date'], "index_used": "NDVI"})
+
+    conf_scores = calculate_cycle_confidence(df, detected_cycles)
+    for c in detected_cycles:
+        c['confidence'] = conf_scores.get(c['season'], 0)
 
     return {
         "total_cycles": len(detected_cycles),

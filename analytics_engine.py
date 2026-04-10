@@ -161,57 +161,6 @@ def fig_to_base64(fig, is_plotly=False):
     img_str = base64.b64encode(buf.read()).decode('utf-8')
     return img_str
 
-# def apply_empirical_logic(row, prev_ndvi=None):
-#     date_val = pd.to_datetime(row.get('date'))
-#     month = date_val.month
-    
-#     # 1. Extract Signals
-#     ndvi = row.get('NDVI', 0)
-#     evi = row.get('EVI', 0) # Added EVI for better crop detection
-#     rvi = row.get('RVI', 0)
-#     crops = row.get('crops', 0)
-#     flooded_veg = row.get('flooded_vegetation', 0)
-#     crop_prob = crops + flooded_veg
-
-#     # --- NEW: INDEX OVERRIDE (PRIORITY CHECK) ---
-#     # If indices are exceptionally high, we ignore DW dominance.
-#     # High NDVI/EVI suggests active photosynthesis that DW might be mislabeling.
-#     if ndvi > 0.55 or evi > 0.45:
-#         # Check if shrubs, built, or flooded_veg are the dominant "noise"
-#         dominant_noise = max(row.get('built', 0), row.get('shrub_and_scrub', 0), row.get('flooded_vegetation', 0))
-#         if dominant_noise > crop_prob:
-#             return "Crop-Activity (Index Override)"
-
-#     # 2. Global Guardrails (Standard Logic)
-#     # If trees, water, or bare soil are truly dominant and indices aren't in 'Override' range
-#     for noise_class in ['trees', 'water', 'bare']:
-#         val = row.get(noise_class, 0)
-#         if val > 0.50 and val > crop_prob:
-#             return "No Crop-Activity"
-
-#     # --- MONSOON SWITCH (June - Sept: Heavy Rain / Kharif) ---
-#     if 6 <= month <= 9:
-#         if (rvi > 0.40 and crop_prob > 0.35) or (flooded_veg > 0.50 and rvi > 0.30):
-#             return "Crop-Activity"
-            
-#     # --- WINTER / DRY (Oct - March: Rabi) ---
-#     elif month in [10, 11, 12, 1, 2, 3]:
-#         if (ndvi > 0.38 and crop_prob > 0.40) or (rvi > 0.45):
-#             return "Crop-Activity"
-
-#     # --- SUMMER (April - May: Zaid) ---
-#     elif month in [4, 5]:
-#         if ndvi > 0.42 and rvi > 0.40:
-#             return "Crop-Activity"
-
-#     # --- THE "TREND" CATCHER ---
-#     if prev_ndvi is not None:
-#         if (ndvi - prev_ndvi) > 0.08:
-#              return "Crop-Activity"
-
-#     return "No Crop-Activity"
-
-
 def apply_empirical_logic(row, detected_seasons):
     """
     row: current data point
@@ -220,7 +169,13 @@ def apply_empirical_logic(row, detected_seasons):
     date_val = pd.to_datetime(row.get('date'))
     month = date_val.month
     ndvi = row.get('NDVI', 0)
-    ndvi_slope = row.get('NDVI_slope', 0)
+    rvi = row.get('RVI', 0)
+    
+    # AI Class Probabilities
+    tree_prob = row.get('trees', 0)
+    crop_prob = row.get('crops', 0)
+    flooded_veg = row.get('flooded_vegetation', 0)
+    total_crop_signal = crop_prob + flooded_veg
     
     # Determine current season based on month
     current_season = None
@@ -228,59 +183,59 @@ def apply_empirical_logic(row, detected_seasons):
     elif month in [11, 12, 1, 2, 3]: current_season = "Rabi"
     elif month in [4, 5]: current_season = "Zaid"
     
-    # --- PIPELINE 1: CYCLE & SLOPE CONFIDENCE ---
-    has_cycle = current_season in detected_seasons
+    # --- RULE 1: THE TREE GUARDRAIL (High Priority) ---
+    # Even if a cycle is detected, if trees are > 50% and higher than crops, 
+    # it's likely a plantation or forest edge.
+    if tree_prob > 0.50 or tree_prob > total_crop_signal:
+        return "No Crop-Activity"
     
-    # Simple base index logic scaled to 100
-    base_index = min(max(ndvi * 100, 0), 100) 
-    
-    # Abs slope scaling: cap at 0.05 -> 100% influence.
-    slope_mag = min((abs(ndvi_slope) / 0.05) * 100, 100)
-    
-    if has_cycle:
-        # Peak season: Trust high indices or steep slopes to mean crop activity.
-        p1_crop_conf = min(30 + 0.5 * base_index + 0.2 * slope_mag, 100)
-        p1_nocrop_conf = 100 - p1_crop_conf
-    else:
-        # Non-peak season: Trust low indices and flat slopes
-        # Cap P1 NoCrop penalty so it doesn't unconditionally block Pipeline 2
-        p1_nocrop_conf = min(50 + 0.3 * (100 - base_index) + 0.2 * (100 - slope_mag), 85)
-        p1_crop_conf = 100 - p1_nocrop_conf
+    # --- RULE 2: SEASONAL CYCLE VALIDATION ---
+    has_cycle_in_season = current_season in detected_seasons
+     
+    if has_cycle_in_season:
+        # Define season-specific threshold dictionary
+        # Format: { 'Total_Crop_Signal', 'NDVI', 'RVI' }
+        thresholds = {
+            "Kharif": {"crop": 0.35, "ndvi": 0.40, "rvi": 0.40}, # High biomass needs higher bars
+            "Rabi":   {"crop": 0.28, "ndvi": 0.35, "rvi": 0.30}, # Standard winter thresholds
+            "Zaid":   {"crop": 0.22, "ndvi": 0.28, "rvi": 0.25}  # Highly sensitive for summer
+        }
 
-    # --- PIPELINE 2: DYNAMIC WORLD PROBABILITY CONFIDENCE ---
-    classes = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
-    probs = {c: row.get(c, 0) for c in classes}
+        # Get thresholds for the current point's season (fallback to generic if unknown)
+        t = thresholds.get(current_season, {"crop": 0.30, "ndvi": 0.35, "rvi": 0.35})
+
+        # Apply specific logic
+        if total_crop_signal > t['crop'] or ndvi > t['ndvi'] or rvi > t['rvi']:
+            return "Crop-Activity"
     
-    # Sort classes by probability descending
-    sorted_probs = sorted(probs.items(), key=lambda x: x[1], reverse=True)
-    top_class, top_prob = sorted_probs[0]
-    runner_class, runner_prob = sorted_probs[1]
-    
-    margin = top_prob - runner_prob
-    
-    if top_class in ['crops', 'flooded_vegetation']:
-        # Base linear confidence scaling for crops (Empowered to beat P1 caps)
-        dw_confidence = min(60 + (margin * 80), 100)
-        p2_crop_conf = dw_confidence
-        p2_nocrop_conf = 100 - dw_confidence
     else:
-        # AGGRESSIVE SCALING for No-Crop blockages (Trees, Water, etc.)
-        # Reaches 100% confidence much faster (at just a 0.50 gap instead of 1.0)
-        dw_confidence = min(50 + (margin * 100), 100)
+        # --- RULE 3: NO CYCLE DETECTED - REQUIRE HIGH CONFIDENCE ---
+        # If the smoothing/peak detection missed a cycle, 
+        # only classify as crop if DW class is in HEAVY MAJORITY.
+        if crop_prob > 0.55:
+            return "Crop-Activity"
         
-        # Absolute Lockout Guardrail: If Tree/Water/Built is overwhelmingly high, crush P1.
-        if top_class in ['trees', 'water', 'built'] and top_prob > 0.65:
-            dw_confidence = 100
-            
-        p2_nocrop_conf = dw_confidence
-        p2_crop_conf = 100 - dw_confidence
+        # Check for other dominant classes (Built, Grass, Bare)
+        # If any non-crop class is in majority, it's definitely not a crop.
+        other_classes = {
+            'built': row.get('built', 0),
+            'bare': row.get('bare', 0),
+            'grass': row.get('grass', 0),
+            'shrub': row.get('shrub_and_scrub', 0),
+            'snow': row.get('snow_and_ice', 0),
+            'water': row.get('water', 0)
+        }
+        dominant_noise = max(other_classes, key=other_classes.get)
+        if other_classes[dominant_noise] > 0.50:
+            return "No Crop-Activity"
 
-    # --- RESOLUTION: HIGHEST CONFIDENCE WINS ---
-    final_crop = max(p1_crop_conf, p2_crop_conf)
-    final_nocrop = max(p1_nocrop_conf, p2_nocrop_conf)
-    
-    prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
-    return prediction, p1_crop_conf, p2_crop_conf
+    # --- RULE 4: FINAL CROP SIGNAL CHECK ---
+    # Fallback if Rule 2 and 3 didn't catch it
+    if total_crop_signal > 0.55:
+        return "Crop-Activity"
+
+    return "No Crop-Activity"
+
 
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
@@ -388,46 +343,13 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # E. Final Sanitize & Apply Logic
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
         
-        # Apply smoothing to the signals to prevent NOISY Cloud Dips from creating massive artificial slopes
-        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
-        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
-        
-        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
-        dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
-        dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
-        
         cycle_info = detect_crop_cycles(dataset_df)
 
-        # Step 2: THEN apply logic using correct cycle info
-        results = dataset_df.apply(
-            lambda row: apply_empirical_logic(row, cycle_info['detected_seasons']), axis=1
+        # Step 2: THEN apply logic
+        detected_seasons = cycle_info.get("detected_seasons", [])
+        dataset_df['prediction'] = dataset_df.apply(
+            lambda row: apply_empirical_logic(row, detected_seasons), axis=1
         )
-        dataset_df['prediction'] = [r[0] for r in results]
-        dataset_df['p1_crop_conf'] = [r[1] for r in results]
-        dataset_df['p2_crop_conf'] = [r[2] for r in results]
-        dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
-        dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
-        
-        # ============================================================
-        # YEAR-LONG ENVIRONMENTAL GUARDBAND
-        # If the geography averages massive non-crop noise probabilities over the full 365 days,
-        # it is physically impossible to be an active arable crop farm.
-        # ============================================================
-        dominant_classes = dataset_df[['trees', 'water', 'built', 'shrub_and_scrub', 'grass', 'crops', 'flooded_vegetation', 'bare', 'snow_and_ice']].idxmax(axis=1)
-        tree_freq = (dominant_classes == 'trees').mean()
-        water_freq = (dominant_classes == 'water').mean()
-        built_freq = (dominant_classes == 'built').mean()
-        crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
-        grass_shrub_freq = (dominant_classes == 'grass').mean() + (dominant_classes == 'shrub_and_scrub').mean()
-        
-        # Absolute Veto logic
-        if tree_freq > 0.65 or water_freq > 0.60 or built_freq > 0.50 or (crop_freq < 0.05 and grass_shrub_freq > 0.85):
-            dataset_df['prediction'] = "No Crop-Activity"
-            # Override numerical confidences to reflect the absolute veto
-            dataset_df['p1_crop_conf'] = 0.0
-            dataset_df['p2_crop_conf'] = 0.0
-            dataset_df['p1_nocrop_conf'] = 100.0
-            dataset_df['p2_nocrop_conf'] = 100.0
 
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
@@ -570,11 +492,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             "crop_activity_predictions_list": predictions_list,
             "crop_activity_prediction_stats": {
                 "total": len(predictions),
-                "crop_days": int(sum(activity_binary)),
-                "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
-                "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
-                "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),
-                "p2_nocrop_avg_conf": float(dataset_df['p2_nocrop_conf'].mean())
+                "crop_days": int(sum(activity_binary))
             },
             "timeseries_data": {
                 "vegetation_indices": indices_raw_list, # NDVI, EVI, RVI points

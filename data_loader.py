@@ -60,7 +60,6 @@ initialize_ee()
 
 
 
-
 def detect_crop_cycles(df):
     if df.empty or len(df) < 30:
         return {"total_cycles": 0, "detected_seasons": [], "details": [], "type": "insufficient_data"}
@@ -101,11 +100,11 @@ def detect_crop_cycles(df):
     kharif_df = df[kharif_mask]
     
     if not kharif_df.empty:
-        peaks_rvi, _ = find_peaks(kharif_df['rvi_smooth'], prominence=0.10, distance=30)
-        for p in peaks_rvi:
-            if is_valid_cycle(kharif_df, p, 'rvi_smooth', 0.10):
+        peaks_ndvi, _ = find_peaks(kharif_df['ndvi_smooth'], prominence=0.15, distance=30)
+        for p in peaks_ndvi:
+            if is_valid_cycle(kharif_df, p, 'ndvi_smooth', 0.20):
                 peak_date = kharif_df.iloc[p]['date']
-                detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "RVI"})
+                detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "NDVI"})
                 break
 
     # --- STEP 3: RABI DETECTION ---
@@ -113,10 +112,10 @@ def detect_crop_cycles(df):
     rabi_df = df[rabi_mask].sort_values('date')
     
     if not rabi_df.empty:
-        peaks_ndvi, _ = find_peaks(rabi_df['ndvi_smooth'], prominence=0.12, distance=45)
+        peaks_ndvi, _ = find_peaks(rabi_df['ndvi_smooth'], prominence=0.20, distance=45)
         for p in peaks_ndvi:
             # For Rabi, we check the baseline before the peak (Nov/Dec)
-            if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.15):
+            if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.25):
                 peak_date = rabi_df.iloc[p]['date']
                 detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI"})
                 break
@@ -126,9 +125,9 @@ def detect_crop_cycles(df):
     zaid_df = df[zaid_mask]
     
     if not zaid_df.empty:
-        peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.10, distance=20)
+        peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.15, distance=20)
         if len(peaks_zaid) > 0:
-            if is_valid_cycle(zaid_df, peaks_zaid[0], 'ndvi_smooth', 0.10):
+            if is_valid_cycle(zaid_df, peaks_zaid[0], 'ndvi_smooth', 0.15):
                 detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[peaks_zaid[0]]['date'], "index_used": "NDVI"})
 
     return {
@@ -136,6 +135,7 @@ def detect_crop_cycles(df):
         "detected_seasons": [c['season'] for c in detected_cycles],
         "details": detected_cycles
     }
+
 
 
 # Function to count valid NDVI peaks

@@ -479,30 +479,32 @@ async def replay_test_from_pickle(task_id: str):
         activity_binary = (dataset_df['prediction'] == "Crop-Activity").astype(int)
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
+        
+        bar_colors = activity_binary.map({1: '#27ae60', 0: '#e74c3c'})
+        
+        # Calculate height: if it's a crop, use final_confidence. If no crop, use 100 - final_confidence.
+        bar_heights = [conf if pred == 'Crop-Activity' else (100 - conf) 
+                       for pred, conf in zip(dataset_df['prediction'], dataset_df['final_confidence'])]
+        
+        fig.add_trace(go.Bar(
             x=predictions_list["date_str"],
-            y=activity_binary,
-            mode='lines',
-            fill='tozeroy',
-            name="Active Cycle",
-            line=dict(color='green', width=0),
-            fillcolor='rgba(46, 139, 87, 0.3)'
+            y=bar_heights,
+            marker_color=bar_colors,
+            name="Confidence"
         ))
-        fig.add_trace(go.Scatter(
-            x=predictions_list["date_str"],
-            y=activity_binary,
-            mode='markers',
-            name="Data Points",
-            marker=dict(color=activity_binary.map({1: 'green', 0: 'red'}), size=6, symbol='circle')
-        ))
+        
         fig.update_layout(
-            title="Agricultural Activity Cycles",
+            title="Verdict Certainty Over Time",
             yaxis=dict(
-                tickvals=[0, 1],
-                ticktext=["No Crop Activity", "Crop Activity"]  # Changed labels
+                title="Certainty (%)",
+                range=[0, 105],
+                gridcolor='rgba(0,0,0,0.05)'
+            ),
+            xaxis=dict(
+                tickangle=-45,
             ),
             template="plotly_white",
-            showlegend=False,  # Remove legend so graph covers full width
+            showlegend=False,
             margin=dict(l=50, r=20, t=50, b=50),
             height=400
         )
@@ -546,7 +548,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_New_1/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_Review/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

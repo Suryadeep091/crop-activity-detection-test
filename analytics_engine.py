@@ -466,43 +466,38 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         zero_indices = [i for i, val in enumerate(activity_binary) if val == 0]
 
         fig = go.Figure()
-
-      # Crop Activity points only (green squares)
-        crop_mask = activity_binary == 1
-        fig.add_trace(go.Scatter(
-            x=predictions.loc[crop_mask, "date_str"],
-            y=activity_binary[crop_mask],
-            mode='markers',
-            name="Crop Activity",
-            marker=dict(color='darkgreen', size=8, symbol='square'),
-        ))
-
-        # No Crop Activity points only (red dots)
-        no_crop_mask = activity_binary == 0
-        fig.add_trace(go.Scatter(
-            x=predictions.loc[no_crop_mask, "date_str"],
-            y=activity_binary[no_crop_mask],
-            mode='markers',
-            name="No Crop Activity",
-            marker=dict(color='red', size=6, symbol='circle'),
+        
+        # Determine bar colors based on binary classification
+        bar_colors = activity_binary.map({1: '#27ae60', 0: '#e74c3c'})
+        
+        # Calculate height: if it's a crop, use final_confidence. If no crop, use 100 - final_confidence.
+        bar_heights = [conf if pred == 'Crop-Activity' else (100 - conf) 
+                       for pred, conf in zip(predictions['prediction'], predictions['final_confidence'])]
+        
+        fig.add_trace(go.Bar(
+            x=predictions["date_str"],
+            y=bar_heights,
+            marker_color=bar_colors,
+            name="Confidence"
         ))
 
         fig.update_layout(
-            title="Agricultural Activity Cycles",
+            title="Verdict Certainty Over Time",
             yaxis=dict(
-                tickvals=[0, 1],
-                ticktext=["No Crop Activity", "Crop Activity"]  # Changed labels
+                title="Certainty (%)",
+                range=[0, 105],
+                gridcolor='rgba(0,0,0,0.05)'
             ),
-            template="plotly_white",
-            xaxis_tickangle=-45,
             xaxis=dict(
                 range=[
                     analysis_start.strftime("%Y-%m-%d"),
                     analysis_end.strftime("%Y-%m-%d"),
                 ],
                 title="Date",
+                tickangle=-45,
             ),
-            showlegend=False,  # Legend removed
+            template="plotly_white",
+            showlegend=False,
             margin=dict(l=50, r=20, t=50, b=50),
             height=400,
         )

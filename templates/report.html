@@ -371,7 +371,7 @@
 
         <div class="verdict-banner {{ 'bg-green' if activity_ratio > 15 else 'bg-red' }}">
             Verdict: {{ 'Agri activity detected' if activity_ratio > 15 else 'Low Agri activity detected' }} 
-            ({{ activity_ratio | round(1) }}% Active)
+            ({{ activity_ratio | round(1) }}% Active | Final Confidence: {{ stats.overall_confidence | round(1) }}%)
         </div>
 
         <div class="section-banner">Land Parcel Under Analysis</div>

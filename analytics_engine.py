@@ -289,7 +289,7 @@ def apply_empirical_logic(row, detected_seasons):
     final_nocrop = 100 - final_crop
     
     prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
-    return prediction, p1_crop_conf, p2_crop_conf
+    return prediction, p1_crop_conf, p2_crop_conf, final_crop
 
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
@@ -414,6 +414,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df['prediction'] = [r[0] for r in results]
         dataset_df['p1_crop_conf'] = [r[1] for r in results]
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
+        dataset_df['final_confidence'] = [r[3] for r in results]
         dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
         dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
         
@@ -436,6 +437,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             dataset_df['p2_crop_conf'] = 0.0
             dataset_df['p1_nocrop_conf'] = 100.0
             dataset_df['p2_nocrop_conf'] = 100.0
+            dataset_df['final_confidence'] = 0.0
 
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
@@ -569,6 +571,12 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dw_raw_export['date'] = pd.to_datetime(dw_raw_export['date']).dt.strftime('%Y-%m-%d')
         dw_raw_list = dw_raw_export.to_dict(orient="records")
 
+        active_days = dataset_df[dataset_df['prediction'] == 'Crop-Activity']
+        if not active_days.empty:
+            overall_conf = active_days['final_confidence'].mean()
+        else:
+            overall_conf = dataset_df['final_confidence'].mean()
+
         # --- UPDATED RETURN STATEMENT ---
         return {
             "land use/ land cover details": summary_dict,
@@ -579,6 +587,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             "crop_activity_prediction_stats": {
                 "total": len(predictions),
                 "crop_days": int(sum(activity_binary)),
+                "overall_confidence": float(overall_conf),
                 "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
                 "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
                 "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),

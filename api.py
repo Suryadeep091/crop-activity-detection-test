@@ -430,6 +430,7 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df['prediction'] = [r[0] for r in results]
         dataset_df['p1_crop_conf'] = [r[1] for r in results]
         dataset_df['p2_crop_conf'] = [r[2] for r in results]
+        dataset_df['final_confidence'] = [r[3] for r in results]
         dataset_df['p1_nocrop_conf'] = 100 - dataset_df['p1_crop_conf']
         dataset_df['p2_nocrop_conf'] = 100 - dataset_df['p2_crop_conf']
         
@@ -446,6 +447,7 @@ async def replay_test_from_pickle(task_id: str):
             dataset_df['p2_crop_conf'] = 0.0
             dataset_df['p1_nocrop_conf'] = 100.0
             dataset_df['p2_nocrop_conf'] = 100.0
+            dataset_df['final_confidence'] = 0.0
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -509,6 +511,12 @@ async def replay_test_from_pickle(task_id: str):
         # Then override images in full_data:
        
 
+        active_days = dataset_df[dataset_df['prediction'] == 'Crop-Activity']
+        if not active_days.empty:
+            overall_conf = active_days['final_confidence'].mean()
+        else:
+            overall_conf = dataset_df['final_confidence'].mean()
+
         full_data = {
             "task_id": task_id,
             "satellite_analytics": {
@@ -516,7 +524,8 @@ async def replay_test_from_pickle(task_id: str):
                 "land use/ land cover details": summary_dict,
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
-                    "total": total_days
+                    "total": total_days,
+                    "overall_confidence": float(overall_conf)
                 },
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
                  "images": {

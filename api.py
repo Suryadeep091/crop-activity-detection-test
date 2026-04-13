@@ -269,7 +269,7 @@ def weather_worker(coords, end_date):
 
 # --- UNIFIED ENDPOINT ---
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PICKLE_DIR = os.path.join(PROJECT_DIR, "test_310")
+PICKLE_DIR = os.path.join(PROJECT_DIR, "pickle_data_310")
 os.makedirs(PICKLE_DIR, exist_ok=True)
 
 @app.post("/test/accuracy")

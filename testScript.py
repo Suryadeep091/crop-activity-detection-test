@@ -6,7 +6,7 @@ import traceback
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-input_json_path = os.path.join(downloads_path, "test_parcels.json")
+input_json_path = os.path.join(downloads_path, "test_parcels_300.json")
 output_json_path = os.path.join(downloads_path, "test_accuracy_results.json")
 
 # TARGETING THE LIVE EXTRACTION ENDPOINT

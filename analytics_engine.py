@@ -258,7 +258,7 @@ def apply_empirical_logic(row, detected_seasons):
     
     margin = top_prob - runner_prob
     
-    if top_class in ['crops', 'flooded_vegetation']:
+    if top_class in ['crops']:
         # Base linear confidence scaling for crops (Empowered to beat P1 caps)
         dw_confidence = min(60 + (margin * 80), 100)
         p2_crop_conf = dw_confidence
@@ -269,7 +269,7 @@ def apply_empirical_logic(row, detected_seasons):
         dw_confidence = min(50 + (margin * 100), 100)
         
         # Absolute Lockout Guardrail: If Tree/Water/Built is overwhelmingly high, crush P1.
-        if top_class in ['trees', 'water', 'built'] and top_prob > 0.65:
+        if top_class in ['trees', 'water', 'built', 'snow_and_ice', 'shrub_and_scrub', 'flooded_vegetation'] and top_prob > 0.65:
             # Sigmoid Scaling allows a strong NDVI signal to "fight back" against weak noise.
             scale_factor = (top_prob - 0.65) / (1.0 - 0.65)
             dw_confidence = min(dw_confidence + (100 - dw_confidence) * (scale_factor ** 0.5), 100)

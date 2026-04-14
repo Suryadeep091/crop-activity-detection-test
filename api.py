@@ -365,7 +365,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 async def replay_test_from_pickle(task_id: str):
     try:
         # 1. Fetch and Load Pickle
-        pickle_bytes = download_from_gcs(f"accuracy_tests/{task_id}_raw.pkl")
+        pickle_bytes = download_from_gcs(f"test_310/{task_id}_raw.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
         raw_data = pickle.loads(pickle_bytes)
@@ -439,9 +439,14 @@ async def replay_test_from_pickle(task_id: str):
         tree_freq = (dominant_classes == 'trees').mean()
         water_freq = (dominant_classes == 'water').mean()
         built_freq = (dominant_classes == 'built').mean()
-        crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
+        snow_freq = (dominant_classes == 'snow_and_ice').mean()
+        shrub_freq = (dominant_classes == 'shrub_and_scrub').mean()
+        grass_freq = (dominant_classes == 'grass').mean()
+        bare_freq = (dominant_classes == 'bare').mean()
+        flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
+        crop_freq = (dominant_classes == 'crops').mean()
         
-        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10:
+        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10 or snow_freq > 0.60 or shrub_freq > 0.60 or grass_freq > 0.60 or bare_freq > 0.60 or flooded_freq > 0.60:
             dataset_df['prediction'] = "No Crop-Activity"
             dataset_df['p1_crop_conf'] = 0.0
             dataset_df['p2_crop_conf'] = 0.0
@@ -548,7 +553,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_Review/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_310/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

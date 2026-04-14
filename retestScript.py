@@ -5,8 +5,8 @@ import os
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-input_json_path = os.path.join(downloads_path, "test_parcels.json")
-output_json_path = os.path.join(downloads_path, "batch_results_dual_pipeline_review.json") # NEW FILE
+input_json_path = os.path.join(downloads_path, "test_parcels_300.json")
+output_json_path = os.path.join(downloads_path, "batch_results_dual_pipeline_300.json") # NEW FILE
 BASE_REPLAY_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/replay"
 
 def run_batch_replay_with_logging():

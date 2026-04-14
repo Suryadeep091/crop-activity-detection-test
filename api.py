@@ -440,13 +440,10 @@ async def replay_test_from_pickle(task_id: str):
         water_freq = (dominant_classes == 'water').mean()
         built_freq = (dominant_classes == 'built').mean()
         snow_freq = (dominant_classes == 'snow_and_ice').mean()
-        shrub_freq = (dominant_classes == 'shrub_and_scrub').mean()
-        grass_freq = (dominant_classes == 'grass').mean()
-        bare_freq = (dominant_classes == 'bare').mean()
         flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
         crop_freq = (dominant_classes == 'crops').mean()
         
-        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10 or snow_freq > 0.60 or shrub_freq > 0.60 or grass_freq > 0.60 or bare_freq > 0.60 or flooded_freq > 0.60:
+        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10 or snow_freq > 0.60  or flooded_freq > 0.60:
             dataset_df['prediction'] = "No Crop-Activity"
             dataset_df['p1_crop_conf'] = 0.0
             dataset_df['p2_crop_conf'] = 0.0

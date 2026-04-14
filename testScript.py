@@ -6,8 +6,8 @@ import traceback
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-input_json_path = os.path.join(downloads_path, "filtered_parcels.json")
-output_json_path = os.path.join(downloads_path, "test_accuracy_2023.json")
+input_json_path = os.path.join(downloads_path, "Test.json")
+output_json_path = os.path.join(downloads_path, "Test_res.json")
 
 # TARGETING THE LIVE EXTRACTION ENDPOINT
 API_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/accuracy"

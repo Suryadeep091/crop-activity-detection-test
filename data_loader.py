@@ -96,7 +96,7 @@ def calculate_cycle_confidence(df, season_details):
         # --- Metric D: Growth Velocity (Slope Guardrail) ---
         # Biological limit: plants don't grow faster than ~0.01 NDVI/day.
         max_slope = window['ndvi_smooth'].diff().max()
-        slope_score = 100 if max_slope <= 0.01 else max(0, 100 - (max_slope - 0.01) * 5000)
+        slope_score = 100 if max_slope <= 0.03 else max(0, 100 - (max_slope - 0.01) * 5000)
 
         # Final Weighted Confidence
         total_conf = (
@@ -120,7 +120,7 @@ def detect_crop_cycles(df):
     # With 365 daily points, we expand the windows slightly for biological robustness
     window_rvi = 31 if len(df) > 31 else (len(df) // 2 * 2 + 1)
     window_ndvi = 31 if len(df) > 31 else (len(df) // 2 * 2 + 1)
-    window_ndvi_short = 15 if len(df) > 15 else (len(df) // 2 * 2 + 1)
+    window_ndvi_short = 9 if len(df) > 9 else (len(df) // 2 * 2 + 1)
     
     df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), window_rvi, 2)
     df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi, 2)
@@ -156,7 +156,7 @@ def detect_crop_cycles(df):
         peaks_rvi, _ = find_peaks(kharif_df['rvi_smooth'], prominence=0.10, distance=60)
         found = False
         for p in peaks_rvi:
-            if is_valid_cycle(kharif_df, p, 'rvi_smooth', 0.10):
+            if is_valid_cycle(kharif_df, p, 'rvi_smooth', 0.20):
                 peak_date = kharif_df.iloc[p]['date']
                 detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "RVI"})
                 found = True
@@ -166,7 +166,7 @@ def detect_crop_cycles(df):
             # Short-cycle kernel
             peaks_short, _ = find_peaks(kharif_df['ndvi_short_smooth'], prominence=0.08, distance=30)
             for p in peaks_short:
-                if is_valid_cycle(kharif_df, p, 'ndvi_short_smooth', 0.10):
+                if is_valid_cycle(kharif_df, p, 'ndvi_short_smooth', 0.20):
                     peak_date = kharif_df.iloc[p]['date']
                     detected_cycles.append({"season": "Kharif", "peak_date": peak_date, "index_used": "NDVI-Short"})
                     break
@@ -180,7 +180,7 @@ def detect_crop_cycles(df):
         found = False
         for p in peaks_ndvi:
             # For Rabi, we check the baseline before the peak (Nov/Dec)
-            if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.15):
+            if is_valid_cycle(rabi_df, p, 'ndvi_smooth', 0.18):
                 peak_date = rabi_df.iloc[p]['date']
                 detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI"})
                 found = True
@@ -189,7 +189,7 @@ def detect_crop_cycles(df):
             # Short-cycle kernel
             peaks_short, _ = find_peaks(rabi_df['ndvi_short_smooth'], prominence=0.08, distance=30)
             for p in peaks_short:
-                if is_valid_cycle(rabi_df, p, 'ndvi_short_smooth', 0.10):
+                if is_valid_cycle(rabi_df, p, 'ndvi_short_smooth', 0.18):
                     peak_date = rabi_df.iloc[p]['date']
                     detected_cycles.append({"season": "Rabi", "peak_date": peak_date, "index_used": "NDVI-Short"})
                     break
@@ -202,7 +202,7 @@ def detect_crop_cycles(df):
         peaks_zaid, _ = find_peaks(zaid_df['ndvi_smooth'], prominence=0.10, distance=40)
         found = False
         for p in peaks_zaid:
-            if is_valid_cycle(zaid_df, p, 'ndvi_smooth', 0.10):
+            if is_valid_cycle(zaid_df, p, 'ndvi_smooth', 0.15):
                 detected_cycles.append({"season": "Zaid", "peak_date": zaid_df.iloc[p]['date'], "index_used": "NDVI"})
                 found = True
                 break
@@ -211,7 +211,7 @@ def detect_crop_cycles(df):
             # Short-cycle kernel
             peaks_short, _ = find_peaks(zaid_df['ndvi_short_smooth'], prominence=0.08, distance=30)
             for p in peaks_short:
-                if is_valid_cycle(zaid_df, p, 'ndvi_short_smooth', 0.10):
+                if is_valid_cycle(zaid_df, p, 'ndvi_short_smooth', 0.15):
                     peak_date = zaid_df.iloc[p]['date']
                     detected_cycles.append({"season": "Zaid", "peak_date": peak_date, "index_used": "NDVI-Short"})
                     break

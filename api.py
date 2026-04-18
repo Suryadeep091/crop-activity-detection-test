@@ -414,9 +414,9 @@ async def replay_test_from_pickle(task_id: str):
         # --- D. WHITTAKER SMOOTHER & DAILY UPSAMPLING ---
         dataset_df.set_index('date', inplace=True)
         # Handle duplicated dates by taking mean
-        dataset_df = dataset_df.groupby('date').mean()
+        dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
         # Resample strictly to daily points to hit exactly 365 days
-        dataset_df = dataset_df.resample('D').mean()
+        dataset_df = dataset_df.resample('D').mean(numeric_only=True)
         dataset_df.reset_index(inplace=True)
 
         def whittaker_smooth(y, lambda_=100, d=2):

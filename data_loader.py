@@ -126,11 +126,11 @@ def detect_crop_cycles(df):
     df['ndvi_short_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi_short, 2)
 
     # --- NEW: PERENNIAL/FOREST FILTER ---
-    # If the NDVI never drops below 0.4, it's likely a forest or orchard, not a crop cycle
+    # If the NDVI never drops below 0.30, it's likely a forest or orchard, not a crop cycle
     annual_min_ndvi = df['ndvi_smooth'].min()
     annual_range = df['ndvi_smooth'].max() - annual_min_ndvi
     
-    if annual_min_ndvi > 0.45 and annual_range < 0.2:
+    if annual_min_ndvi > 0.30 and annual_range < 0.2:
         return {
             "total_cycles": 0, 
             "detected_seasons": ["Perennial/Evergreen"], 

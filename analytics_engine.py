@@ -469,22 +469,25 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         total_days = len(dataset_df)
         activity_ratio = (crop_days / total_days) if total_days > 0 else 0
 
-        # Absolute Veto logic triggers
-        is_guardband_triggered = (tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or snow_freq > 0.60 or flooded_freq > 0.60 or crop_freq < 0.10)
+        # Absolute Veto logic triggers - Occams Razor: Protect cycles from AI blindness
+        total_cycles = cycle_info['total_cycles']
+        is_guardband_triggered = (tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or snow_freq > 0.60 or flooded_freq > 0.60)
+        if total_cycles == 0:
+            is_guardband_triggered = is_guardband_triggered or (crop_freq < 0.10)
         
         if is_guardband_triggered:
             if non_crop_freq > 0.85 and activity_ratio > 0.0:
                 # Scenario C: Extreme AI Domination
-                dataset_df['p1_crop_conf'] *= 0.10
                 dataset_df['p2_crop_conf'] *= 0.10
+                if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.10
             elif activity_ratio > 0.50 and non_crop_freq > 0.50:
                 # Scenario B: Major Conflict
-                dataset_df['p1_crop_conf'] *= 0.30
                 dataset_df['p2_crop_conf'] *= 0.30
+                if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.30
             else:
                 # Scenario A: Total Agreement (Standard Lockout)
-                dataset_df['p1_crop_conf'] = 0.0
                 dataset_df['p2_crop_conf'] = 0.0
+                if total_cycles == 0: dataset_df['p1_crop_conf'] = 0.0
 
             # Re-evaluate row-level confidence dynamically for penalized rows
             dataset_df['p1_nocrop_conf'] = 100.0 - dataset_df['p1_crop_conf']

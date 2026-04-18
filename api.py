@@ -516,8 +516,13 @@ async def replay_test_from_pickle(task_id: str):
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            dataset_df['prediction'] = np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
-            dataset_df['final_confidence'] = avg_crop
+            # Override baseline prediction if structural physics are sound (P1 > 50) and verified by peaks (cycles > 0)
+            dataset_df['prediction'] = np.where(
+                (dataset_df['p1_crop_conf'] > 50) & (total_cycles > 0),
+                "Crop-Activity",
+                np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
+            )
+            dataset_df['final_confidence'] = np.where(avg_crop > avg_nocrop, avg_crop, avg_nocrop)
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)

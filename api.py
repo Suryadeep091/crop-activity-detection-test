@@ -483,13 +483,38 @@ async def replay_test_from_pickle(task_id: str):
         flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
         
-        if tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or crop_freq < 0.10 or snow_freq > 0.60  or flooded_freq > 0.60:
-            dataset_df['prediction'] = "No Crop-Activity"
-            dataset_df['p1_crop_conf'] = 0.0
-            dataset_df['p2_crop_conf'] = 0.0
-            dataset_df['p1_nocrop_conf'] = 100.0
-            dataset_df['p2_nocrop_conf'] = 100.0
-            dataset_df['final_confidence'] = 0.0
+        non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq)
+        crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
+        total_days = len(dataset_df)
+        activity_ratio = (crop_days / total_days) if total_days > 0 else 0
+
+        # Absolute Veto logic triggers
+        is_guardband_triggered = (tree_freq > 0.60 or water_freq > 0.60 or built_freq > 0.50 or snow_freq > 0.60 or flooded_freq > 0.60 or crop_freq < 0.10)
+        
+        if is_guardband_triggered:
+            if non_crop_freq > 0.85 and activity_ratio > 0.0:
+                # Scenario C: Extreme AI Domination
+                dataset_df['p1_crop_conf'] *= 0.10
+                dataset_df['p2_crop_conf'] *= 0.10
+            elif activity_ratio > 0.50 and non_crop_freq > 0.50:
+                # Scenario B: Major Conflict
+                dataset_df['p1_crop_conf'] *= 0.30
+                dataset_df['p2_crop_conf'] *= 0.30
+            else:
+                # Scenario A: Total Agreement (Standard Lockout)
+                dataset_df['p1_crop_conf'] = 0.0
+                dataset_df['p2_crop_conf'] = 0.0
+
+            # Re-evaluate row-level confidence dynamically for penalized rows
+            dataset_df['p1_nocrop_conf'] = 100.0 - dataset_df['p1_crop_conf']
+            dataset_df['p2_nocrop_conf'] = 100.0 - dataset_df['p2_crop_conf']
+            
+            # Recalculate row predictions based on user instruction: "Whichever is higher"
+            avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
+            avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
+            
+            dataset_df['prediction'] = np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
+            dataset_df['final_confidence'] = avg_crop
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -555,11 +580,19 @@ async def replay_test_from_pickle(task_id: str):
         # Then override images in full_data:
        
 
-        active_days = dataset_df[dataset_df['prediction'] == 'Crop-Activity']
-        if not active_days.empty:
-            overall_conf = active_days['final_confidence'].mean()
-        else:
-            overall_conf = dataset_df['final_confidence'].mean()
+        # 4-Axis Synthesis for Overall Parcel Confidence
+        p1_crop_mean = dataset_df['p1_crop_conf'].mean()
+        p1_nocrop_mean = dataset_df['p1_nocrop_conf'].mean()
+        p2_crop_mean = dataset_df['p2_crop_conf'].mean()
+        p2_nocrop_mean = dataset_df['p2_nocrop_conf'].mean()
+
+        final_crop_score = (p1_crop_mean * 0.60) + (p2_crop_mean * 0.40)
+        final_nocrop_score = (p1_nocrop_mean * 0.60) + (p2_nocrop_mean * 0.40)
+
+        # Re-verify activity ratio after possible guardband prediction flips
+        current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
+        current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
+        overall_conf = final_crop_score if current_activity_ratio >= 15 else final_nocrop_score
 
         full_data = {
             "task_id": task_id,

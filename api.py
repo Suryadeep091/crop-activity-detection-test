@@ -512,13 +512,13 @@ async def replay_test_from_pickle(task_id: str):
             dataset_df['p1_nocrop_conf'] = 100.0 - dataset_df['p1_crop_conf']
             dataset_df['p2_nocrop_conf'] = 100.0 - dataset_df['p2_crop_conf']
             
-            # Recalculate row predictions based on user instruction: "Whichever is higher"
+            # Recalculate row predictions
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            # Override baseline prediction if structural physics are sound (P1 > 50) and verified by peaks (cycles > 0)
+            # Save FNs safely: Trust cycle-physics (P1>50), but demand AI sees nominal crops (>7%) to block false grasslands
             dataset_df['prediction'] = np.where(
-                (dataset_df['p1_crop_conf'] > 50) & (total_cycles > 0),
+                (dataset_df['p1_crop_conf'] > 50) & (total_cycles > 0) & (crop_freq > 0.07),
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )

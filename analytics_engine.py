@@ -411,11 +411,19 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             A = W + (lambda_ * D.T.dot(D))
             return spsolve(A, W.dot(y_solve))
 
-        indices_cols = ['NDVI', 'EVI', 'RVI']
-        # Apply Whittaker to physical indices
-        for col in indices_cols:
-            if col in dataset_df.columns:
-                dataset_df[col] = whittaker_smooth(dataset_df[col].values, lambda_=100)
+        # Apply Adaptive Whittaker parameters
+        if 'NDVI' in dataset_df.columns:
+            # Aggressive short-cycle kernel for peak preservation
+            dataset_df['NDVI_short_smooth'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=10)
+            # Default smoothing for standard extraction
+            dataset_df['NDVI'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=50)
+            
+        if 'EVI' in dataset_df.columns:
+            dataset_df['EVI'] = whittaker_smooth(dataset_df['EVI'].values, lambda_=50)
+            
+        if 'RVI' in dataset_df.columns:
+            # Stiffness mode to combat radar speckle
+            dataset_df['RVI'] = whittaker_smooth(dataset_df['RVI'].values, lambda_=200)
 
         # For Dynamic World discrete classes, standard linear interpolation is sufficient
         cols_to_fix = [c for c in dw_cols if c in dataset_df.columns]

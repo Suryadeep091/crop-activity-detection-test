@@ -117,14 +117,10 @@ def detect_crop_cycles(df):
     df = df.sort_values('date')
     
     # --- STEP 1: SIGNAL SMOOTHING ---
-    # With 365 daily points, we expand the windows slightly for biological robustness
-    window_rvi = 31 if len(df) > 31 else (len(df) // 2 * 2 + 1)
-    window_ndvi = 31 if len(df) > 31 else (len(df) // 2 * 2 + 1)
-    window_ndvi_short = 9 if len(df) > 9 else (len(df) // 2 * 2 + 1)
-    
-    df['rvi_smooth'] = savgol_filter(df['RVI'].fillna(0), window_rvi, 2)
-    df['ndvi_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi, 2)
-    df['ndvi_short_smooth'] = savgol_filter(df['NDVI'].fillna(0), window_ndvi_short, 2)
+    # Signals are gracefully smoothed upstream using adaptive Whittaker lambda arrays!
+    df['rvi_smooth'] = df['RVI']
+    df['ndvi_smooth'] = df['NDVI']
+    df['ndvi_short_smooth'] = df['NDVI_short_smooth'] if 'NDVI_short_smooth' in df.columns else df['NDVI']
 
     # --- NEW: PERENNIAL/FOREST FILTER ---
     # If the NDVI never drops below 0.4, it's likely a forest or orchard, not a crop cycle

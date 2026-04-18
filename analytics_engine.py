@@ -234,8 +234,8 @@ def apply_empirical_logic(row, detected_seasons):
     # Simple base index logic scaled to 100
     base_index = min(max(ndvi * 100, 0), 100) 
     
-    # Abs slope scaling: cap at 0.05 -> 100% influence.
-    slope_mag = min((abs(ndvi_slope) / 0.05) * 100, 100)
+    # Abs slope scaling: cap at 0.01 (daily max biological capability) -> 100% influence.
+    slope_mag = min((abs(ndvi_slope) / 0.01) * 100, 100)
     
     if has_cycle:
         # Peak season: Trust high indices or steep slopes to mean crop activity.
@@ -385,23 +385,50 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # C. Perform Outer Join (Now creates a single 'crops' column)
         dataset_df = df_all_clean.merge(df_dw_raw, on='date', how='outer').sort_values('date')
 
-        # D. Interpolate ALL critical bands
+        # --- D. WHITTAKER SMOOTHER & DAILY UPSAMPLING ---
+        dataset_df.set_index('date', inplace=True)
+        # Handle duplicated dates by taking mean
+        dataset_df = dataset_df.groupby('date').mean()
+        # Resample strictly to daily points to hit exactly 365 days
+        dataset_df = dataset_df.resample('D').mean()
+        dataset_df.reset_index(inplace=True)
+
+        def whittaker_smooth(y, lambda_=100, d=2):
+            import numpy as np
+            from scipy.sparse import eye, diags
+            from scipy.sparse.linalg import spsolve
+            m = len(y)
+            if m < d + 1: return y
+            weight = np.ones(m)
+            weight[np.isnan(y)] = 0.0
+            W = diags(weight, 0, shape=(m, m), format='csc')
+            D = eye(m, format='csc')
+            for _ in range(d):
+                D = D[:-1, :] - D[1:, :]
+            y_solve = np.copy(y)
+            if np.isnan(y_solve).all(): return y_solve
+            y_solve[np.isnan(y_solve)] = 0.0 
+            A = W + (lambda_ * D.T.dot(D))
+            return spsolve(A, W.dot(y_solve))
+
         indices_cols = ['NDVI', 'EVI', 'RVI']
-        cols_to_fix = [c for c in dw_cols + indices_cols if c in dataset_df.columns]
-        
-        # This will now correctly fill the 0s in rows 1, 3, and 4
-        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(
-            method='linear', limit_direction='both'
-        )
+        # Apply Whittaker to physical indices
+        for col in indices_cols:
+            if col in dataset_df.columns:
+                dataset_df[col] = whittaker_smooth(dataset_df[col].values, lambda_=100)
+
+        # For Dynamic World discrete classes, standard linear interpolation is sufficient
+        cols_to_fix = [c for c in dw_cols if c in dataset_df.columns]
+        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # E. Final Sanitize & Apply Logic
         dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
+                        
+        # We no longer need aggressive rolling windows because Whittaker has effectively smoothed it perfectly
+        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI']
+        dataset_df['RVI_smooth_slope'] = dataset_df['RVI']
         
-        # Apply smoothing to the signals to prevent NOISY Cloud Dips from creating massive artificial slopes
-        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
-        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
-        
-        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
+        # Pre-calculate slopes (Daily points = fine-grained derivatives)
         dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
         dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
         

@@ -411,16 +411,48 @@ async def replay_test_from_pickle(task_id: str):
         ###################
         dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
 
-        # Fill gaps via interpolation
-        cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction']]
+        # --- D. WHITTAKER SMOOTHER & DAILY UPSAMPLING ---
+        dataset_df.set_index('date', inplace=True)
+        # Handle duplicated dates by taking mean
+        dataset_df = dataset_df.groupby('date').mean()
+        # Resample strictly to daily points to hit exactly 365 days
+        dataset_df = dataset_df.resample('D').mean()
+        dataset_df.reset_index(inplace=True)
+
+        def whittaker_smooth(y, lambda_=100, d=2):
+            import numpy as np
+            from scipy.sparse import eye, diags
+            from scipy.sparse.linalg import spsolve
+            m = len(y)
+            if m < d + 1: return y
+            weight = np.ones(m)
+            weight[np.isnan(y)] = 0.0
+            W = diags(weight, 0, shape=(m, m), format='csc')
+            D = eye(m, format='csc')
+            for _ in range(d):
+                D = D[:-1, :] - D[1:, :]
+            y_solve = np.copy(y)
+            if np.isnan(y_solve).all(): return y_solve
+            y_solve[np.isnan(y_solve)] = 0.0 
+            A = W + (lambda_ * D.T.dot(D))
+            return spsolve(A, W.dot(y_solve))
+
+        indices_cols = ['NDVI', 'EVI', 'RVI']
+        # Apply Whittaker to physical indices
+        for col in indices_cols:
+            if col in dataset_df.columns:
+                dataset_df[col] = whittaker_smooth(dataset_df[col].values, lambda_=100)
+
+        # Fill gaps via interpolation for remaining columns
+        cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction'] + indices_cols]
         dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # 4. RUN YOUR ENGINE LOGIC
-        # Apply smoothing to prevent NOISY Cloud Dips from creating massive artificial slopes
-        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI'].rolling(window=3, min_periods=1, center=True).mean()
-        dataset_df['RVI_smooth_slope'] = dataset_df['RVI'].rolling(window=3, min_periods=1, center=True).mean()
+        # We no longer need aggressive rolling windows because Whittaker has effectively smoothed it perfectly
+        dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI']
+        dataset_df['RVI_smooth_slope'] = dataset_df['RVI']
         
-        # Pre-calculate slopes for analytical confidence logic on the SMOOTHED lines
+        # Pre-calculate slopes (Daily points = fine-grained derivatives)
         dataset_df['NDVI_slope'] = np.gradient(dataset_df['NDVI_smooth_slope'])
         dataset_df['RVI_slope'] = np.gradient(dataset_df['RVI_smooth_slope'])
         

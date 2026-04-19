@@ -495,7 +495,7 @@ async def replay_test_from_pickle(task_id: str):
             is_guardband_triggered = is_guardband_triggered or (crop_freq < 0.10)
         
         # 1. Calculate the Average BioScore for the parcel (if cycles exist)
-        avg_bioscore = cycle_info['cycle_data']['bioscore'].mean() if total_cycles > 0 else 0
+        avg_bioscore = np.mean([c['confidence'] for c in cycle_info['details']]) if total_cycles > 0 else 0
 
         # 2. Define the Tree Trap
         # Logic: If trees are the majority AND crops are scarce AND biological sync is mediocre

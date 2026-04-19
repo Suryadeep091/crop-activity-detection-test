@@ -1,0 +1,362 @@
+
+================================================================================
+CorrectCrop (211 parcels)
+================================================================================
+  P1 Crop   : min=34.8 mean=57.9 max=71.7
+  P2 Crop   : min=0.0 mean=57.7 max=95.2
+  Cycles    : min=1.0 mean=2.6 max=3.0
+  DW Trees  : min=0.0 mean=16.6 max=90.3
+  DW Crops  : min=0.0 mean=56.7 max=100.0
+  DW Grass  : min=0.0 mean=5.1 max=84.6
+  DW Water  : min=0.0 mean=1.7 max=39.0
+  DW Built  : min=0.0 mean=2.6 max=68.9
+
+  --- Per Parcel ---
+  [UP1 (Crop)          ] P1= 56.3% P2= 70.8% Cyc=2 Trees=  2.5% Crops= 70.0% Grass=  2.5% Water=  2.5% Built=  5.0%
+  [UP2 (Crop)          ] P1= 61.9% P2= 72.6% Cyc=3 Trees=  0.0% Crops= 76.9% Grass=  0.0% Water=  0.0% Built=  3.9%
+  [UP3 (Crop)          ] P1= 59.3% P2= 60.8% Cyc=3 Trees=  0.0% Crops= 76.0% Grass=  0.0% Water=  0.0% Built=  4.0%
+  [UP4 (Crop)          ] P1= 64.1% P2= 51.3% Cyc=3 Trees= 25.0% Crops= 57.5% Grass=  0.0% Water=  0.0% Built= 10.0%
+  [UP6 (Crop)          ] P1= 63.7% P2= 10.1% Cyc=3 Trees= 50.0% Crops= 28.3% Grass=  0.0% Water=  0.0% Built= 13.0%
+  [UP8 (Crop)          ] P1= 62.7% P2= 44.9% Cyc=3 Trees= 35.6% Crops= 48.9% Grass=  0.0% Water=  0.0% Built=  8.9%
+  [UP9 (Crop)          ] P1= 63.9% P2= 49.8% Cyc=3 Trees= 27.5% Crops= 45.0% Grass=  2.5% Water=  2.5% Built=  5.0%
+  [UP10 (Crop)         ] P1= 63.3% P2= 30.0% Cyc=3 Trees= 29.3% Crops= 24.4% Grass=  0.0% Water=  0.0% Built= 34.1%
+  [RJ01 (Crop)         ] P1= 60.0% P2= 42.9% Cyc=3 Trees= 10.4% Crops= 25.0% Grass=  0.0% Water=  0.0% Built=  2.1%
+  [RJ02 (Crop)         ] P1= 46.9% P2= 41.8% Cyc=2 Trees= 10.4% Crops= 12.5% Grass=  0.0% Water=  0.0% Built=  8.3%
+  [RJ03 (Crop)         ] P1= 44.5% P2= 49.6% Cyc=2 Trees=  2.1% Crops= 37.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ04 (Crop)         ] P1= 58.1% P2= 79.5% Cyc=3 Trees=  0.0% Crops= 91.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ05 (Crop)         ] P1= 56.4% P2= 57.2% Cyc=3 Trees=  1.9% Crops= 58.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ06 (Crop)         ] P1= 49.7% P2= 59.5% Cyc=3 Trees=  1.9% Crops= 60.4% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ07 (Crop)         ] P1= 56.5% P2= 75.5% Cyc=3 Trees=  2.0% Crops= 96.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ08 (Crop)         ] P1= 41.8% P2= 23.6% Cyc=2 Trees=  0.0% Crops= 18.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ10 (Crop)         ] P1= 61.5% P2= 12.1% Cyc=3 Trees= 67.3% Crops= 28.6% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP01 (Crop)         ] P1= 63.8% P2= 72.5% Cyc=3 Trees= 20.0% Crops= 65.0% Grass=  2.5% Water=  0.0% Built=  0.0%
+  [MP03 (Crop)         ] P1= 64.7% P2= 64.3% Cyc=3 Trees= 24.4% Crops= 68.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP04 (Crop)         ] P1= 65.8% P2= 75.7% Cyc=3 Trees= 18.9% Crops= 64.9% Grass=  0.0% Water=  2.7% Built=  0.0%
+  [MP05 (Crop)         ] P1= 64.4% P2= 57.8% Cyc=3 Trees= 31.6% Crops= 52.6% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP07 (Crop)         ] P1= 58.6% P2= 71.2% Cyc=2 Trees= 15.4% Crops= 76.9% Grass=  5.1% Water=  0.0% Built=  0.0%
+  [MP09 (Crop)         ] P1= 51.9% P2= 71.3% Cyc=3 Trees= 14.9% Crops= 63.8% Grass=  6.4% Water=  0.0% Built=  0.0%
+  [GJ01 (Crop)         ] P1= 55.5% P2= 78.9% Cyc=2 Trees= 19.1% Crops= 59.5% Grass= 21.4% Water=  0.0% Built=  0.0%
+  [GJ02 (Crop)         ] P1= 54.0% P2= 59.6% Cyc=2 Trees= 16.3% Crops= 72.1% Grass=  4.7% Water=  0.0% Built=  0.0%
+  [GJ04 (Crop)         ] P1= 42.9% P2= 60.6% Cyc=2 Trees=  0.0% Crops= 69.6% Grass=  0.0% Water=  0.0% Built=  2.2%
+  [GJ05 (Crop)         ] P1= 63.5% P2= 62.9% Cyc=3 Trees= 17.4% Crops= 71.7% Grass=  0.0% Water=  2.2% Built=  0.0%
+  [GJ07 (Crop)         ] P1= 66.5% P2= 91.6% Cyc=3 Trees=  4.3% Crops= 95.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ08 (Crop)         ] P1= 61.6% P2= 70.2% Cyc=3 Trees=  2.2% Crops= 93.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ10 (Crop)         ] P1= 53.1% P2= 74.1% Cyc=3 Trees=  0.0% Crops= 83.7% Grass= 10.2% Water=  0.0% Built=  0.0%
+  [MH02 (Crop)         ] P1= 60.6% P2= 49.4% Cyc=3 Trees= 50.0% Crops= 45.2% Grass=  0.0% Water=  2.4% Built=  0.0%
+  [MH03 (Crop)         ] P1= 52.8% P2= 57.8% Cyc=3 Trees= 15.9% Crops= 65.9% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [MH04 (Crop)         ] P1= 62.5% P2= 67.7% Cyc=3 Trees= 35.7% Crops= 59.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MH05 (Crop)         ] P1= 49.0% P2= 64.2% Cyc=2 Trees=  0.0% Crops= 81.0% Grass=  0.0% Water=  0.0% Built= 11.9%
+  [MH06 (Crop)         ] P1= 50.5% P2= 75.6% Cyc=2 Trees=  9.1% Crops= 86.4% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MH08 (Crop)         ] P1= 64.7% P2=  0.0% Cyc=3 Trees= 72.1% Crops= 25.6% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [MH09 (Crop)         ] P1= 46.1% P2= 39.7% Cyc=2 Trees=  5.9% Crops=  2.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MH10 (Crop)         ] P1= 49.3% P2= 77.1% Cyc=3 Trees=  0.0% Crops= 92.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB01 (Crop)         ] P1= 68.9% P2= 69.8% Cyc=3 Trees=  2.0% Crops= 76.0% Grass=  4.0% Water=  2.0% Built=  2.0%
+  [PB02 (Crop)         ] P1= 65.8% P2= 68.7% Cyc=3 Trees=  0.0% Crops= 75.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB03 (Crop)         ] P1= 61.1% P2= 71.3% Cyc=2 Trees=  4.0% Crops= 78.0% Grass=  0.0% Water=  2.0% Built=  0.0%
+  [PB05 (Crop)         ] P1= 67.5% P2= 62.6% Cyc=3 Trees= 12.5% Crops= 75.0% Grass=  0.0% Water=  0.0% Built= 12.5%
+  [PB07 (Crop)         ] P1= 62.9% P2= 67.7% Cyc=2 Trees=  2.0% Crops= 68.0% Grass=  0.0% Water=  2.0% Built=  0.0%
+  [PB08 (Crop)         ] P1= 68.0% P2= 63.8% Cyc=3 Trees=  6.2% Crops= 62.5% Grass=  2.1% Water=  0.0% Built=  0.0%
+  [PB09 (Crop)         ] P1= 65.4% P2= 78.5% Cyc=3 Trees= 14.9% Crops= 72.3% Grass=  0.0% Water=  2.1% Built=  0.0%
+  [TL01 (Crop)         ] P1= 56.5% P2= 60.0% Cyc=2 Trees= 27.8% Crops= 50.0% Grass=  0.0% Water= 11.1% Built=  0.0%
+  [TL02 (Crop)         ] P1= 59.5% P2= 56.2% Cyc=2 Trees= 13.9% Crops= 46.5% Grass=  7.0% Water=  4.7% Built=  2.3%
+  [TL03 (Crop)         ] P1= 50.9% P2= 42.1% Cyc=3 Trees=  0.0% Crops=  5.3% Grass= 10.5% Water=  0.0% Built=  0.0%
+  [TL04 (Crop)         ] P1= 61.6% P2= 58.6% Cyc=3 Trees=  9.6% Crops= 38.5% Grass= 26.9% Water=  0.0% Built=  0.0%
+  [TL06 (Crop)         ] P1= 55.3% P2= 33.8% Cyc=2 Trees= 33.3% Crops= 20.0% Grass=  8.9% Water=  0.0% Built=  0.0%
+  [TL07 (Crop)         ] P1= 57.8% P2= 82.0% Cyc=2 Trees=  0.0% Crops= 81.2% Grass=  0.0% Water= 15.6% Built=  0.0%
+  [TL08 (Crop)         ] P1= 59.0% P2= 30.3% Cyc=3 Trees= 18.4% Crops=  5.3% Grass=  0.0% Water=  0.0% Built=  2.6%
+  [TL09 (Crop)         ] P1= 57.0% P2= 60.5% Cyc=3 Trees= 14.3% Crops= 47.6% Grass=  7.1% Water=  0.0% Built=  0.0%
+  [TL10 (Crop)         ] P1= 68.2% P2= 75.3% Cyc=3 Trees= 26.3% Crops= 73.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT01 (Crop)         ] P1= 66.5% P2=  1.9% Cyc=3 Trees= 90.3% Crops=  9.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT05 (Crop)         ] P1= 58.1% P2= 58.7% Cyc=3 Trees=  8.0% Crops= 92.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT07 (Crop)         ] P1= 50.1% P2= 50.6% Cyc=3 Trees=  3.2% Crops= 48.4% Grass= 16.1% Water=  0.0% Built=  0.0%
+  [KT10 (Crop)         ] P1= 53.7% P2= 54.2% Cyc=3 Trees= 21.1% Crops= 39.5% Grass= 26.3% Water=  0.0% Built=  0.0%
+  [KL01 (Crop)         ] P1= 51.9% P2= 56.4% Cyc=2 Trees=  5.9% Crops= 58.8% Grass= 17.6% Water= 11.8% Built=  0.0%
+  [TN04 (Crop)         ] P1= 36.9% P2= 68.1% Cyc=1 Trees= 19.1% Crops= 57.1% Grass=  9.5% Water=  0.0% Built=  0.0%
+  [JK04 (Crop)         ] P1= 41.2% P2= 66.5% Cyc=2 Trees=  2.3% Crops= 62.8% Grass= 11.6% Water=  2.3% Built=  0.0%
+  [WB02 (Crop)         ] P1= 40.3% P2= 63.4% Cyc=1 Trees=  0.0% Crops= 62.2% Grass=  0.0% Water= 24.3% Built=  0.0%
+  [NE01 (Crop)         ] P1= 47.9% P2= 46.3% Cyc=2 Trees= 37.5% Crops= 22.5% Grass=  2.5% Water= 17.5% Built=  0.0%
+  [NE03 (Crop)         ] P1= 50.8% P2= 54.7% Cyc=2 Trees= 13.8% Crops= 65.5% Grass= 13.8% Water=  0.0% Built=  6.9%
+  [AP01 (Crop)         ] P1= 59.2% P2= 66.5% Cyc=2 Trees= 35.7% Crops= 64.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP03 (Crop)         ] P1= 53.5% P2= 62.6% Cyc=2 Trees= 33.3% Crops= 63.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP06 (Crop)         ] P1= 34.8% P2= 77.6% Cyc=2 Trees=  0.0% Crops= 88.6% Grass= 11.4% Water=  0.0% Built=  0.0%
+  [AP07 (Crop)         ] P1= 64.0% P2= 54.0% Cyc=3 Trees=  8.7% Crops= 34.8% Grass=  4.3% Water=  0.0% Built=  0.0%
+  [AP08 (Crop)         ] P1= 48.9% P2= 67.4% Cyc=2 Trees= 22.9% Crops= 65.7% Grass= 11.4% Water=  0.0% Built=  0.0%
+  [AP09 (Crop)         ] P1= 43.8% P2= 76.8% Cyc=2 Trees=  0.0% Crops= 81.0% Grass=  9.5% Water=  0.0% Built=  0.0%
+  [OD01 (Crop)         ] P1= 60.1% P2= 52.8% Cyc=3 Trees= 21.7% Crops= 65.2% Grass=  4.3% Water=  0.0% Built=  0.0%
+  [OD03 (Crop)         ] P1= 62.9% P2= 61.2% Cyc=3 Trees=  2.9% Crops= 57.1% Grass= 28.6% Water=  5.7% Built=  0.0%
+  [OD4 (Crop)          ] P1= 59.4% P2= 49.6% Cyc=3 Trees=  2.4% Crops= 39.0% Grass= 26.8% Water=  0.0% Built=  0.0%
+  [OD05 (Crop)         ] P1= 57.7% P2= 78.2% Cyc=3 Trees= 12.9% Crops= 71.0% Grass= 12.9% Water=  0.0% Built=  0.0%
+  [OD06 (Crop)         ] P1= 68.1% P2= 63.0% Cyc=3 Trees=  9.1% Crops= 48.5% Grass= 15.2% Water= 18.2% Built=  0.0%
+  [OD07 (Crop)         ] P1= 57.7% P2= 46.7% Cyc=3 Trees=  2.6% Crops= 39.5% Grass= 42.1% Water=  0.0% Built=  0.0%
+  [OD10 (Crop)         ] P1= 54.9% P2= 11.5% Cyc=2 Trees= 34.1% Crops= 34.1% Grass=  0.0% Water=  0.0% Built= 29.6%
+  [HR01 (Crop)         ] P1= 61.8% P2= 73.9% Cyc=2 Trees=  0.0% Crops= 91.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HR02 (Crop)         ] P1= 63.9% P2= 76.5% Cyc=2 Trees=  0.0% Crops= 81.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HR03 (Crop)         ] P1= 65.0% P2= 65.5% Cyc=2 Trees=  0.0% Crops= 61.5% Grass=  0.0% Water= 11.5% Built=  0.0%
+  [HR05 (Crop)         ] P1= 63.1% P2= 70.2% Cyc=3 Trees= 14.9% Crops= 80.8% Grass=  0.0% Water=  0.0% Built=  2.1%
+  [HR06 (Crop)         ] P1= 61.0% P2= 83.3% Cyc=3 Trees=  2.1% Crops= 91.7% Grass=  0.0% Water=  2.1% Built=  0.0%
+  [HR07 (Crop)         ] P1= 55.6% P2= 81.3% Cyc=3 Trees=  1.9% Crops= 80.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HR09 (Crop)         ] P1= 58.5% P2= 72.9% Cyc=2 Trees=  0.0% Crops= 70.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HR10 (Crop)         ] P1= 49.1% P2= 79.9% Cyc=2 Trees=  0.0% Crops= 77.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [CH01 (Crop)         ] P1= 50.9% P2=  0.0% Cyc=2 Trees= 64.1% Crops= 17.9% Grass=  2.6% Water=  0.0% Built=  0.0%
+  [CH03 (Crop)         ] P1= 59.4% P2= 43.5% Cyc=3 Trees= 40.0% Crops= 10.0% Grass=  7.5% Water=  0.0% Built=  2.5%
+  [CH04 (Crop)         ] P1= 56.4% P2= 35.2% Cyc=3 Trees= 17.1% Crops=  7.3% Grass=  4.9% Water=  0.0% Built=  0.0%
+  [CH05 (Crop)         ] P1= 53.6% P2= 49.6% Cyc=2 Trees= 30.4% Crops= 37.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [CH06 (Crop)         ] P1= 55.4% P2= 35.9% Cyc=3 Trees= 52.3% Crops= 22.7% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [CH07 (Crop)         ] P1= 64.9% P2= 47.1% Cyc=3 Trees= 13.3% Crops= 37.8% Grass=  4.4% Water=  4.4% Built=  0.0%
+  [CH09 (Crop)         ] P1= 63.8% P2= 11.1% Cyc=3 Trees= 53.7% Crops= 29.3% Grass=  4.9% Water=  2.4% Built=  0.0%
+  [CH10 (Crop)         ] P1= 52.6% P2= 27.0% Cyc=2 Trees= 51.2% Crops= 20.9% Grass=  0.0% Water=  0.0% Built= 23.3%
+  [JH01 (Crop)         ] P1= 54.9% P2= 60.0% Cyc=3 Trees=  0.0% Crops= 50.0% Grass= 41.7% Water=  0.0% Built=  0.0%
+  [JH02 (Crop)         ] P1= 55.4% P2= 33.8% Cyc=3 Trees= 20.4% Crops= 10.2% Grass= 20.4% Water=  0.0% Built=  0.0%
+  [JH03 (Crop)         ] P1= 57.9% P2= 42.8% Cyc=3 Trees=  0.0% Crops= 23.8% Grass= 59.5% Water=  0.0% Built=  0.0%
+  [JH04 (Crop)         ] P1= 60.4% P2= 53.0% Cyc=3 Trees=  9.5% Crops= 59.5% Grass=  7.1% Water=  0.0% Built=  0.0%
+  [JH05 (Crop)         ] P1= 66.0% P2= 33.5% Cyc=3 Trees= 46.3% Crops= 14.6% Grass=  2.4% Water=  0.0% Built=  0.0%
+  [JH06 (Crop)         ] P1= 61.2% P2= 39.8% Cyc=3 Trees= 15.8% Crops= 44.7% Grass= 21.1% Water=  2.6% Built=  0.0%
+  [JH07 (Crop)         ] P1= 56.5% P2= 34.4% Cyc=3 Trees= 20.0% Crops= 35.6% Grass=  0.0% Water= 15.6% Built=  6.7%
+  [JH09 (Crop)         ] P1= 58.1% P2= 43.9% Cyc=3 Trees=  0.0% Crops= 10.5% Grass=  7.9% Water=  0.0% Built=  0.0%
+  [BH01 (Crop)         ] P1= 61.2% P2= 55.2% Cyc=3 Trees= 12.8% Crops= 51.3% Grass=  2.6% Water=  2.6% Built=  0.0%
+  [BH04 (Crop)         ] P1= 57.5% P2= 47.4% Cyc=2 Trees= 14.3% Crops= 57.1% Grass=  5.7% Water=  5.7% Built=  0.0%
+  [BH05 (Crop)         ] P1= 47.9% P2= 54.6% Cyc=3 Trees=  0.0% Crops= 40.0% Grass=  0.0% Water=  2.9% Built=  0.0%
+  [BH06 (Crop)         ] P1= 55.9% P2= 52.9% Cyc=2 Trees= 18.4% Crops= 63.2% Grass=  0.0% Water=  2.6% Built=  2.6%
+  [BH07 (Crop)         ] P1= 65.7% P2= 55.5% Cyc=3 Trees= 41.7% Crops= 41.7% Grass=  0.0% Water=  4.2% Built=  0.0%
+  [BH08 (Crop)         ] P1= 65.8% P2= 76.7% Cyc=3 Trees= 23.8% Crops= 61.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN06 (Crop)         ] P1= 62.1% P2= 63.5% Cyc=3 Trees=  9.5% Crops= 66.7% Grass=  9.5% Water=  0.0% Built=  0.0%
+  [TN07 (Crop)         ] P1= 47.4% P2= 70.3% Cyc=2 Trees=  8.0% Crops= 84.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN08 (Crop)         ] P1= 38.5% P2= 52.7% Cyc=1 Trees=  0.0% Crops= 31.8% Grass= 40.9% Water=  0.0% Built=  0.0%
+  [TN09 (Crop)         ] P1= 55.6% P2= 70.1% Cyc=3 Trees=  0.0% Crops= 66.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN10 (Crop)         ] P1= 38.5% P2= 52.1% Cyc=1 Trees= 26.3% Crops= 36.8% Grass= 10.5% Water=  0.0% Built=  0.0%
+  [WB03 (Crop)         ] P1= 64.1% P2= 75.2% Cyc=3 Trees= 18.4% Crops= 68.4% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [WB04 (Crop)         ] P1= 59.2% P2= 36.2% Cyc=3 Trees= 36.6% Crops= 39.0% Grass=  0.0% Water=  0.0% Built=  2.4%
+  [WB05 (Crop)         ] P1= 66.5% P2= 57.0% Cyc=3 Trees= 35.0% Crops= 35.0% Grass=  0.0% Water=  0.0% Built= 27.5%
+  [WB07 (Crop)         ] P1= 46.8% P2= 30.7% Cyc=1 Trees= 26.3% Crops= 34.2% Grass=  7.9% Water=  0.0% Built=  0.0%
+  [WB08 (Crop)         ] P1= 71.2% P2= 59.0% Cyc=3 Trees= 27.5% Crops= 50.0% Grass= 10.0% Water=  5.0% Built=  0.0%
+  [WB09 (Crop)         ] P1= 63.2% P2= 26.7% Cyc=3 Trees=  2.6% Crops=  0.0% Grass= 84.6% Water=  0.0% Built=  0.0%
+  [WB10 (Crop)         ] P1= 64.2% P2= 40.4% Cyc=3 Trees= 25.6% Crops= 20.9% Grass=  0.0% Water= 18.6% Built=  2.3%
+  [NE04 (Crop)         ] P1= 58.0% P2= 58.9% Cyc=3 Trees=  3.2% Crops= 54.8% Grass=  0.0% Water=  0.0% Built= 29.0%
+  [NE05 (Crop)         ] P1= 55.4% P2= 47.5% Cyc=2 Trees= 17.9% Crops= 35.7% Grass= 14.3% Water=  0.0% Built=  0.0%
+  [NE06 (Crop)         ] P1= 61.1% P2= 66.6% Cyc=3 Trees=  7.1% Crops= 64.3% Grass=  7.1% Water=  0.0% Built=  0.0%
+  [NE07 (Crop)         ] P1= 55.3% P2= 65.5% Cyc=2 Trees= 25.0% Crops= 58.3% Grass=  0.0% Water=  0.0% Built= 12.5%
+  [NE09 (Crop)         ] P1= 52.1% P2= 74.3% Cyc=2 Trees=  6.2% Crops= 68.8% Grass=  0.0% Water=  0.0% Built= 18.8%
+  [JK06 (Crop)         ] P1= 69.1% P2= 42.4% Cyc=3 Trees= 46.5% Crops= 23.3% Grass=  4.7% Water=  0.0% Built=  0.0%
+  [JK07 (Crop)         ] P1= 55.8% P2= 63.4% Cyc=3 Trees=  4.7% Crops= 62.8% Grass=  2.3% Water=  0.0% Built=  9.3%
+  [JK08 (Crop)         ] P1= 59.0% P2= 52.2% Cyc=3 Trees= 10.0% Crops= 46.7% Grass= 13.3% Water=  6.7% Built=  0.0%
+  [JK09 (Crop)         ] P1= 60.3% P2= 58.0% Cyc=3 Trees=  5.3% Crops= 42.1% Grass=  7.9% Water=  0.0% Built=  0.0%
+  [HP01 (Crop)         ] P1= 60.5% P2= 63.5% Cyc=2 Trees=  4.9% Crops= 70.7% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HP02 (Crop)         ] P1= 62.2% P2= 37.2% Cyc=2 Trees= 21.4% Crops= 19.1% Grass=  0.0% Water=  0.0% Built= 57.1%
+  [HP05 (Crop)         ] P1= 68.0% P2= 63.3% Cyc=3 Trees= 26.4% Crops= 66.0% Grass=  0.0% Water=  0.0% Built=  5.7%
+  [HP06 (Crop)         ] P1= 69.6% P2= 72.7% Cyc=3 Trees= 11.3% Crops= 83.0% Grass=  0.0% Water=  0.0% Built=  3.8%
+  [HP07 (Crop)         ] P1= 46.0% P2=  0.0% Cyc=1 Trees=  8.9% Crops= 22.2% Grass=  0.0% Water=  0.0% Built= 68.9%
+  [HP08 (Crop)         ] P1= 59.9% P2= 53.7% Cyc=2 Trees=  2.2% Crops= 62.2% Grass= 15.6% Water=  0.0% Built=  0.0%
+  [UP11 (Crop)         ] P1= 63.9% P2= 58.6% Cyc=3 Trees= 12.2% Crops= 58.5% Grass=  7.3% Water=  4.9% Built=  0.0%
+  [UP12 (Crop)         ] P1= 64.3% P2= 56.3% Cyc=3 Trees= 20.5% Crops= 56.4% Grass=  0.0% Water=  0.0% Built= 12.8%
+  [UP13 (Crop)         ] P1= 57.5% P2= 62.0% Cyc=3 Trees=  6.1% Crops= 48.5% Grass=  0.0% Water=  0.0% Built=  9.1%
+  [UP14 (Crop)         ] P1= 64.3% P2= 40.1% Cyc=3 Trees= 23.7% Crops= 55.3% Grass=  2.6% Water=  2.6% Built=  0.0%
+  [UP16 (Crop)         ] P1= 63.3% P2= 60.6% Cyc=3 Trees=  6.8% Crops= 65.9% Grass=  0.0% Water=  0.0% Built= 20.4%
+  [UP17 (Crop)         ] P1= 58.3% P2= 61.3% Cyc=3 Trees= 18.2% Crops= 75.0% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [UP18 (Crop)         ] P1= 58.2% P2= 75.0% Cyc=3 Trees=  6.5% Crops= 78.3% Grass=  0.0% Water=  0.0% Built=  2.2%
+  [UP19 (Crop)         ] P1= 65.1% P2=  0.0% Cyc=3 Trees= 42.9% Crops= 50.0% Grass=  0.0% Water=  0.0% Built=  7.1%
+  [UP20 (Crop)         ] P1= 51.2% P2= 64.5% Cyc=2 Trees= 14.3% Crops= 50.0% Grass=  7.1% Water=  7.1% Built=  0.0%
+  [MH11 (Crop)         ] P1= 51.8% P2= 75.6% Cyc=3 Trees=  6.2% Crops= 85.4% Grass=  0.0% Water=  0.0% Built=  4.2%
+  [MH12 (Crop)         ] P1= 55.4% P2= 85.5% Cyc=3 Trees= 14.3% Crops= 83.3% Grass=  2.4% Water=  0.0% Built=  0.0%
+  [MH13 (Crop)         ] P1= 66.5% P2= 61.8% Cyc=3 Trees= 30.2% Crops= 46.5% Grass= 11.6% Water=  0.0% Built=  2.3%
+  [MH14 (Crop)         ] P1= 45.0% P2= 40.9% Cyc=2 Trees=  2.4% Crops= 53.7% Grass=  0.0% Water= 39.0% Built=  0.0%
+  [MH15 (Crop)         ] P1= 57.6% P2= 52.5% Cyc=3 Trees=  4.7% Crops= 58.1% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [MH16 (Crop)         ] P1= 58.9% P2= 41.4% Cyc=3 Trees= 55.6% Crops=  8.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MH19 (Crop)         ] P1= 67.0% P2= 62.9% Cyc=3 Trees=  6.7% Crops= 66.7% Grass= 13.3% Water=  0.0% Built=  0.0%
+  [GJ11 (Crop)         ] P1= 58.2% P2= 89.6% Cyc=3 Trees=  2.2% Crops= 93.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ12 (Crop)         ] P1= 43.8% P2= 92.4% Cyc=3 Trees=  2.3% Crops= 90.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ14 (Crop)         ] P1= 63.3% P2= 74.6% Cyc=3 Trees= 12.2% Crops= 73.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ15 (Crop)         ] P1= 46.5% P2= 68.5% Cyc=2 Trees= 20.0% Crops= 47.5% Grass= 15.0% Water=  7.5% Built=  0.0%
+  [GJ16 (Crop)         ] P1= 59.5% P2= 67.2% Cyc=3 Trees= 25.0% Crops= 62.5% Grass=  0.0% Water=  6.2% Built=  0.0%
+  [GJ19 (Crop)         ] P1= 39.1% P2= 64.1% Cyc=1 Trees=  6.1% Crops= 83.7% Grass=  2.0% Water=  0.0% Built=  0.0%
+  [GJ20 (Crop)         ] P1= 55.3% P2= 95.2% Cyc=3 Trees=  0.0% Crops= 93.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP11 (Crop)         ] P1= 55.8% P2=  0.0% Cyc=2 Trees= 60.9% Crops= 21.7% Grass=  0.0% Water=  0.0% Built=  2.2%
+  [MP12 (Crop)         ] P1= 62.8% P2= 57.6% Cyc=3 Trees= 17.5% Crops= 67.5% Grass=  2.5% Water=  0.0% Built=  0.0%
+  [MP13 (Crop)         ] P1= 59.8% P2= 72.1% Cyc=3 Trees= 25.0% Crops= 69.4% Grass=  0.0% Water=  2.8% Built=  0.0%
+  [MP15 (Crop)         ] P1= 66.8% P2= 75.3% Cyc=3 Trees=  8.9% Crops= 77.8% Grass=  2.2% Water=  0.0% Built=  0.0%
+  [MP16 (Crop)         ] P1= 57.2% P2= 60.8% Cyc=2 Trees= 20.0% Crops= 67.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP18 (Crop)         ] P1= 53.4% P2= 69.2% Cyc=3 Trees=  4.3% Crops= 69.6% Grass=  2.2% Water=  4.3% Built=  0.0%
+  [MP20 (Crop)         ] P1= 60.2% P2= 69.7% Cyc=3 Trees= 10.3% Crops= 82.0% Grass=  2.6% Water=  2.6% Built=  0.0%
+  [KT11 (Crop)         ] P1= 38.1% P2= 77.4% Cyc=2 Trees=  0.0% Crops= 97.4% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT13 (Crop)         ] P1= 55.1% P2= 59.9% Cyc=3 Trees=  0.0% Crops= 45.0% Grass= 15.0% Water=  0.0% Built=  0.0%
+  [KT15 (Crop)         ] P1= 53.8% P2= 82.2% Cyc=2 Trees= 18.2% Crops= 78.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT16 (Crop)         ] P1= 54.4% P2= 53.8% Cyc=3 Trees=  8.1% Crops= 46.0% Grass= 16.2% Water=  0.0% Built=  0.0%
+  [KT17 (Crop)         ] P1= 60.2% P2= 65.1% Cyc=3 Trees= 42.9% Crops= 54.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP11 (Crop)         ] P1= 64.2% P2= 61.5% Cyc=3 Trees= 31.4% Crops= 65.7% Grass=  2.9% Water=  0.0% Built=  0.0%
+  [AP12 (Crop)         ] P1= 46.8% P2= 62.3% Cyc=2 Trees= 18.8% Crops= 71.9% Grass=  3.1% Water=  0.0% Built=  0.0%
+  [AP15 (Crop)         ] P1= 55.3% P2= 33.1% Cyc=3 Trees=  9.5% Crops= 19.1% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP16 (Crop)         ] P1= 55.1% P2= 68.9% Cyc=3 Trees=  4.8% Crops= 81.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP17 (Crop)         ] P1= 53.7% P2= 76.9% Cyc=2 Trees= 41.9% Crops= 58.1% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP18 (Crop)         ] P1= 61.6% P2= 55.9% Cyc=3 Trees= 35.7% Crops= 50.0% Grass=  7.1% Water=  0.0% Built=  0.0%
+  [RJ11 (Crop)         ] P1= 56.7% P2= 83.8% Cyc=3 Trees=  0.0% Crops= 91.5% Grass=  2.1% Water=  0.0% Built=  0.0%
+  [RJ12 (Crop)         ] P1= 54.7% P2= 75.4% Cyc=3 Trees=  8.9% Crops= 88.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ14 (Crop)         ] P1= 45.7% P2= 85.8% Cyc=2 Trees=  0.0% Crops= 88.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ15 (Crop)         ] P1= 57.4% P2= 64.3% Cyc=2 Trees=  7.5% Crops= 75.5% Grass=  1.9% Water=  1.9% Built=  0.0%
+  [RJ16 (Crop)         ] P1= 48.9% P2= 88.7% Cyc=2 Trees=  0.0% Crops=100.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ17 (Crop)         ] P1= 64.0% P2= 77.6% Cyc=3 Trees= 13.0% Crops= 82.6% Grass=  0.0% Water=  4.3% Built=  0.0%
+  [RJ18 (Crop)         ] P1= 53.4% P2= 72.6% Cyc=3 Trees=  8.5% Crops= 66.0% Grass=  0.0% Water=  2.1% Built=  0.0%
+  [TL11 (Crop)         ] P1= 51.1% P2= 50.9% Cyc=2 Trees= 13.5% Crops= 62.2% Grass=  5.4% Water= 10.8% Built=  0.0%
+  [TL12 (Crop)         ] P1= 71.7% P2=  9.2% Cyc=3 Trees= 70.8% Crops= 29.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TL13 (Crop)         ] P1= 44.8% P2= 40.8% Cyc=2 Trees=  0.0% Crops= 39.3% Grass=  0.0% Water=  0.0% Built= 10.7%
+  [TL14 (Crop)         ] P1= 57.1% P2= 67.2% Cyc=2 Trees=  7.1% Crops= 61.9% Grass= 26.2% Water=  2.4% Built=  0.0%
+  [TL15 (Crop)         ] P1= 61.9% P2= 43.8% Cyc=3 Trees= 31.1% Crops= 28.9% Grass= 13.3% Water=  0.0% Built=  2.2%
+  [TL17 (Crop)         ] P1= 61.2% P2= 43.8% Cyc=3 Trees= 35.9% Crops= 48.7% Grass=  5.1% Water=  0.0% Built=  0.0%
+  [TL18 (Crop)         ] P1= 60.7% P2= 61.4% Cyc=2 Trees= 36.0% Crops= 40.0% Grass=  8.0% Water=  8.0% Built=  0.0%
+  [TL20 (Crop)         ] P1= 52.8% P2= 55.3% Cyc=3 Trees= 16.7% Crops= 38.9% Grass=  5.6% Water=  0.0% Built=  0.0%
+  [UK01 (Crop)         ] P1= 67.1% P2= 64.4% Cyc=3 Trees= 13.6% Crops= 63.6% Grass=  9.1% Water=  0.0% Built=  0.0%
+  [UK02 (Crop)         ] P1= 60.1% P2= 12.5% Cyc=2 Trees= 51.1% Crops= 42.2% Grass=  0.0% Water=  0.0% Built=  4.4%
+  [UK05 (Crop)         ] P1= 67.2% P2= 51.4% Cyc=3 Trees= 25.0% Crops= 55.0% Grass=  0.0% Water=  0.0% Built=  2.5%
+  [UK06 (Crop)         ] P1= 61.1% P2= 57.2% Cyc=3 Trees=  9.8% Crops= 61.0% Grass=  4.9% Water=  0.0% Built=  0.0%
+  [UK08 (Crop)         ] P1= 66.2% P2= 64.1% Cyc=3 Trees= 14.3% Crops= 64.3% Grass=  4.8% Water=  0.0% Built=  0.0%
+  [UK09 (Crop)         ] P1= 62.7% P2= 64.1% Cyc=2 Trees= 15.8% Crops= 84.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [UK10 (Crop)         ] P1= 62.0% P2= 59.2% Cyc=2 Trees= 19.4% Crops= 61.1% Grass=  2.8% Water=  0.0% Built=  0.0%
+  [PB12 (Crop)         ] P1= 70.3% P2= 70.3% Cyc=3 Trees=  6.1% Crops= 75.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB13 (Crop)         ] P1= 60.7% P2= 73.1% Cyc=2 Trees=  0.0% Crops= 72.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB14 (Crop)         ] P1= 61.8% P2= 70.1% Cyc=2 Trees=  8.2% Crops= 65.3% Grass=  2.0% Water=  0.0% Built=  0.0%
+  [PB16 (Crop)         ] P1= 62.2% P2= 68.2% Cyc=2 Trees=  3.6% Crops= 70.9% Grass=  3.6% Water=  1.8% Built=  0.0%
+  [PB17 (Crop)         ] P1= 70.1% P2= 60.8% Cyc=3 Trees= 14.6% Crops= 62.5% Grass=  0.0% Water=  2.1% Built= 18.8%
+  [PB18 (Crop)         ] P1= 67.2% P2= 74.5% Cyc=3 Trees= 26.1% Crops= 65.2% Grass=  2.2% Water=  0.0% Built=  2.2%
+  [PB19 (Crop)         ] P1= 66.8% P2= 57.2% Cyc=3 Trees= 40.5% Crops= 45.2% Grass=  0.0% Water=  0.0% Built=  4.8%
+  [PB20 (Crop)         ] P1= 64.7% P2= 65.5% Cyc=3 Trees=  6.0% Crops= 74.0% Grass=  0.0% Water=  2.0% Built=  0.0%
+  [TN11 (Crop)         ] P1= 68.9% P2= 50.2% Cyc=3 Trees= 27.3% Crops= 54.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN14 (Crop)         ] P1= 59.4% P2= 49.6% Cyc=2 Trees= 25.0% Crops= 45.0% Grass= 15.0% Water=  0.0% Built=  0.0%
+  [TN15 (Crop)         ] P1= 71.4% P2= 57.7% Cyc=3 Trees= 26.3% Crops= 57.9% Grass=  0.0% Water= 15.8% Built=  0.0%
+  [TN16 (Crop)         ] P1= 66.5% P2= 64.8% Cyc=3 Trees= 13.0% Crops= 60.9% Grass=  8.7% Water=  4.3% Built=  0.0%
+  [TN17 (Crop)         ] P1= 40.6% P2= 70.1% Cyc=2 Trees=  5.3% Crops= 68.4% Grass=  5.3% Water=  5.3% Built=  0.0%
+  [TN19 (Crop)         ] P1= 50.6% P2= 72.0% Cyc=2 Trees= 11.8% Crops= 70.6% Grass= 11.8% Water=  0.0% Built=  0.0%
+
+================================================================================
+CorrectNoCrop (66 parcels)
+================================================================================
+  P1 Crop   : min=0.0 mean=44.8 max=74.2
+  P2 Crop   : min=0.0 mean=5.6 max=49.6
+  Cycles    : min=0.0 mean=2.2 max=3.0
+  DW Trees  : min=0.0 mean=37.6 max=100.0
+  DW Crops  : min=0.0 mean=2.3 max=35.6
+  DW Grass  : min=0.0 mean=0.7 max=16.3
+  DW Water  : min=0.0 mean=23.5 max=100.0
+  DW Built  : min=0.0 mean=11.1 max=100.0
+
+  --- Per Parcel ---
+  [UP5 (No-Crop)       ] P1= 71.5% P2=  1.5% Cyc=3 Trees= 90.0% Crops=  5.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ09 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP06 (No-Crop)      ] P1= 66.3% P2=  1.5% Cyc=3 Trees= 84.6% Crops=  2.6% Grass=  2.6% Water=  0.0% Built=  0.0%
+  [MP08 (No-Crop)      ] P1= 44.3% P2=  2.2% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 94.9% Built=  5.1%
+  [MP10 (No-Crop)      ] P1= 65.2% P2=  1.2% Cyc=2 Trees= 97.8% Crops=  2.2% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ03 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees= 16.3% Crops=  0.0% Grass= 16.3% Water=  4.1% Built=  0.0%
+  [MH01 (No-Crop)      ] P1= 70.2% P2=  0.2% Cyc=3 Trees=100.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB04 (No-Crop)      ] P1= 60.3% P2=  0.8% Cyc=2 Trees= 97.6% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB06 (No-Crop)      ] P1= 74.2% P2=  2.4% Cyc=3 Trees= 87.5% Crops=  8.3% Grass=  0.0% Water=  0.0% Built=  4.2%
+  [TL05 (No-Crop)      ] P1= 71.2% P2=  1.4% Cyc=3 Trees= 84.4% Crops=  4.4% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT03 (No-Crop)      ] P1= 51.3% P2=  0.7% Cyc=2 Trees= 83.8% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KT04 (No-Crop)      ] P1= 31.3% P2= 36.4% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 32.3% Built=  0.0%
+  [KT08 (No-Crop)      ] P1= 63.6% P2=  0.0% Cyc=3 Trees= 64.7% Crops= 11.8% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KL02 (No-Crop)      ] P1= 25.0% P2= 44.2% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 68.2% Built=  0.0%
+  [KL03 (No-Crop)      ] P1= 23.2% P2=  0.0% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=100.0%
+  [KL04 (No-Crop)      ] P1= 66.3% P2=  1.0% Cyc=2 Trees= 94.4% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN01 (No-Crop)      ] P1= 39.3% P2=  0.0% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 96.7% Built=  0.0%
+  [TN02 (No-Crop)      ] P1= 55.4% P2=  1.3% Cyc=2 Trees=100.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN03 (No-Crop)      ] P1= 30.8% P2= 38.5% Cyc=2 Trees=  0.0% Crops=  3.0% Grass=  0.0% Water= 51.5% Built=  0.0%
+  [JK01 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [JK02 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [JK03 (No-Crop)      ] P1= 61.4% P2= 11.3% Cyc=3 Trees= 27.0% Crops=  0.0% Grass=  2.7% Water=  0.0% Built= 51.4%
+  [JK05 (No-Crop)      ] P1= 38.0% P2= 22.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [NE02 (No-Crop)      ] P1= 27.8% P2=  0.8% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 80.5%
+  [AP02 (No-Crop)      ] P1= 32.7% P2=  0.0% Cyc=2 Trees=  0.0% Crops= 17.9% Grass=  0.0% Water= 71.4% Built=  7.1%
+  [OD02 (No-Crop)      ] P1= 48.2% P2=  0.9% Cyc=3 Trees=  0.0% Crops=  4.5% Grass=  0.0% Water=  0.0% Built= 86.4%
+  [OD09 (No-Crop)      ] P1= 68.7% P2=  8.5% Cyc=3 Trees= 68.2% Crops=  2.3% Grass=  0.0% Water=  0.0% Built= 29.6%
+  [HR08 (No-Crop)      ] P1= 43.0% P2=  0.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=100.0% Built=  0.0%
+  [CH02 (No-Crop)      ] P1= 64.7% P2=  2.6% Cyc=3 Trees= 83.3% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [CH08 (No-Crop)      ] P1= 69.4% P2=  1.4% Cyc=3 Trees= 75.6% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [JH08 (No-Crop)      ] P1= 41.2% P2=  1.2% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 92.3% Built=  0.0%
+  [JH10 (No-Crop)      ] P1= 71.2% P2=  1.0% Cyc=3 Trees= 86.0% Crops=  0.0% Grass=  2.3% Water=  0.0% Built=  0.0%
+  [BH02 (No-Crop)      ] P1= 59.4% P2=  8.8% Cyc=3 Trees= 57.9% Crops=  2.6% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [BH03 (No-Crop)      ] P1= 44.3% P2=  1.9% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 75.6% Built=  0.0%
+  [BH10 (No-Crop)      ] P1= 54.6% P2=  0.7% Cyc=2 Trees= 91.1% Crops=  0.0% Grass=  4.4% Water=  0.0% Built=  0.0%
+  [KL10 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 91.3%
+  [WB06 (No-Crop)      ] P1= 56.2% P2=  1.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 97.2% Built=  0.0%
+  [NE08 (No-Crop)      ] P1= 54.7% P2=  1.3% Cyc=2 Trees= 93.1% Crops=  0.0% Grass=  3.5% Water=  0.0% Built=  0.0%
+  [HP03 (No-Crop)      ] P1= 45.7% P2=  2.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 95.6% Built=  0.0%
+  [HP09 (No-Crop)      ] P1= 35.5% P2= 11.9% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 36.4% Built=  0.0%
+  [HP04 (No-Crop)      ] P1= 58.9% P2=  2.5% Cyc=2 Trees= 96.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [UP15 (No-Crop)      ] P1= 42.1% P2=  0.0% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 71.0%
+  [MH17 (No-Crop)      ] P1= 34.0% P2=  1.1% Cyc=2 Trees=  0.0% Crops=  2.4% Grass=  0.0% Water= 90.2% Built=  0.0%
+  [MH18 (No-Crop)      ] P1= 65.3% P2=  2.0% Cyc=3 Trees= 95.5% Crops=  4.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ13 (No-Crop)      ] P1= 37.4% P2=  0.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=100.0% Built=  0.0%
+  [GJ17 (No-Crop)      ] P1= 36.4% P2=  0.0% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 91.3% Built=  0.0%
+  [GJ18 (No-Crop)      ] P1= 23.8% P2= 15.2% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  8.9%
+  [MP17 (No-Crop)      ] P1= 33.8% P2=  0.0% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water= 63.8% Built=  0.0%
+  [KT12 (No-Crop)      ] P1= 40.9% P2=  0.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=100.0% Built=  0.0%
+  [KT19 (No-Crop)      ] P1= 43.6% P2=  0.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=100.0% Built=  0.0%
+  [KT20 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=100.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP14 (No-Crop)      ] P1= 72.0% P2=  0.9% Cyc=3 Trees= 96.8% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP19 (No-Crop)      ] P1= 46.1% P2=  0.0% Cyc=3 Trees=  0.0% Crops=  0.0% Grass= 14.3% Water= 71.4% Built=  0.0%
+  [AP20 (No-Crop)      ] P1= 74.0% P2=  0.7% Cyc=3 Trees= 95.5% Crops=  4.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ19 (No-Crop)      ] P1= 24.6% P2=  9.9% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [RJ20 (No-Crop)      ] P1=  0.0% P2=  0.0% Cyc=0 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 60.6%
+  [TL16 (No-Crop)      ] P1= 44.0% P2=  0.0% Cyc=3 Trees=  0.0% Crops= 35.6% Grass=  0.0% Water=  8.9% Built= 40.0%
+  [TL19 (No-Crop)      ] P1= 50.1% P2=  3.3% Cyc=2 Trees= 81.5% Crops=  7.4% Grass=  0.0% Water=  0.0% Built=  7.4%
+  [UK03 (No-Crop)      ] P1= 68.8% P2=  1.9% Cyc=3 Trees= 85.1% Crops=  2.1% Grass=  2.1% Water=  0.0% Built=  0.0%
+  [UK04 (No-Crop)      ] P1= 27.4% P2= 49.6% Cyc=1 Trees= 31.7% Crops= 29.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [UK07 (No-Crop)      ] P1= 70.8% P2=  0.2% Cyc=3 Trees=100.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB11 (No-Crop)      ] P1= 35.6% P2= 24.2% Cyc=2 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [PB15 (No-Crop)      ] P1= 55.3% P2=  2.8% Cyc=3 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  6.1% Built= 91.8%
+  [TN13 (No-Crop)      ] P1= 73.5% P2=  0.6% Cyc=3 Trees=100.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN18 (No-Crop)      ] P1= 26.3% P2= 10.3% Cyc=1 Trees=  0.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN20 (No-Crop)      ] P1= 43.3% P2= 34.1% Cyc=2 Trees= 18.2% Crops=  0.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+
+================================================================================
+FP (20 parcels)
+================================================================================
+  P1 Crop   : min=33.4 mean=55.2 max=71.0
+  P2 Crop   : min=0.0 mean=29.2 max=84.3
+  Cycles    : min=2.0 mean=2.5 max=3.0
+  DW Trees  : min=0.0 mean=40.2 max=88.5
+  DW Crops  : min=0.0 mean=20.9 max=82.3
+  DW Grass  : min=0.0 mean=7.0 max=28.9
+  DW Water  : min=0.0 mean=1.4 max=21.3
+  DW Built  : min=0.0 mean=0.8 max=13.3
+
+  --- Per Parcel ---
+  [UP7 (No-Crop)       ] P1= 69.7% P2=  2.8% Cyc=3 Trees= 80.0% Crops= 17.8% Grass=  0.0% Water=  0.0% Built=  2.2%
+  [MP02 (No-Crop)      ] P1= 60.2% P2=  0.0% Cyc=3 Trees= 55.0% Crops= 27.5% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [GJ06 (No-Crop)      ] P1= 57.0% P2= 38.6% Cyc=2 Trees=  0.0% Crops=  4.3% Grass= 27.7% Water= 21.3% Built=  0.0%
+  [GJ09 (No-Crop)      ] P1= 55.9% P2=  0.0% Cyc=2 Trees= 88.5% Crops=  1.9% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MH07 (No-Crop)      ] P1= 55.4% P2= 41.3% Cyc=3 Trees=  0.0% Crops=  4.3% Grass= 13.0% Water=  0.0% Built=  0.0%
+  [KT09 (No-Crop)      ] P1= 33.4% P2= 50.8% Cyc=2 Trees=  0.0% Crops= 61.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [TN05 (No-Crop)      ] P1= 49.6% P2= 84.3% Cyc=2 Trees= 11.8% Crops= 82.3% Grass=  5.9% Water=  0.0% Built=  0.0%
+  [WB01 (No-Crop)      ] P1= 71.0% P2=  3.1% Cyc=3 Trees= 76.9% Crops=  0.0% Grass=  2.6% Water=  2.6% Built=  0.0%
+  [AP04 (No-Crop)      ] P1= 42.8% P2= 45.9% Cyc=2 Trees=  6.7% Crops= 50.0% Grass=  0.0% Water=  0.0% Built= 13.3%
+  [AP05 (No-Crop)      ] P1= 36.7% P2= 38.2% Cyc=2 Trees= 28.0% Crops=  8.0% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [AP10 (No-Crop)      ] P1= 46.5% P2=  1.6% Cyc=2 Trees= 71.4% Crops= 28.6% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [HR04 (No-Crop)      ] P1= 69.0% P2= 40.1% Cyc=3 Trees= 57.7% Crops= 34.6% Grass=  0.0% Water=  3.9% Built=  0.0%
+  [JK10 (No-Crop)      ] P1= 57.8% P2= 34.8% Cyc=3 Trees=  0.0% Crops=  0.0% Grass= 14.3% Water=  0.0% Built=  0.0%
+  [MH20 (No-Crop)      ] P1= 46.7% P2=  0.0% Cyc=2 Trees= 66.7% Crops=  5.6% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [MP14 (No-Crop)      ] P1= 65.8% P2= 34.4% Cyc=3 Trees= 51.1% Crops= 15.6% Grass= 28.9% Water=  0.0% Built=  0.0%
+  [MP19 (No-Crop)      ] P1= 60.9% P2= 32.4% Cyc=3 Trees= 33.3% Crops=  0.0% Grass=  8.9% Water=  0.0% Built=  0.0%
+  [KT18 (No-Crop)      ] P1= 56.7% P2= 40.6% Cyc=3 Trees= 52.6% Crops=  7.9% Grass= 10.5% Water=  0.0% Built=  0.0%
+  [AP13 (No-Crop)      ] P1= 64.4% P2= 49.5% Cyc=2 Trees= 51.5% Crops= 39.4% Grass=  3.0% Water=  0.0% Built=  0.0%
+  [RJ13 (No-Crop)      ] P1= 43.5% P2= 44.7% Cyc=2 Trees=  0.0% Crops= 20.4% Grass= 20.4% Water=  0.0% Built=  0.0%
+  [TN12 (No-Crop)      ] P1= 60.8% P2=  0.0% Cyc=2 Trees= 72.0% Crops=  8.0% Grass=  4.0% Water=  0.0% Built=  0.0%
+
+================================================================================
+FN (9 parcels)
+================================================================================
+  P1 Crop   : min=0.0 mean=36.9 max=63.4
+  P2 Crop   : min=0.0 mean=4.7 max=38.9
+  Cycles    : min=0.0 mean=1.7 max=3.0
+  DW Trees  : min=0.0 mean=34.2 max=91.7
+  DW Crops  : min=0.0 mean=5.4 max=24.0
+  DW Grass  : min=0.0 mean=1.5 max=8.1
+  DW Water  : min=0.0 mean=0.0 max=0.0
+  DW Built  : min=0.0 mean=45.0 max=95.6
+
+  --- Per Parcel ---
+  [PB10 (Crop)         ] P1= 58.0% P2=  0.0% Cyc=2 Trees= 11.4% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 81.8%
+  [KT02 (Crop)         ] P1= 50.1% P2= 38.9% Cyc=3 Trees=  0.0% Crops=  5.4% Grass=  8.1% Water=  0.0% Built=  0.0%
+  [KT06 (Crop)         ] P1= 38.5% P2=  1.7% Cyc=3 Trees=  0.0% Crops= 11.1% Grass=  0.0% Water=  0.0% Built= 88.9%
+  [KL05 (Crop)         ] P1=  0.0% P2=  0.0% Cyc=0 Trees= 85.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 15.0%
+  [OD08 (Crop)         ] P1= 63.4% P2=  0.0% Cyc=3 Trees= 77.8% Crops=  0.0% Grass=  5.6% Water=  0.0% Built=  0.0%
+  [KL06 (Crop)         ] P1=  0.0% P2=  0.0% Cyc=0 Trees= 91.7% Crops=  8.3% Grass=  0.0% Water=  0.0% Built=  0.0%
+  [KL07 (Crop)         ] P1= 44.0% P2=  0.0% Cyc=1 Trees= 40.0% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 60.0%
+  [HP10 (Crop)         ] P1= 52.4% P2=  2.1% Cyc=2 Trees=  2.2% Crops=  0.0% Grass=  0.0% Water=  0.0% Built= 95.6%
+  [KT14 (Crop)         ] P1= 25.4% P2=  0.0% Cyc=1 Trees=  0.0% Crops= 24.0% Grass=  0.0% Water=  0.0% Built= 64.0%

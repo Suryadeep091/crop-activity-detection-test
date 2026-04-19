@@ -475,6 +475,14 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         if total_cycles == 0:
             is_guardband_triggered = is_guardband_triggered or (crop_freq < 0.10)
         
+        # 1. Calculate the Average BioScore for the parcel (if cycles exist)
+        avg_bioscore = cycle_info['cycle_data']['bioscore'].mean() if total_cycles > 0 else 0
+
+        # 2. Define the Tree Trap
+        # Logic: If trees are the majority AND crops are scarce AND biological sync is mediocre
+        is_tree_trap = (tree_freq > 0.50) and (crop_freq < 0.35) and (avg_bioscore < 70)
+
+        # 3. Guardband & Penalty logic (Scenario A/B/C)
         if is_guardband_triggered:
             if non_crop_freq > 0.85 and activity_ratio > 0.0:
                 # Scenario C: Extreme AI Domination
@@ -497,14 +505,17 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            # Save FNs safely: Trust cycle-physics (P1>50), but demand AI sees nominal crops (>7%) to block false grasslands
+            # Save FNs safely: Modified with the Tree Trap block
             dataset_df['prediction'] = np.where(
-                (dataset_df['p1_crop_conf'] > 50) & (total_cycles > 0) & (crop_freq > 0.07),
+                (dataset_df['p1_crop_conf'] > 50) & 
+                (total_cycles > 0) & 
+                (crop_freq > 0.07) & 
+                (~is_tree_trap),  # <--- NEW: Block the override for tree-dominant noise
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
             dataset_df['final_confidence'] = np.where(avg_crop > avg_nocrop, avg_crop, avg_nocrop)
-
+            
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()
         # --- 3. Rest of your existing plotting and summary logic ---

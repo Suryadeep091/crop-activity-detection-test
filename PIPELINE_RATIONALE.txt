@@ -1,0 +1,915 @@
+================================================================================
+  TERRADRISHTI AGRICULTURAL INTELLIGENCE PIPELINE
+  FORMULA RATIONALE DOCUMENT
+================================================================================
+
+================================================================================
+SECTION 1: WHITTAKER AND SAVITZKY-GOLAY SMOOTHERS
+================================================================================
+
+--------------------------------------------------------------------------------
+1.1  SAVITZKY-GOLAY (SG) — Used in Stage 1: Crop Cycle Detection
+--------------------------------------------------------------------------------
+
+Purpose: Peak-shape preservation for cycle detection.
+
+The Savitzky-Golay filter fits a low-degree polynomial (degree p=2) to a moving
+window of data and replaces the center point with the polynomial's value. This
+technique has a critical mathematical property: it preserves the height and shape
+of peaks far better than a simple rolling average.
+
+  Why this matters for crop detection:
+  A crop cycle is defined by its PEAK — the date and amplitude of the NDVI/RVI
+  maximum within a season. If we over-smooth the signal, we risk:
+    (a) Shifting the detected peak date (which changes which "season" it falls in)
+    (b) Reducing peak amplitude below our prominence threshold (false negative)
+    (c) Merging two closely-spaced peaks into one (missed Zaid cycle)
+
+  SG avoids these by fitting a polynomial that adapts to local curvature.
+
+  Window choices and why:
+    - RVI:  w=21 | Large window because SAR (Synthetic Aperture Radar) data
+            contains inherent speckle noise (coherent noise from radar backscatter).
+            A 21-point window (~3 weeks of daily data) smooths the speckle while
+            still resolving a Kharif season that lasts ~5 months.
+
+    - NDVI Standard: w=11 | Moderate window. NDVI from Sentinel-2 is cleaner
+            (optical, not radar) but still affected by clouds. 11 points
+            (~11 days) is a reasonable compromise between noise rejection and
+            keeping the Rabi peak sharp enough for prominence detection.
+
+    - NDVI Short: w=7 | Aggressive smoothing with minimum window. Used as a
+            FALLBACK kernel for Zaid and other short-cycle crops (e.g., summer
+            vegetables, short-duration rice). Zaid lasts only ~90 days so a
+            wider window would average it away entirely.
+
+  Polynomial degree p=2:
+    Degree-2 (quadratic) fits parabolas to local windows. This is the ideal
+    shape for a crop peak — it naturally rises, curves, and falls. Linear (p=1)
+    would pull peaks downward. Cubic (p=3) would start fitting noise as signal
+    on short windows.
+
+--------------------------------------------------------------------------------
+1.2  WHITTAKER SMOOTHER — Used in Stage 0 / Stage 4: Analytics Engine
+--------------------------------------------------------------------------------
+
+Purpose: Continuous series reconstruction for confidence scoring.
+
+The Whittaker smoother minimizes a penalized least-squares objective:
+
+    min { sum[(y_i - z_i)^2] + lambda * sum[(Δ^2 z_i)^2] }
+
+Where:
+  - y_i : observed (noisy) signal value at time i
+  - z_i : smoothed output value
+  - Δ^2 : second-order difference (penalizes curvature)
+  - λ   : the smoothing parameter (stiffness)
+
+This is fundamentally different from SG. Whittaker produces a globally optimal
+smooth curve across the ENTIRE year, not just a local polynomial fit. This makes
+it ideal for:
+  (a) Generating a clean continuous NDVI/RVI series for slope (gradient) extraction
+  (b) Providing stable row-level inputs (B, M) to the P1 confidence formula
+
+  Why SG cannot be used here:
+  SG operates on a sliding window. At the boundaries (start/end of the year), it
+  degrades. It also cannot handle unequal time spacing (gaps from cloud cover).
+  The Whittaker smoother inherently handles both, making it the correct tool for
+  building the year-long analytics DataFrame.
+
+  λ (lambda) choices and why:
+    - NDVI Standard: λ=50
+      Moderate stiffness. NDVI has real and important mid-season fluctuations
+      (e.g., sowing → growth → heading → harvest). λ=50 removes cloud spikes
+      but keeps the biological envelope visible. Lower λ would keep cloud spikes;
+      higher λ would flatten the seasonal signal.
+
+    - NDVI Short-Cycle: λ=10
+      Low stiffness = very flexible curve. Designed to follow fast-changing
+      vegetation (short-duration Zaid crops, vegetables). A standard λ=50 would
+      over-smooth and miss these peaks entirely in the downstream scoring.
+
+    - RVI: λ=200
+      High stiffness. SAR RVI data is heavily corrupted by speckle and
+      atmospheric effects. A very stiff smoother treats the yearly trend as ground
+      truth and suppresses all short-term fluctuations. This prevents the P1
+      slope_mag formula from triggering on radar noise instead of real crop growth.
+
+  Summary: SG is a local scalpel for peak detection; Whittaker is a global
+  reconstruction tool for producing stable time-series inputs. Both are
+  necessary because the two tasks have fundamentally different requirements.
+
+
+================================================================================
+SECTION 2: STAGE 0 — DATA SANITY CONSTANTS
+================================================================================
+
+  Constant: N >= 30 observations required
+
+  Rationale: A valid crop season spans at minimum ~60-90 days (e.g., a fast Zaid
+  crop). Sentinel-2 revisit time is ~5 days. In 30 days that gives only 6
+  observations. We need:
+    - At least one full Kharif OR Rabi window (~150 days each)
+    - Enough points for the SavGol filters (which require window_length < N)
+    - The minimum data for prominence peak detection to be statistically valid
+  
+  30 observations is the absolute floor. With typical 5-day revisit and cloud
+  cover gaps, 30 usable observations represent approximately 3-4 months of clean
+  data — the bare minimum for any one season to be detectable.
+
+
+================================================================================
+SECTION 3: STAGE 1 — CROP CYCLE DETECTION CONSTANTS
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1  Perennial / Forest Filter Thresholds
+--------------------------------------------------------------------------------
+
+  Formula: min(NDVI_smooth) > 0.30 AND range(NDVI_smooth) < 0.20
+
+  min(NDVI_smooth) > 0.30:
+    Crops go dormant between seasons. The bare soil NDVI for Indian agricultural
+    land typically falls between 0.05 and 0.25. Any parcel where NDVI never drops
+    below 0.30 was never exposed bare soil — it is permanently vegetated. Dense
+    tropical forest NDVI typically stays above 0.60-0.80 year-round. The 0.30
+    threshold was chosen as the inflection point: below it, the soil is genuinely
+    exposed (harvested/fallow); above it never, the vegetation is continuous.
+
+  range(NDVI_smooth) < 0.20:
+    Orchards and plantations (mango, coconut, teak) have slow-growing perennial
+    canopies. Their NDVI changes slightly with seasons but doesn't crash like
+    annual crops. A 0.20 NDVI range (e.g., 0.65 to 0.85) indicates a stable 
+    canopy, not a sow-grow-harvest-bare cycle which would show a 0.40-0.60 range.
+
+  Combined: The AND condition prevents falsely classifying sparse savannah
+  (low min, low range) as perennial. Both criteria must be met.
+
+--------------------------------------------------------------------------------
+3.2  Peak Detection Parameters
+--------------------------------------------------------------------------------
+
+  KHARIF — RVI Primary:
+    prominence >= 0.10:
+      The inter-quartile range of RVI over a typical Indian cropland year is
+      approximately 0.30-0.50. A genuine crop peak should rise at least ~20-30%
+      of that range (0.10) above its local baseline. Peaks below this are
+      attributable to radar noise or light vegetation events.
+    distance >= 30 days:
+      Two peaks cannot be from the same crop cycle if they are less than 30 days
+      apart. A minimum crop growth-to-harvest window is ~45-60 days. 30 days
+      gives a conservative lower bound, preventing the algorithm from counting
+      two neighboring noise spikes as two different crops.
+
+  RABI — NDVI Primary:
+    prominence >= 0.12, distance >= 45 days:
+      Rabi crops (wheat, mustard) are longer-cycle (~120-150 days) and have
+      stronger NDVI signatures because they grow in cool, clear winter air with
+      minimal cloud contamination. The higher prominence (0.12) and longer
+      distance (45 days) reflect this — we're looking for a single, strong,
+      well-defined winter peak, not a cluster of subtle fluctuations.
+
+  ZAID — Short kernel:
+    prominence >= 0.08, distance >= 15 days:
+      Zaid (summer) crops like watermelon, cucumber, and summer paddy have short
+      cycles (~60-90 days) in hot, hazy conditions. Their NDVI peaks are often
+      weaker and shorter. Lowering prominence to 0.08 and distance to 15 days
+      makes the detector sensitive enough to catch them without being triggered
+      by noise (the SavGol w=7 pre-filters most noise before this stage).
+
+--------------------------------------------------------------------------------
+3.3  Cycle Integrity Check — min_amplitude
+--------------------------------------------------------------------------------
+
+  Formula: peak_val − baseline_val >= min_amplitude
+
+  Kharif: 0.10 | Rabi: 0.15 | Zaid: 0.10
+
+  Rationale: prominence in scipy.find_peaks measures how much a peak stands out
+  from its neighboring peaks (relative), not from the absolute baseline. A plot
+  of sparse grassland can have a prominent peak that still only rises 0.08 from
+  a low baseline of 0.12. That is not a crop — that is senescent grass.
+
+  The amplitude check adds an absolute constraint: the raw rise from the
+  pre-season low to the peak must meet a biological minimum. Rabi is set highest
+  (0.15) because wheat and mustard have strong, clearly defined green-up phases
+  that always exceed this. Setting it lower would admit rain-fed grass events
+  that spike briefly during the winter monsoon in South India.
+
+
+================================================================================
+SECTION 4: BIOSCORE — BIOLOGICAL PLAUSIBILITY METRICS
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1  Why BioScore exists
+--------------------------------------------------------------------------------
+
+  Peak detection tells us WHEN a potential crop event occurred. BioScore tells
+  us HOW BIOLOGICALLY CONVINCING that event is. A single-day spike (cloud
+  contamination artefact, a passing shower greening up sparse grass) can pass
+  the peak detection test but will fail the BioScore metrics because real crops
+  stay green for weeks, not days.
+
+--------------------------------------------------------------------------------
+4.2  Persistence (P) — weight 0.35
+--------------------------------------------------------------------------------
+
+  Formula: P = min( (days_above_0.35 / 45) × 100, 100 )
+  Window: Peak ± 30 days
+
+  Threshold 0.35:
+    NDVI of 0.35 is the conventional minimum for "productive green vegetation."
+    Below 0.35, vegetation is either sparse, senescent, or stressed. A genuine
+    crop during its growing season should consistently read above 0.35. 
+    This threshold comes from the FAO's classification of vegetation density
+    and has been validated across Indian agricultural zones.
+
+  Normalization denominator 45:
+    A standard crop season active phase (from emergence to flag leaf / heading)
+    lasts approximately 45 days in the ± 30 day window. Hitting 45+ days above
+    threshold means the crop was at full canopy for its entire active phase.
+    Full score (100%) is awarded at 45 days; partial scores reflect partial
+    canopy coverage or early harvest.
+
+  Weight 0.35 (highest):
+    Persistence is the most reliable indicator of true crop activity because it
+    is time-integrated. A noise spike cannot fake persistence. This is not
+    possible with a single image but requires biological continuity across days.
+
+--------------------------------------------------------------------------------
+4.3  Stability (σ) — weight 0.15
+--------------------------------------------------------------------------------
+
+  Formula:
+    resid = mean( |NDVI_raw − NDVI_smooth| )
+    σ = max( 0, 100 − 500 × resid )
+
+  Scale factor 500:
+    The typical cloud-contamination residual in unmasked Sentinel-2 data is
+    ~0.02-0.10 NDVI units. A perfectly clean crop signal would have residuals
+    of ~0.01-0.02 (sensor noise only). A cloud-contaminated or genuinely
+    variable non-crop signal has residuals of 0.05-0.15.
+
+    At residual = 0.10, σ = max(0, 100 − 500×0.10) = max(0, 50) = 50%
+    At residual = 0.20, σ = 0 (complete instability penalty)
+    At residual = 0.02, σ = max(0, 100 − 10) = 90% (excellent stability)
+
+    Multiplier 500 was calibrated such that at a 0.20 residual (extreme jitter),
+    the score reaches zero — effectively blocking the cycle from contributing
+    to the final verdict.
+
+  Weight 0.15 (lowest):
+    Stability is a sanity check, not a primary signal. Some real crops (e.g.,
+    mixed cropping systems, intercropping) show genuine NDVI variability due to
+    management practices. Giving it too high a weight would penalize these
+    legitimate but "messy" agricultural signals.
+
+--------------------------------------------------------------------------------
+4.4  SAR Sync / Corroboration (ρ) — weight 0.30
+--------------------------------------------------------------------------------
+
+  Formula:
+    r = Pearson_Corr( NDVI_smooth, RVI_smooth )
+    ρ = max( 0, r × 100 )
+    Default = 50 if RVI unavailable
+
+  Why correlation with RVI:
+    NDVI (optical) and RVI (SAR microwave) measure completely different physical
+    properties of the crop canopy:
+      - NDVI: chlorophyll absorption (photosynthetic activity)
+      - RVI: canopy volume scattering (structural biomass)
+    
+    When both rise and fall TOGETHER (r > 0.7), it means both the plant's
+    physiological and structural activity are synchronized — this is the
+    biological signature of a real crop. A grassland or fallow field that
+    greens up with rain will show NDVI rise but often NOT RVI rise (it doesn't
+    have the volumetric canopy structure). This is the most powerful discriminator
+    between "crop" and "vegetation that looks like crop."
+
+  Default 50 when RVI absent:
+    If SAR data is unavailable (failed acquisition, processing gap), we set ρ=50
+    (neutral). We do not reward or penalize the cycle — we simply do not use
+    the SAR dimension. This prevents missing SAR from causing false negatives.
+
+  Weight 0.30 (second highest):
+    The dual-sensor corroboration is extremely powerful at separating crops from
+    natural vegetation. Its weight is high — just below Persistence — because
+    when SAR data is available, it is the most physics-grounded discriminator.
+
+--------------------------------------------------------------------------------
+4.5  Growth Velocity (V) — weight 0.20
+--------------------------------------------------------------------------------
+
+  Formula:
+    D_max = max( NDVI_smooth.diff() )  [max daily NDVI rise in window]
+    V = 100 if D_max <= 0.05 else max( 0, 100 − (D_max − 0.05) × 1000 )
+
+  Biological limit 0.05 NDVI/day:
+    Plant physiology imposes hard limits on how fast a canopy can develop.
+    The theoretical maximum NDVI growth rate for C3 crops (wheat, rice) under
+    ideal conditions is approximately 0.03-0.05 NDVI units per day during the
+    rapid vegetative phase. Values above 0.05/day are physically impossible for
+    a growing crop — they are cloud contamination artefacts, data processing
+    errors, or atmospheric correction failures.
+    
+    At D_max = 0.05: V = 100 (biologically plausible maximum growth)
+    At D_max = 0.15: V = max(0, 100 − (0.15−0.05)×1000) = max(0, 0) = 0
+    
+    Any spike exceeding 0.15 NDVI/day in 24 hours is almost certainly cloud
+    contamination (a cloud-free day after a cloudy period can show false NDVI
+    jumps). Scale factor 1000 penalizes this linearly to zero between 0.05
+    and 0.15 NDVI/day.
+
+  Weight 0.20:
+    This is a guardrail metric, not a primary positive indicator. It only
+    contributes positively when the signal is biologically clean. When triggered
+    (high slope), it degrades the total score rather than improving it.
+
+--------------------------------------------------------------------------------
+4.6  Composite BioScore Weights Summary
+--------------------------------------------------------------------------------
+
+  BioScore = 0.35×P + 0.15×σ + 0.30×ρ + 0.20×V
+
+  Weight allocation rationale:
+    - Persistence (0.35): Time-integrated green activity. Cannot be faked.
+    - SAR Sync (0.30): Dual-sensor physical corroboration. Most discriminating.
+    - Velocity (0.20): Biological plausibility guardrail.
+    - Stability (0.15): Data quality check; downweighted to not penalize valid
+      intercropping systems.
+
+  Total = 1.00 (normalized probability-style score on 0-100 scale).
+
+
+================================================================================
+SECTION 5: PIPELINE 1 — STRUCTURAL PHYSICS (P1)
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1  Base Index and Slope Magnitude
+--------------------------------------------------------------------------------
+
+  B = clip( NDVI × 100, 0, 100 )
+  M = slope_mag = min( |NDVI_slope(t)| / 0.01 × 100, 100 )
+
+  B (Base Index):
+    Scaling NDVI (0.0–1.0) to 0–100 makes the formula additive with M and the
+    intercept term (30). This allows the three contributions to the final
+    confidence to be in the same numerical domain.
+
+  M (Slope Magnitude):
+    Normalization denominator 0.01 per day:
+    This is the "biological significant change threshold." A daily NDVI change
+    of 0.01 is the minimum biologically interpretable rate of change for a
+    Whittaker-smoothed series. Below this, the change is indistinguishable from
+    sensor noise even after smoothing. Above 0.01/day, the change reflects real
+    phenological dynamics (green-up or senescence). The formula caps M at 100
+    (when |slope| >= 0.01/day), giving equal physiological weight above that
+    threshold.
+
+    Why Whittaker slope rather than raw:
+    Raw NDVI differences are dominated by cloud noise. Whittaker slope represents
+    the true rate of phenological change, making M a meaningful biological signal
+    rather than an observation artifact.
+
+--------------------------------------------------------------------------------
+5.2  Case A — Peak Season (Active)
+--------------------------------------------------------------------------------
+
+  P1_crop = min( 30 + 0.5×B + 0.2×M, 100 )
+  P1_nocrop = 100 − P1_crop
+
+  Intercept 30:
+    Even when B=0 and M=0 (bare soil at the start of a detected cycle), the
+    P1_crop starts at 30%. This reflects the prior belief: if our cycle detector
+    confirmed this season as active for this parcel, there is a non-trivial base
+    probability of crop activity even before we observe any current-day signal.
+    It is the "cycle confirmed" baseline.
+
+  Coefficient 0.5 on B:
+    High NDVI is the strongest single-point indicator of crop activity. We give
+    it the largest weight in the formula. At B=100 (NDVI=1.0), this term
+    contributes 50 points to P1_crop, bringing it to 80% before slope is added.
+
+  Coefficient 0.2 on M:
+    Slope is confirmatory, not primary. A high NDVI that is still rising (green-up)
+    or still declining (harvest) provides additional biological confirmation.
+    However, a flat-topped crop (heading, mature grain) has M≈0 but is obviously
+    still a crop. Slope should boost confidence, not be a requirement.
+
+  cap at 100:
+    The formula can mathematically exceed 100 when both B and M are high. The cap
+    ensures it remains a valid probability-like score.
+
+--------------------------------------------------------------------------------
+5.3  Case B — Off-Peak / Dormant Season
+--------------------------------------------------------------------------------
+
+  P1_nocrop = min( 50 + 0.3×(100−B) + 0.2×(100−M), 85 )
+  P1_crop = 100 − P1_nocrop
+
+  Intercept 50:
+    Even during off-peak months, the no-crop baseline starts at 50%. This reflects
+    that in off-season months, the prior expectation is that the field is dormant,
+    but we do not start at 100% certainty because some crops (irrigated winter
+    vegetables, second ratoon sugarcane) can be active outside their canonical
+    season window.
+
+  Coefficients 0.3 and 0.2 on (100−B) and (100−M):
+    Low NDVI and flat slope in off-season confirm dormancy. The inverted terms
+    (100−B, 100−M) are high when NDVI is low and slope is flat, which is exactly
+    the expected signature of harvested/fallow fields.
+
+  Hard cap at 85% (not 100%):
+    This is the most important architectural decision in P1. By capping P1_nocrop
+    at 85% during off-peak months, we prevent Pipeline 1 from issuing an absolute
+    veto against Pipeline 2. If P1_nocrop were allowed to reach 100%, then no DW
+    signal (even a strong P2_crop=90%) could rescue a crop that the cycle detector
+    placed in an off-peak month. The 85% cap ensures P2 always retains a
+    meaningful voice during dormant periods.
+
+
+================================================================================
+SECTION 6: PIPELINE 2 — DYNAMIC WORLD AI (P2)
+================================================================================
+
+--------------------------------------------------------------------------------
+6.1  Case A — Crops Dominant
+--------------------------------------------------------------------------------
+
+  dw_conf = min( 60 + margin×80, 100 )
+  P2_crop = dw_conf
+
+  Intercept 60:
+    When DW says "crops is the top class," we start P2_crop at 60% even with
+    zero margin. This reflects the base reliability of the DW model on crop
+    classification — it is more accurate at identifying crops than at identifying
+    subtle distinctions within natural vegetation classes.
+
+  Coefficient 80 on margin:
+    When DW is decisive (high margin between crops and runner-up), we reward it
+    aggressively. At margin=0.50, P2_crop reaches min(60+40, 100) = 100%. This
+    means a decisive "everything is crops" DW classification is treated as
+    near-certain truth.
+
+--------------------------------------------------------------------------------
+6.2  Case B — Standard No-Crop
+--------------------------------------------------------------------------------
+
+  dw_conf = min( 50 + margin×100, 100 )
+
+  Intercept 50, Coefficient 100:
+    For non-crop classes, DW's certainty scales faster (100 vs 80). This is
+    because false positives (calling a forest crop) are more damaging to a
+    lending decision than false negatives. We want the no-crop signal to be
+    aggressive. At margin=0.50, dw_conf = min(100, 100) = 100%.
+
+--------------------------------------------------------------------------------
+6.3  Case C — Sigmoid Lockout
+--------------------------------------------------------------------------------
+
+  α = (top_prob − 0.65) / 0.35
+  P2_nocrop = dw_conf + (100 − dw_conf) × √α
+
+  Threshold 0.65:
+    The DW model's posterior probability for any class exceeding 0.65 means it
+    has effectively ruled out all other classes. At 0.65+ for trees/water/built,
+    the model is operating in its high-confidence regime. Below 0.65, mixed
+    pixels (crops adjacent to trees, flooded rice next to water) are common and
+    the model's certainty should be treated as noisy.
+
+  √α (square root scaling):
+    Using √α instead of α (linear) creates a concave curve — P2_nocrop rises fast
+    initially, then flattens as α → 1. This reflects the diminishing returns of
+    certainty: going from 0.65 to 0.75 gives a bigger confidence boost than going
+    from 0.90 to 1.00, because the DW model's error rate is already near-zero at
+    0.90. The square root also prevents P2_nocrop from reaching a cliff-edge
+    discontinuity at any single threshold.
+
+  Why only Trees/Water/Built/Snow/Flooded:
+    These five classes are physically incompatible with active arable farming.
+    Grass and Shrub are NOT included because:
+    (a) Fallow fields (legitimate agricultural land between seasons) are often
+        classified as "grass" by DW during the dry period.
+    (b) Kharif bunds and field margins contain shrub that bleeds into the parcel.
+    Including Grass/Shrub in the lockout would incorrectly veto legitimate
+    crop parcels during their fallow phase.
+
+
+================================================================================
+SECTION 7: STAGE 4 — CONSENSUS RESOLUTION
+================================================================================
+
+--------------------------------------------------------------------------------
+7.1  The 3-Path Blend
+--------------------------------------------------------------------------------
+
+  IF P2_crop > 80: F_crop = 0.70×P2 + 0.30×P1   [AI-led]
+  ELIF P1_crop > 80: F_crop = 0.80×P1 + 0.20×P2  [Physics-led]
+  ELSE: F_crop = 0.60×P1 + 0.40×P2               [Default weighted]
+
+  Threshold 80% for "certainty":
+    At 80%+ confidence, either pipeline is operating in its high-signal regime.
+    Below 80%, both pipelines are in ambiguous territory where neither should
+    dominate the other completely.
+
+  AI-led blend (0.70/0.30):
+    When DW is certain (P2 > 80), it has identified a land-cover type with high
+    conviction. The DW model is trained on global imagery and excels at
+    unambiguous land-cover states. In these cases, we lean toward it (70%) while
+    keeping 30% for Physics to prevent total DW dominance.
+
+  Physics-led blend (0.80/0.20):
+    When cycle detection has confirmed biological growth (P1 > 80), the structural
+    physics evidence is overwhelming. Cycle detection requires persistent temporal
+    patterns that cannot be artefacts. We heavily favor Physics (80%) with a
+    minority DW contribution (20%) to account for cases where P1 has been
+    computed correctly but the parcel has an unusual land-cover signature.
+
+  Default blend (0.60/0.40):
+    The 60/40 split in favor of Physics reflects the design philosophy that
+    structural cycle evidence (temporal patterns over 365 days) is more reliable
+    than any single land-cover classification from a remote-sensing model.
+    DW's 40% weight is meaningful — it can swing the result when the Physics
+    signal is weak — but it cannot override a moderately strong Physics signal.
+
+  Why not 50/50:
+    A 50/50 blend would treat a machine learning land-cover model as equally
+    trustworthy as a year-long empirical physics signal. In Indian agricultural
+    systems, DW frequently misclassifies active kharif paddy as "flooded
+    vegetation" and dry-season wheat as "bare ground." The 60/40 tilt corrects
+    for this known DW bias without eliminating DW's genuine contribution.
+
+--------------------------------------------------------------------------------
+7.2  Final Confidence Score
+--------------------------------------------------------------------------------
+
+  score = max( F_crop, F_nocrop )
+
+  This is the probability of the machine's own prediction being correct,
+  expressed as a percentage. A score of 93% means the pipeline is 93% confident
+  in whichever verdict it reached. This is what appears in the PDF report banner.
+
+
+================================================================================
+SECTION 8: STAGE 5 — ENVIRONMENTAL GUARDBAND
+================================================================================
+
+--------------------------------------------------------------------------------
+8.1  Guardband Trigger Thresholds
+--------------------------------------------------------------------------------
+
+  tree_freq > 0.60:
+    If trees dominate the DW time series for more than 60% of the year, the
+    parcel is a forest, plantation, or orchard. Dense arable farming cannot
+    coexist with 60%+ tree dominance. The 60% threshold (not 50%) accounts for
+    the fact that mango and citrus orchards co-exist with understory crops at
+    30-40% canopy cover — we do not want to veto active agroforestry.
+
+  water_freq > 0.60:
+    Similar logic. Paddy fields are often classified as "water" during the
+    flooding phase. At 40% water dominance, it could be paddy. At 60%+, it is
+    likely a reservoir, wetland, or river course.
+
+  built_freq > 0.50:
+    Urban/built land is more conservative (0.50 vs 0.60) because there is simply
+    no agricultural use for land that is predominantly impervious surface.
+
+  snow_freq > 0.60:
+    High-altitude parcels in Himachal Pradesh, Uttarakhand, and Jammu & Kashmir
+    are often recorded as snow-covered. Above 60%, the growing season is so
+    short that standard cycle detection cannot reliably operate.
+
+  flooded_freq > 0.60:
+    Similar to water. At 60%+ flooding, the parcel is in a floodplain or
+    wetland zone, not a productive field.
+
+  crop_freq < 0.10 when cycles=0:
+    This is a secondary trigger. If no cycles were detected AND the DW
+    time series shows crops in less than 10% of observations, the parcel has
+    essentially no agricultural signal from either pipeline. This prevents
+    the scoring engine from attributing stochastic noise to crop activity.
+
+--------------------------------------------------------------------------------
+8.2  Penalisation Scenario Selection
+--------------------------------------------------------------------------------
+
+  Scenario C (Extreme Domination): non_crop_freq > 0.85 AND activity_ratio > 0
+    "The environment is overwhelmingly non-crop, AND the cycle detector
+    is nonetheless firing."
+    Action: Multiply both P1 and P2 by 0.10 — near-total lockout.
+    Rationale: If 85%+ of the year is dominated by trees/water/built AND
+    the cycle detector still found "peaks," those peaks are almost certainly from
+    forest phenology, monsoon flooding events, or sensor artefacts.
+    0.10× retains a tiny residual to avoid hard-coding a lockout (allowing for
+    rare edge cases like agroforestry with very high tree cover).
+
+  Scenario B (Major Conflict): activity_ratio > 0.50 AND non_crop_freq > 0.50
+    "The cycle detector activated for more than half the year, AND the
+    environment is majority non-crop."
+    Action: Multiply P2 by 0.30 (aggressive drag on AI signal).
+    Rationale: This is the "deep forest with some seasonal greenness" scenario.
+    The Physics pipeline detected cycles but the AI cannot explain them as crops.
+    We heavily penalize the AI signal (since it's almost certainly mislabeling
+    forest seasonality as crops) while retaining physics at full weight.
+    0.30× reduces P2 contribution by 70% — enough to prevent it from generating
+    false positives, but not zero (preserving some DW information).
+
+  Scenario A (Standard Lockout): all other cases
+    "The guardband is triggered but the conflict is not extreme."
+    Action: Set P2_crop = 0.0. Zero the AI signal entirely.
+    Rationale: In the standard case (e.g., 65% tree dominance but low cycle
+    activity), DW's signal is likely corrupted by land-cover mislabeling.
+    Completely zeroing P2 and letting P1 (cycle physics) decide is the safest
+    approach. P1 may still detect cycles → Crop-Activity, or may not → No Crop.
+
+  Why P1_crop is only zeroed when cycles=0:
+    If the cycle detector found confirmed biological peaks, those peaks are
+    evidence of real periodic vegetation activity regardless of what DW says.
+    Zeroing P1 when cycles>0 would make the detection system contradict its own
+    structural evidence. We only zero P1 when cycles=0, because without
+    confirmed peaks, P1 is computing a probabilistic guess rather than a
+    grounded observation.
+
+--------------------------------------------------------------------------------
+8.3  Structural Evidence Override
+--------------------------------------------------------------------------------
+
+  Condition: P1_crop_row > 50 AND total_cycles > 0 AND crop_freq > 0.07
+
+  P1_crop > 50 (row-level):
+    Each individual row within the guardband-penalised DataFrame is re-evaluated.
+    If the raw P1 physics score for that specific day is still above 50% (i.e.,
+    the physical signal is crop-consistent even before penalisation), this is
+    biochemical evidence at row level.
+
+  total_cycles > 0:
+    The year-level structural check. If no seasons were detected, there is no
+    biological framework to explain why P1 is high. With confirmed cycles, P1's
+    high score aligns with the year-level seasonal structure.
+
+  crop_freq > 0.07 (7%):
+    This is the "AI is not completely blind" check. 7% means the DW model
+    classified at least 7% of days as crops at some point in the year. This
+    eliminates parcels where:
+      (a) The DW model NEVER saw crops (0% crop_freq) — classic grassland
+          or forest trap where NDVI cycles mimic crops but the AI consistently
+          identifies the true land cover.
+      (b) Less than 7% = approximately 25 days of crop observation in a year.
+          That is below the minimum emerging-crop window (typically 30-45 days
+          for seedling stage to tillering).
+
+    The 7% threshold was derived empirically: the batch analysis of True Negatives
+    (confirmed non-crop parcels) showed that even the most aggressive seasonal
+    grasslands (UP5, UP7 — with P1>70% and 3 full cycles detected) had a
+    crop_freq of exactly 1.47% and 2.78% respectively. True crops that were being
+    incorrectly penalized (UP6, RJ10, etc.) showed crop_freq of 10-13%.
+    The 7% cut cleanly separates these two populations.
+
+    By passing all three conditions, the bypass essentially says: "The physics
+    confirms active crop biology (P1>50), the structure confirms multiple harvest
+    events (cycles>0), and the AI at least glimpsed this as crops (crop_freq>7%).
+    The guardband penalty is therefore over-aggressive — override it."
+
+--------------------------------------------------------------------------------
+8.4  Activity Ratio Threshold (15%)
+--------------------------------------------------------------------------------
+
+  Condition: activity_ratio > 0.15
+
+  Rationale: A parcel must show Crop-Activity predictions for at least 15% of the
+  analysis year (~55 days) to be declared active. This threshold filters out:
+    (a) Marginal one-off events: a single rain event greening up a fallow field
+    (b) Early-season false starts where sowing begins but the crop fails
+    (c) Tiny Zaid crops that contribute only 10-12% of annual activity
+
+  The 15% floor corresponds to approximately 55 days of active classification in
+  a 365-day window. A standard Zaid crop (shortest season) lasts 60-90 days, of
+  which roughly 40-60 days show clear crop activity. Even Zaid exceeds 15%.
+  Anything below 15% is not a viable agricultural season.
+
+================================================================================
+SECTION 9: PIPELINE CAPABILITIES -- WHAT THIS SYSTEM CAN ACHIEVE
+================================================================================
+
+This section defines the operational envelope of the TerraDrishti pipeline:
+what it detects, what it cannot detect, the quality of its outputs, and the
+real-world scenarios it is designed to handle.
+
+--------------------------------------------------------------------------------
+9.1  INPUTS -- What the Pipeline Consumes
+--------------------------------------------------------------------------------
+
+  Primary Inputs (per parcel, per analysis window):
+    - NDVI time series        : Sentinel-2 optical, ~5-day revisit, 10m resolution
+    - EVI time series         : Sentinel-2, enhanced vegetation index (data quality)
+    - RVI time series         : Sentinel-1 SAR C-band, ~6-day revisit, 10m resolution
+    - DW class probabilities  : Google Dynamic World, daily at 10m resolution
+      (9 classes: water, trees, grass, flooded_veg, crops, shrub, built, bare, snow)
+
+  Derived Inputs (computed internally):
+    - Whittaker-smoothed NDVI/RVI series (3 lambda variants: lambda=10, 50, 200)
+    - Savitzky-Golay smoothed series (3 window variants: w=7, w=11, w=21)
+    - Discrete gradient slopes (daily phenological rate of change per observation)
+    - Dominant DW class frequencies (year-level environmental profile)
+
+  Analysis Window:
+    - Default: 365 contiguous days ending at the user-specified end_date
+    - Each of the 365 days generates one row-level prediction (Crop / No-Crop)
+    - The year-level verdict is the aggregate of all 365 row decisions
+    - Minimum usable window: ~90 days (Zaid-only season detection)
+
+  Minimum Observation Requirement:
+    - N >= 30 clean (cloud-free / SAR-coherent) daily observations
+    - Typically achieved with 3-4 months of data given ~20-30% cloud rejection
+    - Below N=30: ABORT -- pipeline returns insufficient_data
+
+  Parcel Geometry:
+    - Input: list of lat/lon coordinate pairs (WGS84 polygon)
+    - GEE aggregates all pixels inside the polygon boundary
+    - Minimum parcel size: ~0.1 hectare (10m pixel = 0.01 ha minimum addressable)
+    - Maximum parcel size: unlimited (GEE tiles automatically)
+
+--------------------------------------------------------------------------------
+9.2  OUTPUTS -- What the Pipeline Returns Per Parcel
+--------------------------------------------------------------------------------
+
+  Binary Verdict:
+    is_active: True / False
+    "Has this parcel experienced at least one viable crop season in the last year?"
+
+  Activity Score (0-100%):
+    Derived from max(F_crop, F_nocrop) of the consensus resolution layer.
+    Score > 50%  : crop activity more likely than not
+    Score > 85%  : high-confidence detection (strong physics + AI agreement)
+    Score 30-50% : ambiguous / marginal activity
+    Score < 15%  : near-certain inactivity
+
+  Detected Seasons:
+    List of confirmed growing seasons: ["Kharif"], ["Rabi"], ["Zaid"],
+    or any combination up to ["Kharif", "Rabi", "Zaid"].
+    Each season is independently validated by the 4-metric BioScore framework.
+
+  Crop Cycle Count:
+    Integer: 0 (fallow/perennial), 1 (single-crop), 2 (double-crop), 3 (triple-crop)
+    Directly derived from the number of BioScore-validated seasonal peaks.
+
+  Pipeline Confidence Metrics (diagnostic, per parcel):
+    P1_avg_conf    : mean P1_crop across all 365 rows (Structural Physics signal)
+    P2_avg_conf    : mean P2_crop across all 365 rows (Dynamic World AI signal)
+    P1_nocrop_avg  : mean P1_nocrop (structural inactivity signal)
+    P2_nocrop_avg  : mean P2_nocrop (AI inactivity signal)
+
+    These four metrics show HOW the verdict was reached:
+      High P1 + Low P2  = confirmed by physics, rejected by AI (possible grassland)
+      Low P1 + High P2  = AI sees crops but no structural evidence (data gap)
+      High P1 + High P2 = full consensus -- highest reliability verdict
+
+  PDF Report (auto-generated per parcel):
+    - Verdict banner: activity score, season list, is_active flag
+    - Cycle timeline chart: NDVI + RVI time series with detected peaks annotated
+    - Dynamic World chart: stacked probability area chart (all 9 DW classes)
+    - Monthly activity heatmap: Crop / No-Crop / Missing per month x season
+    - Peak index table: per-season NDVI/RVI statistics (mean, max, amplitude)
+
+--------------------------------------------------------------------------------
+9.3  DETECTION CAPABILITIES -- Crop Types the Pipeline Can Identify
+--------------------------------------------------------------------------------
+
+  KHARIF CROPS (Paddy, Sorghum, Maize, Cotton, Soybean, Groundnut):
+    Primary detector : RVI Savitzky-Golay (w=21) -- SAR captures waterlogged
+                       paddy canopy structure and tall-crop volume scattering
+    Fallback detector: NDVI-Short (w=7) for early-season short-cycle Kharif
+    Season window    : May to November
+    Typical confidence: 75-95% on well-irrigated parcels
+    Weak scenarios   : High cloud cover during peak monsoon (Jun-Sep)
+
+  RABI CROPS (Wheat, Mustard, Chickpea, Potato, Sunflower):
+    Primary detector : NDVI Savitzky-Golay (w=11) -- clear winter air gives
+                       the cleanest optical signal of any Indian season
+    Fallback detector: NDVI-Short (w=7) for early-terminated or stressed crops
+    Season window    : October to April
+    Typical confidence: 80-98% (strongest detector in the entire pipeline)
+    Weak scenarios   : Delayed sowing, drought-stress (prominence < 0.12)
+
+  ZAID CROPS (Watermelon, Cucumber, Summer Paddy, Moong, Vegetables):
+    Primary detector : NDVI-Short (w=7) + RVI combined -- weak fast-growing signal
+    Season window    : March to June
+    Typical confidence: 55-80% (noisiest season due to haze and heat shimmer)
+    Weak scenarios   : Short-cycle crops (< 45 days) in high-aerosol environments
+
+  PERENNIAL CASH CROPS (Sugarcane, Banana, Turmeric, Ginger):
+    Partially detectable. Sugarcane (~12-month cycle) shows RVI periodicity
+    strong enough to pass Rabi + Kharif detection in many cases.
+    Banana and turmeric have evergreen-like NDVI profiles and are FILTERED OUT
+    by the Perennial Filter as non-annual crops.
+
+  NON-CROP SCENARIOS CORRECTLY HANDLED:
+    Seasonal grasslands     : crop_freq < 7% blocks Structural Conviction Override
+    Dense forest            : Perennial Filter (min NDVI > 0.30, range < 0.20)
+    Waterbodies / wetlands  : water_freq or flooded_freq > 60% triggers guardband
+    Urban / built areas     : built_freq > 50% triggers guardband
+    High-altitude snow      : snow_freq > 60% triggers guardband
+    Fallow agricultural land: No BioScore-validated peaks; score typically 10-30%
+    Failed crops            : Low prominence / amplitude fails Cycle Integrity Check
+
+--------------------------------------------------------------------------------
+9.4  SCALABILITY -- Batch Processing Capability
+--------------------------------------------------------------------------------
+
+  Architecture:
+    Stateless REST API deployed on GCP Cloud Run (scales to zero / scales to many)
+    Each parcel request is fully independent -- no shared pipeline state
+    GEE handles satellite pixel extraction in Google's distributed cloud
+
+  Demonstrated Batch Performance:
+    310 parcels processed in a single batch validation run
+    Each parcel: 365-day dual-sensor time series (Sentinel-1 SAR + Sentinel-2)
+    Average processing time per parcel: 3-8 seconds (GEE extraction dominant)
+    Full batch of 310: approximately 20-40 minutes (parallel request dispatch)
+
+  Accuracy Benchmarks (310-parcel test set across 18+ Indian states):
+    Overall Accuracy     : 89-91% across tested pipeline configurations
+    True Positive Rate   : ~94% (Active Crop correctly detected as Active)
+    True Negative Rate   : ~88% (Inactive correctly detected as Inactive)
+    Hardest regions      : Kerala (persistent cloud), J&K (snow-crop boundary)
+    Best regions         : Punjab, Haryana, Rajasthan (low cloud, high contrast)
+
+  Geographic Coverage Validated:
+    Uttar Pradesh, Rajasthan, Madhya Pradesh, Gujarat, Maharashtra, Punjab,
+    Telangana, Karnataka, Kerala, Odisha, Haryana, Chhattisgarh, Jharkhand,
+    Bihar, Tamil Nadu, Jammu & Kashmir, Himachal Pradesh, Uttarakhand,
+    West Bengal, Andhra Pradesh, Northeast states.
+
+--------------------------------------------------------------------------------
+9.5  KNOWN LIMITATIONS
+--------------------------------------------------------------------------------
+
+  Sub-Parcel Resolution:
+    Single binary verdict per parcel. Cannot map intra-parcel variation.
+    If a polygon contains 50% active crop and 50% fallow, the result depends
+    on which signal dominates GEE pixel aggregation.
+
+  Crop Species Identification:
+    Detects ACTIVITY (is something growing?), not IDENTITY (what crop?).
+    Distinguishing wheat from mustard requires additional spectral features
+    (red-edge bands, hyperspectral data) not currently in the pipeline.
+
+  Real-Time Detection:
+    Minimum 90-day window required. This is a retrospective annual assessment
+    system for lending cycle decisions, not a real-time crop monitoring tool.
+
+  Cloud-Persistent Regions:
+    In Kerala and Northeast India, fewer clean Sentinel-2 observations force
+    fallback to SAR-only. When SAR is also limited, SAR Sync (rho) defaults
+    to 50 (neutral), reducing overall confidence significantly.
+
+  Agroforestry Boundary Cases:
+    Parcels with 40-60% tree cover (areca nut + paddy, coconut + vegetable
+    intercropping) may be incorrectly sent to the guardband lockout if
+    tree_freq approaches the 0.60 threshold. Calibrated for open-field farming.
+
+  Double-Counting at Season Boundaries:
+    The Rabi window (Oct-Apr) and Kharif window (May-Nov) overlap in October.
+    In regions with very early Rabi sowing (Oct) and late Kharif harvest (Nov),
+    both seasons may detect the same physical peak. The min-distance parameter
+    (45 days for Rabi) partially mitigates this.
+
+  Perennial Cash Crops:
+    Banana, turmeric, and long-cycle sugarcane exhibit evergreen NDVI profiles
+    that trigger the Perennial Filter. These are correctly excluded from
+    annual crop-activity detection but cannot be positively identified.
+
+--------------------------------------------------------------------------------
+9.6  OPERATIONAL USE CASE -- Agricultural Lending Due Diligence
+--------------------------------------------------------------------------------
+
+  Primary Question Answered:
+    "Has this agricultural parcel been actively cultivated in the last 12 months?"
+
+  Secondary Outputs for Lender Decision Support:
+    - Cropping intensity   : How many seasons were grown? (0-3)
+    - Season identification: Which seasons? (Kharif / Rabi / Zaid)
+    - System confidence    : How certain is the verdict? (0-100%)
+    - Land-cover profile   : What does the DW data show about the environment?
+
+  Lender-Oriented Guardrails Built Into the Architecture:
+    False positives (inactive land reported as active) are deliberately penalized
+    more aggressively than false negatives:
+      - No-crop confidence scales at x100 vs x80 for crop confidence
+      - Guardband defaults to zeroing the AI signal rather than reducing it
+      - The 15% activity ratio floor prevents noise events from creating verdicts
+      - Structural Conviction Override requires triple evidence convergence
+
+  Typical Output Interpretations for Lenders:
+    Active, 3 Seasons, Score 95%  -> Triple-crop intensity. High reliability.
+    Active, 2 Seasons, Score 85%  -> Double-crop. Strong lender confidence.
+    Active, 1 Season,  Score 70%  -> Single-crop or marginal farming.
+    Active, 1 Season,  Score 52%  -> Borderline case. Manual review advised.
+    Inactive,          Score 12%  -> Clear fallow / no cultivation evidence.
+    Perennial,         Score 0%   -> Forest, orchard, or non-arable land.
+
+================================================================================
+END OF DOCUMENT
+================================================================================

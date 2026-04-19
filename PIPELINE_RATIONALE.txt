@@ -636,7 +636,7 @@ SECTION 8: STAGE 5 — ENVIRONMENTAL GUARDBAND
 8.3  Structural Evidence Override
 --------------------------------------------------------------------------------
 
-  Condition: P1_crop_row > 50 AND total_cycles > 0 AND crop_freq > 0.07
+  Condition: P1_crop_row > 50 AND total_cycles > 0 AND crop_freq > 0.07 AND NOT is_tree_trap
 
   P1_crop > 50 (row-level):
     Each individual row within the guardband-penalised DataFrame is re-evaluated.
@@ -667,13 +667,36 @@ SECTION 8: STAGE 5 — ENVIRONMENTAL GUARDBAND
     incorrectly penalized (UP6, RJ10, etc.) showed crop_freq of 10-13%.
     The 7% cut cleanly separates these two populations.
 
-    By passing all three conditions, the bypass essentially says: "The physics
+  NOT is_tree_trap (The Tree Trap Guard):
+    Formula: tree_freq > 0.50 AND crop_freq < 0.35 AND avg_BioScore < 70
+    
+    Rationale:
+    In deciduous forests (e.g., Central India, parts of UP/MP, Kerala), tree 
+    canopies undergo leaf flush and senescence cycles that produce seasonal 
+    NDVI/RVI dynamics nearly identical to arable crops. These are "traps" 
+    because the physics signals (P1) are fooled by the natural phenology. 
+    We identify the trap when:
+      (a) DW identifies majority tree dominance (tree_freq > 50%).
+      (b) DW identifies a scarcity of crop evidence (crop_freq < 35%).
+      (c) The Biological plausibility conviction is mediocre (avg_BioScore < 70).
+    
+    Avg_BioScore is the mean of individual BioScores for all detected cycles. 
+    A genuine high-conviction crop (e.g., wheat or rice) typically yields a 
+    BioScore > 75-80 due to superior persistence and SAR synchrony. Seasonal 
+    tree noise rarely achieves high BioScores across multiple metrics.
+    
+    Effect: If these "Trap" conditions are met, the Structural Override is 
+    blocked. This forces the system to trust the penalised blend (which favors 
+    No-Crop in tree zones) rather than letting physics bypass the guardbands.
+
+    By passing all conditions, the bypass essentially says: "The physics
     confirms active crop biology (P1>50), the structure confirms multiple harvest
-    events (cycles>0), and the AI at least glimpsed this as crops (crop_freq>7%).
-    The guardband penalty is therefore over-aggressive — override it."
+    events (cycles>0), the AI at least glimpsed this as crops (crop_freq>7%),
+    AND it is NOT a tree phenology trap. The guardband penalty is therefore 
+    over-aggressive — override it."
 
 --------------------------------------------------------------------------------
-8.4  Activity Ratio Threshold (15%)
+8.5  Activity Ratio Threshold (15%)
 --------------------------------------------------------------------------------
 
   Condition: activity_ratio > 0.15

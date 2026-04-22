@@ -602,88 +602,45 @@ async def replay_test_from_pickle(task_id: str):
         # Create the Trend Analysis Graph
         fig_trend = go.Figure()
 
-        # Define established color palette
+        # Define Colors
         colors = {'NDVI': '#27ae60', 'EVI': '#2980b9', 'RVI': '#f1c40f'}
 
-        # Step A: Add Legend-Only Traces (Mode='none')
-        # This establishes the color in the legend without showing lines/points in the list
-        for col, color in colors.items():
-            fig_trend.add_trace(go.Scatter(
-                x=[None], 
-                y=[None],
-                mode='none', 
-                marker=dict(color=color), 
-                name=col,
-                showlegend=True
-            ))
-
-        # Step B: Add the Whittaker Smooth Lines (Hidden from legend)
-        for col, color in colors.items():
+        for col in ['NDVI', 'EVI', 'RVI']:
             if col in dataset_df.columns:
+                # 1. Add the Whittaker Smooth Line
                 fig_trend.add_trace(go.Scatter(
                     x=dataset_df['date'],
                     y=dataset_df[col],
                     mode='lines',
-                    line=dict(color=color, width=2.5),
-                    name=f"{col} Smooth",
-                    showlegend=False, # Color already established by legend-only trace
-                    hoverinfo='y'
+                    line=dict(color=colors[col], width=2),
+                    name=f"{col} (Smoothed)",
+                    hoverinfo='skip'
                 ))
-
-        # Step C: Add the Raw Observation Points (Hidden from legend)
-        for col, color in colors.items():
-            if col in raw_points_df.columns:
+                
+                # 2. Add the Raw Observation Points
+                # We filter out NaNs to ensure only real satellite passes are plotted
                 valid_raw = raw_points_df[raw_points_df[col].notna()]
                 fig_trend.add_trace(go.Scatter(
                     x=valid_raw['date'],
                     y=valid_raw[col],
                     mode='markers',
-                    marker=dict(
-                        color=color, 
-                        size=6, 
-                        line=dict(color='white', width=0.5)
-                    ),
-                    name=f"{col} Raw",
-                    showlegend=False, # Color already established by legend-only trace
-                    hoverinfo='y'
+                    marker=dict(color=colors[col], size=6, symbol='circle', 
+                                line=dict(color='white', width=1)),
+                    name=f"{col} (Raw)",
+                    showlegend=True
                 ))
 
-        # Step D: Apply Design & Legend Styling
         fig_trend.update_layout(
-            title=dict(
-                text="<b>Phenology Trend Analysis</b><br><sup>Raw Observations vs. Whittaker Daily Smoothing</sup>",
-                x=0.05,
-                font=dict(size=16)
-            ),
-            xaxis=dict(
-                title="Date",
-                gridcolor='rgba(0,0,0,0.05)',
-                tickangle=-45
-            ),
-            yaxis=dict(
-                title="Index Value",
-                range=[0, 1.1],
-                gridcolor='rgba(0,0,0,0.05)'
-            ),
+            xaxis_title="Date",
+            yaxis_title="Index Value",
             template="plotly_white",
             hovermode="x unified",
-            showlegend=True,
-            legend=dict(
-                orientation="v",
-                yanchor="top",
-                y=0.99,
-                xanchor="right",
-                x=0.99,
-                bgcolor="rgba(255, 255, 255, 0.6)", # Transparent background
-                bordercolor="lightgrey",
-                borderwidth=1,
-                font=dict(size=12)
-            ),
-            margin=dict(l=50, r=20, t=80, b=60),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=50, r=20, t=80, b=50),
             height=500
         )
 
-        # 3. CONVERT TO BASE64
+        # Generate the new B64 string
         ndvi_rvi_b64 = fig_to_base64(fig_trend, is_plotly=True)
 
         # 4-Axis Synthesis for Overall Parcel Confidence

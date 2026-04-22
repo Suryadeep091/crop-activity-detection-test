@@ -672,7 +672,7 @@ async def replay_test_from_pickle(task_id: str):
                  "images": {
                     **raw_data.get("images", {}),      # keep ndvi_b64 and dw_b64 from pickle
                     "activity_b64": activity_base64,
-                    "ndvi_rvi_b64": ndvi_rvi_b64   # override only the activity chart
+                    "ndvi_b64": ndvi_rvi_b64   # override only the activity chart
                 }, # Use B64 images already in pickle
                 "vegetation_peak_analysis": peak_analysis,
                 "seasonal_activity": seasonal_act,
@@ -688,7 +688,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_310_Draft_Final/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_310_Final_New/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

@@ -415,6 +415,8 @@ async def replay_test_from_pickle(task_id: str):
         dataset_df.set_index('date', inplace=True)
         # Handle duplicated dates by taking mean
         dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
+
+        raw_points_df = dataset_df.copy().reset_index()
         # Resample strictly to daily points to hit exactly 365 days
         dataset_df = dataset_df.resample('D').mean(numeric_only=True)
         dataset_df.reset_index(inplace=True)
@@ -597,7 +599,50 @@ async def replay_test_from_pickle(task_id: str):
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
         # Then override images in full_data:
-       
+        # Create the Trend Analysis Graph
+        fig_trend = go.Figure()
+
+        # Define Colors
+        colors = {'NDVI': '#27ae60', 'EVI': '#2980b9', 'RVI': '#f1c40f'}
+
+        for col in ['NDVI', 'EVI', 'RVI']:
+            if col in dataset_df.columns:
+                # 1. Add the Whittaker Smooth Line
+                fig_trend.add_trace(go.Scatter(
+                    x=dataset_df['date'],
+                    y=dataset_df[col],
+                    mode='lines',
+                    line=dict(color=colors[col], width=2),
+                    name=f"{col} (Smoothed)",
+                    hoverinfo='skip'
+                ))
+                
+                # 2. Add the Raw Observation Points
+                # We filter out NaNs to ensure only real satellite passes are plotted
+                valid_raw = raw_points_df[raw_points_df[col].notna()]
+                fig_trend.add_trace(go.Scatter(
+                    x=valid_raw['date'],
+                    y=valid_raw[col],
+                    mode='markers',
+                    marker=dict(color=colors[col], size=6, symbol='circle', 
+                                line=dict(color='white', width=1)),
+                    name=f"{col} (Raw)",
+                    showlegend=True
+                ))
+
+        fig_trend.update_layout(
+            title="Trend Analysis (Raw Points + Whittaker Lines)",
+            xaxis_title="Date",
+            yaxis_title="Index Value",
+            template="plotly_white",
+            hovermode="x unified",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=50, r=20, t=80, b=50),
+            height=500
+        )
+
+        # Generate the new B64 string
+        ndvi_rvi_b64 = fig_to_base64(fig_trend, is_plotly=True)
 
         # 4-Axis Synthesis for Overall Parcel Confidence
         p1_crop_mean = dataset_df['p1_crop_conf'].mean()
@@ -626,7 +671,8 @@ async def replay_test_from_pickle(task_id: str):
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
                  "images": {
                     **raw_data.get("images", {}),      # keep ndvi_b64 and dw_b64 from pickle
-                    "activity_b64": activity_base64    # override only the activity chart
+                    "activity_b64": activity_base64,
+                    "ndvi_rvi_b64": ndvi_rvi_b64   # override only the activity chart
                 }, # Use B64 images already in pickle
                 "vegetation_peak_analysis": peak_analysis,
                 "seasonal_activity": seasonal_act,

@@ -631,7 +631,6 @@ async def replay_test_from_pickle(task_id: str):
                 ))
 
         fig_trend.update_layout(
-            title="Trend Analysis (Raw Points + Whittaker Lines)",
             xaxis_title="Date",
             yaxis_title="Index Value",
             template="plotly_white",

@@ -283,14 +283,23 @@ def apply_empirical_logic(row, detected_seasons):
     elif p1_crop_conf > 80: # Physics is certain
         final_crop = p1_crop_conf * 0.8 + p2_crop_conf * 0.2
     else:
-        # If neither is certain, they must support each other
+    # If neither is certain, they must support each other
         # Merge Phase (Weighted 60% Physics, 40% AI)
         final_crop = (p1_crop_conf * 0.60) + (p2_crop_conf * 0.40)
     
     final_nocrop = 100 - final_crop
     
+    # 1. Prediction remains strictly linear
     prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
-    return prediction, p1_crop_conf, p2_crop_conf, final_crop
+    
+    # 2. Confidence uses Approach A (Consensus Amplification)
+    agreement = 1.0 - (abs(p1_crop_conf - p2_crop_conf) / 100.0)
+    amplified_crop = final_crop * (agreement ** 2)
+    amplified_nocrop = 100 - amplified_crop
+    
+    final_confidence = amplified_crop if prediction == "Crop-Activity" else amplified_nocrop
+    
+    return prediction, p1_crop_conf, p2_crop_conf, final_confidence
 
 
 def run_full_analytics_pipeline(task_id, coords, end_date_str):
@@ -505,7 +514,12 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            # Save FNs safely: Modified with the Tree Trap block
+            # Approach A for Confidence Only
+            agreement = 1.0 - (abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf']) / 100.0)
+            amplified_crop = avg_crop * (agreement ** 2)
+            amplified_nocrop = 100.0 - amplified_crop
+            
+            # Save FNs safely: Modified with the Tree Trap block (Prediction untouched)
             dataset_df['prediction'] = np.where(
                 (dataset_df['p1_crop_conf'] > 50) & 
                 (total_cycles > 0) & 
@@ -514,7 +528,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
-            dataset_df['final_confidence'] = np.where(avg_crop > avg_nocrop, avg_crop, avg_nocrop)
+            dataset_df['final_confidence'] = np.where(dataset_df['prediction'] == "Crop-Activity", amplified_crop, amplified_nocrop)
             
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()

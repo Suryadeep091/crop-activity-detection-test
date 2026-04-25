@@ -526,7 +526,12 @@ async def replay_test_from_pickle(task_id: str):
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            # Save FNs safely: Modified with the Tree Trap block
+            # Approach A for Confidence Only
+            agreement = 1.0 - (abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf']) / 100.0)
+            amplified_crop = avg_crop * (agreement ** 2)
+            amplified_nocrop = 100.0 - amplified_crop
+            
+            # Save FNs safely: Modified with the Tree Trap block (Prediction untouched)
             dataset_df['prediction'] = np.where(
                 (dataset_df['p1_crop_conf'] > 50) & 
                 (total_cycles > 0) & 
@@ -535,7 +540,7 @@ async def replay_test_from_pickle(task_id: str):
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
-            dataset_df['final_confidence'] = np.where(avg_crop > avg_nocrop, avg_crop, avg_nocrop)
+            dataset_df['final_confidence'] = np.where(dataset_df['prediction'] == "Crop-Activity", amplified_crop, amplified_nocrop)
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -650,12 +655,18 @@ async def replay_test_from_pickle(task_id: str):
         p2_nocrop_mean = dataset_df['p2_nocrop_conf'].mean()
 
         final_crop_score = (p1_crop_mean * 0.60) + (p2_crop_mean * 0.40)
-        final_nocrop_score = (p1_nocrop_mean * 0.60) + (p2_nocrop_mean * 0.40)
+        
+        # Approach A for Confidence Only
+        agreement = 1.0 - (abs(p1_crop_mean - p2_crop_mean) / 100.0)
+        amplified_crop_score = final_crop_score * (agreement ** 2)
+        amplified_nocrop_score = 100.0 - amplified_crop_score
 
         # Re-verify activity ratio after possible guardband prediction flips
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        overall_conf = final_crop_score if current_activity_ratio >= 15 else final_nocrop_score
+        
+        # Determine overall_conf based strictly on prediction ratio, using amplified scores
+        overall_conf = amplified_crop_score if current_activity_ratio >= 15 else amplified_nocrop_score
 
         full_data = {
             "task_id": task_id,
@@ -704,7 +715,8 @@ async def replay_test_from_pickle(task_id: str):
             "p1_avg_conf": f"{round(dataset_df['p1_crop_conf'].mean(), 2)}%",
             "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%",
             "p1_nocrop_avg_conf": f"{round(dataset_df['p1_nocrop_conf'].mean(), 2)}%",
-            "p2_nocrop_avg_conf": f"{round(dataset_df['p2_nocrop_conf'].mean(), 2)}%"
+            "p2_nocrop_avg_conf": f"{round(dataset_df['p2_nocrop_conf'].mean(), 2)}%",
+            "final_confidence_score": f"{round(overall_conf, 2)}%"
         }
 
     except Exception as e:

@@ -292,12 +292,21 @@ def apply_empirical_logic(row, detected_seasons):
     # 1. Prediction remains strictly linear
     prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
     
-    # 2. Confidence uses Agreement-Averaging
-    # This naturally boosts confidence when pipelines agree, and crushes it when they conflict.
-    raw_winning_score = final_crop if prediction == "Crop-Activity" else final_nocrop
-    agreement = 100.0 - abs(p1_crop_conf - p2_crop_conf)
+    # 2. Confidence uses Geometric Purity
+    import math
+    p1_winning = p1_crop_conf if prediction == "Crop-Activity" else p1_nocrop_conf
+    p2_winning = p2_crop_conf if prediction == "Crop-Activity" else p2_nocrop_conf
     
-    final_confidence = (raw_winning_score + agreement) / 2.0
+    base_confidence = math.sqrt(p1_winning * p2_winning)
+    
+    if prediction == "Crop-Activity":
+        noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in row.index]
+        noise_level = sum([row.get(c, 0.0) for c in noise_cols]) if noise_cols else 0.0
+        purity = max(1.0 - noise_level, 0.1)
+    else:
+        purity = 1.0
+        
+    final_confidence = base_confidence * purity
     
     return prediction, p1_crop_conf, p2_crop_conf, final_confidence
 
@@ -524,11 +533,17 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
             
-            # 2. Confidence uses Agreement-Averaging
-            raw_winning_score = np.where(dataset_df['prediction'] == "Crop-Activity", avg_crop, avg_nocrop)
-            agreement = 100.0 - abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf'])
+            # 2. Confidence uses Geometric Purity
+            p1_winning = np.where(dataset_df['prediction'] == "Crop-Activity", dataset_df['p1_crop_conf'], dataset_df['p1_nocrop_conf'])
+            p2_winning = np.where(dataset_df['prediction'] == "Crop-Activity", dataset_df['p2_crop_conf'], dataset_df['p2_nocrop_conf'])
             
-            dataset_df['final_confidence'] = (raw_winning_score + agreement) / 2.0
+            base_confidence = np.sqrt(p1_winning * p2_winning)
+            
+            noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in dataset_df.columns]
+            noise_level = dataset_df[noise_cols].sum(axis=1) if noise_cols else 0.0
+            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - noise_level, 0.1, 1.0), 1.0)
+            
+            dataset_df['final_confidence'] = base_confidence * purity
             
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()

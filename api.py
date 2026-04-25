@@ -536,11 +536,17 @@ async def replay_test_from_pickle(task_id: str):
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
             
-            # 2. Confidence uses Agreement-Averaging
-            raw_winning_score = np.where(dataset_df['prediction'] == "Crop-Activity", avg_crop, avg_nocrop)
-            agreement = 100.0 - abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf'])
+            # 2. Confidence uses Geometric Purity
+            p1_winning = np.where(dataset_df['prediction'] == "Crop-Activity", dataset_df['p1_crop_conf'], dataset_df['p1_nocrop_conf'])
+            p2_winning = np.where(dataset_df['prediction'] == "Crop-Activity", dataset_df['p2_crop_conf'], dataset_df['p2_nocrop_conf'])
             
-            dataset_df['final_confidence'] = (raw_winning_score + agreement) / 2.0
+            base_confidence = np.sqrt(p1_winning * p2_winning)
+            
+            noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in dataset_df.columns]
+            noise_level = dataset_df[noise_cols].sum(axis=1) if noise_cols else 0.0
+            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - noise_level, 0.1, 1.0), 1.0)
+            
+            dataset_df['final_confidence'] = base_confidence * purity
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -661,11 +667,22 @@ async def replay_test_from_pickle(task_id: str):
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
         
-        # Determine overall_conf based strictly on prediction ratio, using Agreement-Averaging
-        raw_winning_score = final_crop_score if current_activity_ratio >= 15 else final_nocrop_score
-        agreement = 100.0 - abs(p1_crop_mean - p2_crop_mean)
+        # Determine overall_conf based strictly on prediction ratio, using Geometric Purity
+        is_crop = current_activity_ratio >= 15
+        p1_winning = p1_crop_mean if is_crop else p1_nocrop_mean
+        p2_winning = p2_crop_mean if is_crop else p2_nocrop_mean
         
-        overall_conf = (raw_winning_score + agreement) / 2.0
+        import math
+        base_confidence = math.sqrt(p1_winning * p2_winning)
+        
+        if is_crop:
+            noise_columns = [col for col in ['trees', 'water', 'built', 'shrub_and_scrub'] if col in dataset_df.columns]
+            noise_ratio = dataset_df[noise_columns].sum(axis=1).mean() if noise_columns else 0.0
+            purity = max(1.0 - noise_ratio, 0.1)
+        else:
+            purity = 1.0
+            
+        overall_conf = base_confidence * purity
 
         full_data = {
             "task_id": task_id,

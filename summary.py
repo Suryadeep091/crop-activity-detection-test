@@ -45,11 +45,11 @@ def generate_accuracy_report():
         except ValueError:
             conf_val = 0.0
             
-        if conf_val < 25:
+        if conf_val < 30:
             conf_level = "Very Low"
-        elif conf_val < 45:
+        elif conf_val < 50:
             conf_level = "Low"
-        elif conf_val < 65:
+        elif conf_val < 75:
             conf_level = "High"
         else:
             conf_level = "Very High"

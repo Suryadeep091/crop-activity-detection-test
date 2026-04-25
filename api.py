@@ -546,7 +546,11 @@ async def replay_test_from_pickle(task_id: str):
             noise_level = dataset_df[noise_cols].sum(axis=1) if noise_cols else 0.0
             purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - (noise_level ** 2), 0.1, 1.0), 1.0)
             
-            dataset_df['final_confidence'] = base_confidence * purity
+            raw_conf = base_confidence * purity
+            
+            # Smoothstep stretching to push Highs higher and Lows lower
+            nx = np.clip((raw_conf / 100.0) / 0.85, 0.0, 1.0)
+            dataset_df['final_confidence'] = (nx * nx * (3.0 - 2.0 * nx)) * 100.0
 
         
         # 5. GENERATE SUMMARY OBJECTS (Using your helpers)
@@ -682,7 +686,11 @@ async def replay_test_from_pickle(task_id: str):
         else:
             purity = 1.0
             
-        overall_conf = base_confidence * purity
+        raw_conf = base_confidence * purity
+        
+        # Smoothstep stretching to push Highs higher and Lows lower
+        nx = min((raw_conf / 100.0) / 0.85, 1.0)
+        overall_conf = (nx * nx * (3.0 - 2.0 * nx)) * 100.0
 
         full_data = {
             "task_id": task_id,

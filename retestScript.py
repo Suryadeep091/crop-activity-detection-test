@@ -40,7 +40,8 @@ def run_batch_replay_with_logging():
                 p1_nocrop = data.get('p1_nocrop_avg_conf', 'N/A')
                 p2_crop = data.get('p2_avg_conf', 'N/A')
                 p2_nocrop = data.get('p2_nocrop_avg_conf', 'N/A')
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
+                final_conf = data.get('final_confidence_score', 'N/A')
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Overall Conf: {final_conf} | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
                 
                 # Append the full response to our list
                 master_results.append(data)

@@ -292,12 +292,12 @@ def apply_empirical_logic(row, detected_seasons):
     # 1. Prediction remains strictly linear
     prediction = "Crop-Activity" if final_crop > final_nocrop else "No Crop-Activity"
     
-    # 2. Confidence uses Approach A (Consensus Amplification)
-    agreement = 1.0 - (abs(p1_crop_conf - p2_crop_conf) / 100.0)
-    amplified_crop = final_crop * (agreement ** 2)
-    amplified_nocrop = 100 - amplified_crop
+    # 2. Confidence uses Agreement-Averaging
+    # This naturally boosts confidence when pipelines agree, and crushes it when they conflict.
+    raw_winning_score = final_crop if prediction == "Crop-Activity" else final_nocrop
+    agreement = 100.0 - abs(p1_crop_conf - p2_crop_conf)
     
-    final_confidence = amplified_crop if prediction == "Crop-Activity" else amplified_nocrop
+    final_confidence = (raw_winning_score + agreement) / 2.0
     
     return prediction, p1_crop_conf, p2_crop_conf, final_confidence
 
@@ -514,12 +514,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             avg_crop = (dataset_df['p1_crop_conf'] * 0.60) + (dataset_df['p2_crop_conf'] * 0.40)
             avg_nocrop = (dataset_df['p1_nocrop_conf'] * 0.60) + (dataset_df['p2_nocrop_conf'] * 0.40)
             
-            # Approach A for Confidence Only
-            agreement = 1.0 - (abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf']) / 100.0)
-            amplified_crop = avg_crop * (agreement ** 2)
-            amplified_nocrop = 100.0 - amplified_crop
-            
-            # Save FNs safely: Modified with the Tree Trap block (Prediction untouched)
+            # 1. Save FNs safely: Modified with the Tree Trap block (Prediction untouched)
             dataset_df['prediction'] = np.where(
                 (dataset_df['p1_crop_conf'] > 50) & 
                 (total_cycles > 0) & 
@@ -528,7 +523,12 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
-            dataset_df['final_confidence'] = np.where(dataset_df['prediction'] == "Crop-Activity", amplified_crop, amplified_nocrop)
+            
+            # 2. Confidence uses Agreement-Averaging
+            raw_winning_score = np.where(dataset_df['prediction'] == "Crop-Activity", avg_crop, avg_nocrop)
+            agreement = 100.0 - abs(dataset_df['p1_crop_conf'] - dataset_df['p2_crop_conf'])
+            
+            dataset_df['final_confidence'] = (raw_winning_score + agreement) / 2.0
             
         predictions = dataset_df.copy()
         test_df = dataset_df.copy()

@@ -3,8 +3,8 @@ import os
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-results_file = os.path.join(downloads_path, "batch_results_300_Finalist.json")
-comparison_report = os.path.join(downloads_path, "accuracy_comparison_300_Finalist.txt")
+results_file = os.path.join(downloads_path, "batch_results_306_newConf.json")
+comparison_report = os.path.join(downloads_path, "accuracy_comparison_new_conf1.txt")
 
 def generate_accuracy_report():
     try:
@@ -39,12 +39,28 @@ def generate_accuracy_report():
         if match:
             correct_count += 1
 
+        final_conf_str = entry.get("final_confidence_score", "0%")
+        try:
+            conf_val = float(final_conf_str.replace('%', '').strip())
+        except ValueError:
+            conf_val = 0.0
+            
+        if conf_val < 25:
+            conf_level = "Very Low"
+        elif conf_val < 45:
+            conf_level = "Low"
+        elif conf_val < 65:
+            conf_level = "High"
+        else:
+            conf_level = "Very High"
+
         comparisons.append({
             "task_id": task_id,
             "ground_truth": ground_truth,
             "ai_result": ai_result,
             "score": entry.get("activity_score", "0%"),
-            "final_conf": entry.get("final_confidence_score", "N/A"),
+            "final_conf": final_conf_str,
+            "conf_level": conf_level,
             "match": "✅ MATCH" if match else "❌ MISMATCH"
         })
 
@@ -53,12 +69,12 @@ def generate_accuracy_report():
 
     # Print & Save Results
     with open(comparison_report, "w", encoding="utf-8") as f:
-        header = f"{'TASK ID':<20} | {'TRUTH':<10} | {'AI':<10} | {'SCORE':<8} | {'CONF':<8} | {'STATUS'}"
+        header = f"{'TASK ID':<20} | {'TRUTH':<10} | {'AI':<10} | {'SCORE':<8} | {'CONF':<8} | {'LEVEL':<10} | {'STATUS'}"
         print(header)
-        f.write(header + "\n" + "-"*80 + "\n")
+        f.write(header + "\n" + "-"*90 + "\n")
         
         for c in comparisons:
-            line = f"{c['task_id']:<20} | {c['ground_truth']:<10} | {c['ai_result']:<10} | {c['score']:<8} | {c['final_conf']:<8} | {c['match']}"
+            line = f"{c['task_id']:<20} | {c['ground_truth']:<10} | {c['ai_result']:<10} | {c['score']:<8} | {c['final_conf']:<8} | {c['conf_level']:<10} | {c['match']}"
             print(line)
             f.write(line + "\n")
 

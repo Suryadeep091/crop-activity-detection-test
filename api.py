@@ -544,7 +544,7 @@ async def replay_test_from_pickle(task_id: str):
             
             noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in dataset_df.columns]
             noise_level = dataset_df[noise_cols].sum(axis=1) if noise_cols else 0.0
-            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - noise_level, 0.1, 1.0), 1.0)
+            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - (noise_level ** 2), 0.1, 1.0), 1.0)
             
             dataset_df['final_confidence'] = base_confidence * purity
 
@@ -678,7 +678,7 @@ async def replay_test_from_pickle(task_id: str):
         if is_crop:
             noise_columns = [col for col in ['trees', 'water', 'built', 'shrub_and_scrub'] if col in dataset_df.columns]
             noise_ratio = dataset_df[noise_columns].sum(axis=1).mean() if noise_columns else 0.0
-            purity = max(1.0 - noise_ratio, 0.1)
+            purity = max(1.0 - (noise_ratio ** 2), 0.1)
         else:
             purity = 1.0
             

@@ -302,7 +302,8 @@ def apply_empirical_logic(row, detected_seasons):
     if prediction == "Crop-Activity":
         noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in row.index]
         noise_level = sum([row.get(c, 0.0) for c in noise_cols]) if noise_cols else 0.0
-        purity = max(1.0 - noise_level, 0.1)
+        # Use Quadratic Purity: Small edge-noise (30%) only penalizes 9%, but heavy noise (80%) penalizes 64%
+        purity = max(1.0 - (noise_level ** 2), 0.1)
     else:
         purity = 1.0
         
@@ -541,7 +542,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             
             noise_cols = [c for c in ['trees', 'water', 'built', 'shrub_and_scrub'] if c in dataset_df.columns]
             noise_level = dataset_df[noise_cols].sum(axis=1) if noise_cols else 0.0
-            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - noise_level, 0.1, 1.0), 1.0)
+            purity = np.where(dataset_df['prediction'] == "Crop-Activity", np.clip(1.0 - (noise_level ** 2), 0.1, 1.0), 1.0)
             
             dataset_df['final_confidence'] = base_confidence * purity
             

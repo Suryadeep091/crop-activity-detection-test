@@ -324,6 +324,21 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             return None
         
         df_all, summary_dict, df_dw_raw = extraction_result
+
+        # --- CAPTURE TRULY RAW GEE-FETCHED DATA ---
+        # df_all at this point contains the original S2 (NDVI/EVI) and S1 (RVI) rows
+        # exactly as returned by Earth Engine, before any resampling, outer-join with DW,
+        # or Whittaker smoothing. This is the earliest possible capture point.
+        _raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI'] if c in df_all.columns]
+        raw_indices_df = (
+            df_all[['date'] + _raw_index_cols]
+            .copy()
+            .assign(date=lambda d: pd.to_datetime(d['date']).dt.normalize())
+            .dropna(subset=_raw_index_cols, how='all')
+            .drop_duplicates(subset=['date'])
+            .sort_values('date')
+        )
+
         # We still need data_dir for the CSV predictions (optional)
         data_dir = os.path.join("data", task_id)
         os.makedirs(data_dir, exist_ok=True)
@@ -416,13 +431,6 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # Resample strictly to daily points to hit exactly 365 days
         dataset_df = dataset_df.resample('D').mean(numeric_only=True)
         dataset_df.reset_index(inplace=True)
-
-        # --- SAVE RAW FETCHED VALUES (before any smoothing) ---
-        # These are the actual satellite observations (sparse, non-interpolated).
-        # NaN rows = days with no satellite overpass; non-NaN rows = real GEE data points.
-        raw_indices_df = dataset_df[['date'] + [c for c in ['NDVI', 'EVI', 'RVI'] if c in dataset_df.columns]].copy()
-        # Keep only rows where at least one index was actually observed (not just resampled gaps)
-        raw_indices_df = raw_indices_df.dropna(subset=[c for c in ['NDVI', 'EVI', 'RVI'] if c in raw_indices_df.columns], how='all')
 
         def whittaker_smooth(y, lambda_=100, d=2):
             import numpy as np

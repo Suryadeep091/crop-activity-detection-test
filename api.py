@@ -722,7 +722,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Cycle_Test_310_Final_New/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Raw/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

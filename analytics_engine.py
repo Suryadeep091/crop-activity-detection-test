@@ -417,6 +417,13 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         dataset_df = dataset_df.resample('D').mean(numeric_only=True)
         dataset_df.reset_index(inplace=True)
 
+        # --- SAVE RAW FETCHED VALUES (before any smoothing) ---
+        # These are the actual satellite observations (sparse, non-interpolated).
+        # NaN rows = days with no satellite overpass; non-NaN rows = real GEE data points.
+        raw_indices_df = dataset_df[['date'] + [c for c in ['NDVI', 'EVI', 'RVI'] if c in dataset_df.columns]].copy()
+        # Keep only rows where at least one index was actually observed (not just resampled gaps)
+        raw_indices_df = raw_indices_df.dropna(subset=[c for c in ['NDVI', 'EVI', 'RVI'] if c in raw_indices_df.columns], how='all')
+
         def whittaker_smooth(y, lambda_=100, d=2):
             import numpy as np
             from scipy.sparse import eye, diags
@@ -622,7 +629,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # --- 5. Save NDVI/EVI/RVI Static Plot (Base64) ---
         fig_indices = go.Figure()
 
-# Loop through your indices and add traces
+        # Smoothed lines (Whittaker-processed, used by the pipeline)
         for col, color in [('NDVI', 'green'), ('EVI', 'blue'), ('RVI', 'orange')]:
             if col in test_df.columns:
                 fig_indices.add_trace(
@@ -630,10 +637,32 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                         x=test_df['date'],
                         y=test_df[col],
                         mode='lines',
-                        name=col,
+                        name=f'{col} (smoothed)',
                         line=dict(color=color, width=2)
                     )
                 )
+
+        # Raw fetched scatter points (actual GEE satellite observations, pre-smoothing)
+        raw_colors = {'NDVI': 'darkgreen', 'EVI': 'darkblue', 'RVI': 'darkorange'}
+        for col in ['NDVI', 'EVI', 'RVI']:
+            if col in raw_indices_df.columns:
+                raw_col = raw_indices_df.dropna(subset=[col])
+                if not raw_col.empty:
+                    fig_indices.add_trace(
+                        go.Scatter(
+                            x=raw_col['date'],
+                            y=raw_col[col],
+                            mode='markers',
+                            name=f'{col} (raw)',
+                            marker=dict(
+                                color=raw_colors.get(col, 'black'),
+                                size=5,
+                                symbol='circle',
+                                opacity=0.7
+                            ),
+                            showlegend=True
+                        )
+                    )
 
         # Update layout for top-right internal legend
         fig_indices.update_layout(

@@ -19,26 +19,57 @@ try:
 except Exception as e:
     print(f"CRITICAL: Earth Engine failed to initialize: {e}")
 
+def _resolve_gee_key_file(secret_path):
+    if not secret_path:
+        return None
+    if os.path.isfile(secret_path):
+        return secret_path
+    if os.path.isdir(secret_path):
+        preferred_names = ("GOOGLE_APPLICATION_CREDENTIALS", "gee-key.json", "key.json", "credentials.json")
+        for name in preferred_names:
+            candidate = os.path.join(secret_path, name)
+            if os.path.isfile(candidate):
+                return candidate
+        try:
+            regular_files = [
+                os.path.join(secret_path, name)
+                for name in os.listdir(secret_path)
+                if os.path.isfile(os.path.join(secret_path, name))
+            ]
+        except OSError:
+            return None
+        for candidate in regular_files:
+            name = os.path.basename(candidate)
+            candidate = os.path.join(secret_path, name)
+            if os.path.isfile(candidate) and name.lower().endswith(".json"):
+                return candidate
+        if len(regular_files) == 1:
+            return regular_files[0]
+    return None
+
 def initialize_ee():
     try:
         service_account = os.getenv("GEE_SERVICE_ACCOUNT")
-        json_path = "/secrets/gee-key.json/GOOGLE_APPLICATION_CREDENTIALS" 
+        secret_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/secrets/gee-key.json/GOOGLE_APPLICATION_CREDENTIALS")
+        key_file = _resolve_gee_key_file(secret_path)
         project_id = "advarisk" 
         
-        if os.path.exists(json_path) and service_account:
-            # PROD: Uses Secret Manager mount
-            credentials = ee.ServiceAccountCredentials(service_account, json_path)
+        if service_account and key_file:
+            # PROD: Uses a mounted Secret Manager JSON key file.
+            credentials = ee.ServiceAccountCredentials(service_account, key_file)
             ee.Initialize(credentials, project=project_id)
             print(f"✅ GEE Initialized via Secret Manager: {service_account}")
-        elif service_account:
-            # FALLBACK: Uses Metadata Server
-            credentials = ee.ServiceAccountCredentials(service_account, key_data=None)
-            ee.Initialize(credentials, project=project_id)
-            print(f"✅ GEE Initialized via Metadata Server: {service_account}")
         else:
-            # LOCAL: Uses your gcloud auth
-            ee.Initialize(project=project_id)
-            print("✅ GEE Initialized via local default credentials")
+            # Cloud Run/local fallback: use Application Default Credentials.
+            credentials, default_project = google.auth.default()
+            ee.Initialize(
+                credentials,
+                project=project_id or default_project,
+                opt_url='https://earthengine-highvolume.googleapis.com'
+            )
+            if service_account and secret_path and os.path.isdir(secret_path):
+                print(f"⚠️ GEE secret path is a directory, using ADC instead: {secret_path}")
+            print("✅ GEE Initialized via Application Default Credentials")
     except Exception as e:
         print(f"❌ GEE Initialization Failed: {e}")
 

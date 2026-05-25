@@ -285,6 +285,14 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         b3 = loop.run_in_executor(executor, weather_worker, coords, request.end_date)
 
         sat_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
+        if sat_res is None:
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "Satellite analytics failed before producing a result. "
+                    "Check the Cloud Run logs above this request for the GEE extraction/analytics error."
+                ),
+            )
 
         # Step 2: Extract ONLY raw signals for future model testing
         # We ignore 'prediction_stats' and 'seasonal_activity' here
@@ -357,6 +365,8 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
             "local_pickle_path": pickle_url,
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Test Pipeline Error: {str(e)}")

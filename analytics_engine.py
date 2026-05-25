@@ -13,42 +13,10 @@ from data_loader import create_test_data, process_parcel_data
 from test_model import predict_from_pickle
 from datetime import datetime
 from data_loader import detect_crop_cycles
+from decision_policy import decide_parcel
 
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
-
-ACTIVE_ACTIVITY_THRESHOLD = 30.0
-NON_CROP_DOMINANCE_THRESHOLD = 60.0
-LOW_CROP_PROBABILITY_THRESHOLD = 25.0
-NON_CROP_DOMINANT_CLASSES = {
-    'water', 'trees', 'grass', 'flooded_vegetation',
-    'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
-}
-
-def has_noncrop_dominance_veto(land_cover_df):
-    if land_cover_df is None or land_cover_df.empty:
-        return False
-
-    dw_cols = [
-        'water', 'trees', 'grass', 'flooded_vegetation',
-        'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
-    ]
-    available_cols = [c for c in dw_cols if c in land_cover_df.columns]
-    if not available_cols:
-        return False
-
-    numeric_df = land_cover_df[available_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
-    dominant_classes = numeric_df.idxmax(axis=1)
-    dominant_share = dominant_classes.value_counts(normalize=True)
-    dominant_class = dominant_share.index[0] if not dominant_share.empty else None
-    dominant_percent = float(dominant_share.iloc[0] * 100) if not dominant_share.empty else 0.0
-    crop_probability_mean = float(numeric_df['crops'].mean() * 100) if 'crops' in numeric_df else 0.0
-
-    return (
-        dominant_class in NON_CROP_DOMINANT_CLASSES
-        and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
-        and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
-    )
 
 
 #
@@ -764,15 +732,23 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         p2_crop_mean = dataset_df['p2_crop_conf'].mean()
         p2_nocrop_mean = dataset_df['p2_nocrop_conf'].mean()
 
-        final_crop_score = (p1_crop_mean * 0.60) + (p2_crop_mean * 0.40)
-        final_nocrop_score = (p1_nocrop_mean * 0.60) + (p2_nocrop_mean * 0.40)
-
-        # Re-verify activity ratio after possible guardband prediction flips
+        # Re-verify activity ratio after possible guardband prediction flips.
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        noncrop_veto = has_noncrop_dominance_veto(df_dw_raw)
-        is_active = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
-        overall_conf = final_crop_score if is_active else final_nocrop_score
+        parcel_decision = decide_parcel(
+            activity_ratio=current_activity_ratio,
+            daily_data=dataset_df,
+            land_cover_data=df_dw_raw,
+            raw_vegetation_data=raw_indices_df,
+            cycle_info=cycle_info,
+            p1_crop_mean=p1_crop_mean,
+            p1_nocrop_mean=p1_nocrop_mean,
+            p2_crop_mean=p2_crop_mean,
+            p2_nocrop_mean=p2_nocrop_mean,
+        )
+        is_active = parcel_decision["is_active"]
+        noncrop_veto = parcel_decision["noncrop_dominance_veto"]
+        overall_conf = parcel_decision["confidence"]
 
         # --- UPDATED RETURN STATEMENT ---
         return {
@@ -783,10 +759,18 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             "crop_activity_predictions_list": predictions_list,
             "crop_activity_prediction_stats": {
                 "total": len(predictions),
-                "crop_days": int(sum(activity_binary)),
+                "crop_days": current_crop_days,
                 "overall_confidence": float(overall_conf),
                 "is_active": bool(is_active),
                 "noncrop_dominance_veto": bool(noncrop_veto),
+                "decision_label": parcel_decision["decision_label"],
+                "decision_reason": parcel_decision["decision_reason"],
+                "reason_codes": parcel_decision["reason_codes"],
+                "review_reasons": parcel_decision["review_reasons"],
+                "evidence_scores": parcel_decision["evidence_scores"],
+                "landcover_summary": parcel_decision["landcover_summary"],
+                "data_quality": parcel_decision["data_quality"],
+                "vegetation_summary": parcel_decision["vegetation_summary"],
                 "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
                 "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
                 "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),

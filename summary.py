@@ -3,8 +3,8 @@ import os
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-results_file = os.path.join(downloads_path, "batch_results_306_newConf.json")
-comparison_report = os.path.join(downloads_path, "accuracy_comparison_new_conf1.txt")
+results_file = os.path.join(downloads_path, "raw_no_lim_S2_retest.json")
+comparison_report = os.path.join(downloads_path, "test1_no_lim_S2_analysis.txt")
 
 def generate_accuracy_report():
     try:

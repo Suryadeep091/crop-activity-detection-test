@@ -38,6 +38,41 @@ matplotlib.use('Agg')
 app = FastAPI(title="TerraDrishti Unified Khasra Engine")
 executor = ThreadPoolExecutor(max_workers=20)
 
+ACTIVE_ACTIVITY_THRESHOLD = 30.0
+NON_CROP_DOMINANCE_THRESHOLD = 60.0
+LOW_CROP_PROBABILITY_THRESHOLD = 25.0
+NON_CROP_DOMINANT_CLASSES = {
+    'water', 'trees', 'grass', 'flooded_vegetation',
+    'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+}
+
+def has_noncrop_dominance_veto(land_cover_data):
+    """Parcel-level no-crop guard for dense no-limit scene histories."""
+    if land_cover_data is None:
+        return False
+
+    df = land_cover_data if isinstance(land_cover_data, pd.DataFrame) else pd.DataFrame(land_cover_data)
+    dw_cols = [
+        'water', 'trees', 'grass', 'flooded_vegetation',
+        'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+    ]
+    available_cols = [c for c in dw_cols if c in df.columns]
+    if df.empty or not available_cols:
+        return False
+
+    numeric_df = df[available_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
+    dominant_classes = numeric_df.idxmax(axis=1)
+    dominant_share = dominant_classes.value_counts(normalize=True)
+    dominant_class = dominant_share.index[0] if not dominant_share.empty else None
+    dominant_percent = float(dominant_share.iloc[0] * 100) if not dominant_share.empty else 0.0
+    crop_probability_mean = float(numeric_df['crops'].mean() * 100) if 'crops' in numeric_df else 0.0
+
+    return (
+        dominant_class in NON_CROP_DOMINANT_CLASSES
+        and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
+        and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
+    )
+
 # --- DATA LOADING ---
 # Load CSV once at startup for speed
 
@@ -301,6 +336,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
             "task_id": task_id,
             "coords": coords,
             "vegetation_indices": sat_res.get("timeseries_data", {}).get("vegetation_indices"),
+            "raw_vegetation_indices": sat_res.get("timeseries_data", {}).get("raw_vegetation_indices"),
             "land_cover_probs": sat_res.get("timeseries_data", {}).get("land_cover_probs"),
             "location_data": loc_res,
             "weather_data": weather_res, # Save the full worker result (includes b64 strings)
@@ -342,12 +378,14 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         stats = sat_res.get("crop_activity_prediction_stats", {})
         total_instances = stats.get("total", 1) # Default to 1 to avoid division by zero
         active_instances = stats.get("crop_days", 0)
+        land_cover_probs = sat_res.get("timeseries_data", {}).get("land_cover_probs", [])
         
         # 2. Calculate the Activity Percentage
         activity_ratio = (active_instances / total_instances) * 100
+        noncrop_veto = has_noncrop_dominance_veto(land_cover_probs)
         
-        # 3. Apply your 15% Threshold Logic
-        if activity_ratio > 15:
+        # 3. Apply parcel-level activity threshold and non-crop dominance guard.
+        if activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto:
             agri_verdict = "Crop activity detected"
             is_active = True
         else:
@@ -361,6 +399,8 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
             "verdict": agri_verdict,        # The text: "Crop activity detected"
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
+            "noncrop_dominance_veto": noncrop_veto,
+            "final_confidence_score": f"{round(stats.get('overall_confidence', 0), 2)}%",
             "report_url": report_url,
             "local_pickle_path": pickle_url,
         }
@@ -382,15 +422,19 @@ async def replay_test_from_pickle(task_id: str):
 
         # 2. Extract Raw Signals from Pickle
         veg_indices = raw_data.get("vegetation_indices") or [] 
+        raw_veg_indices = raw_data.get("raw_vegetation_indices") or []
         lc_probs = raw_data.get("land_cover_probs") or []
         loc_res = raw_data.get("location_data") or {}
 
         # 3. Reconstruct DataFrame for Processing
         df_veg = pd.DataFrame(veg_indices)
+        df_raw_veg = pd.DataFrame(raw_veg_indices)
         df_dw = pd.DataFrame(lc_probs)
         
         # Normalize and merge (Mirroring your analytics_engine pipeline)
         df_veg['date'] = pd.to_datetime(df_veg['date']).dt.normalize()
+        if not df_raw_veg.empty and 'date' in df_raw_veg.columns:
+            df_raw_veg['date'] = pd.to_datetime(df_raw_veg['date']).dt.normalize()
         df_dw['date'] = pd.to_datetime(df_dw['date']).dt.normalize()
         ############
         # 1. Define all Dynamic World classes
@@ -426,7 +470,18 @@ async def replay_test_from_pickle(task_id: str):
         # Handle duplicated dates by taking mean
         dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
 
-        raw_points_df = dataset_df.copy().reset_index()
+        if not df_raw_veg.empty and 'date' in df_raw_veg.columns:
+            raw_points_df = (
+                df_raw_veg
+                .set_index('date')
+                .groupby('date')
+                .mean(numeric_only=True)
+                .reset_index()
+            )
+        else:
+            # Older pickles did not persist true raw scene observations. Avoid plotting
+            # smoothed daily values as "raw" dots in replay reports.
+            raw_points_df = pd.DataFrame(columns=['date', 'NDVI', 'EVI', 'RVI'])
         # Resample strictly to daily points to hit exactly 365 days
         dataset_df = dataset_df.resample('D').mean(numeric_only=True)
         dataset_df.reset_index(inplace=True)
@@ -580,10 +635,8 @@ async def replay_test_from_pickle(task_id: str):
         # crop_days = total_days - no_crop_days
         
         activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
-        if activity_ratio > 15:
-            is_active = True
-        else:
-            is_active = False
+        noncrop_veto = has_noncrop_dominance_veto(df_dw)
+        is_active = activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
 
         # Format list for Annexure table
         predictions_list = dataset_df.copy()
@@ -644,16 +697,18 @@ async def replay_test_from_pickle(task_id: str):
                 
                 # 2. Add the Raw Observation Points
                 # We filter out NaNs to ensure only real satellite passes are plotted
-                valid_raw = raw_points_df[raw_points_df[col].notna()]
-                fig_trend.add_trace(go.Scatter(
-                    x=valid_raw['date'],
-                    y=valid_raw[col],
-                    mode='markers',
-                    marker=dict(color=colors[col], size=6, symbol='circle', 
-                                line=dict(color='white', width=1)),
-                    name=f"{col} (Raw)",
-                    showlegend=True
-                ))
+                if col in raw_points_df.columns:
+                    valid_raw = raw_points_df[raw_points_df[col].notna()]
+                    if not valid_raw.empty:
+                        fig_trend.add_trace(go.Scatter(
+                            x=valid_raw['date'],
+                            y=valid_raw[col],
+                            mode='markers',
+                            marker=dict(color=colors[col], size=6, symbol='circle', 
+                                        line=dict(color='white', width=1)),
+                            name=f"{col} (Raw)",
+                            showlegend=True
+                        ))
 
         fig_trend.update_layout(
             xaxis_title="Date",
@@ -681,8 +736,8 @@ async def replay_test_from_pickle(task_id: str):
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
         
-        # Determine overall_conf based strictly on prediction ratio, using Geometric Purity
-        is_crop = current_activity_ratio >= 15
+        # Determine overall_conf from the parcel-level decision, using Geometric Purity
+        is_crop = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
         p1_winning = p1_crop_mean if is_crop else p1_nocrop_mean
         p2_winning = p2_crop_mean if is_crop else p2_nocrop_mean
         
@@ -710,7 +765,9 @@ async def replay_test_from_pickle(task_id: str):
                 "crop_activity_prediction_stats": {
                     "crop_days": crop_days,
                     "total": total_days,
-                    "overall_confidence": float(overall_conf)
+                    "overall_confidence": float(overall_conf),
+                    "is_active": bool(is_active),
+                    "noncrop_dominance_veto": bool(noncrop_veto)
                 },
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
                  "images": {
@@ -740,9 +797,10 @@ async def replay_test_from_pickle(task_id: str):
         return {
             "status": "success",
             "task_id": task_id,
-            "agri_activity": "Agri activity detected" if activity_ratio > 15 else "Low Agri activity detected",
+            "agri_activity": "Agri activity detected" if is_active else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
+            "noncrop_dominance_veto": noncrop_veto,
             "report_url": report_url,
             "crop_cycles_count": cycle_info["total_cycles"],
             "detected_seasons": cycle_info["detected_seasons"],

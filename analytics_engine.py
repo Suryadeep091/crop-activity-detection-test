@@ -17,6 +17,39 @@ from data_loader import detect_crop_cycles
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
 
+ACTIVE_ACTIVITY_THRESHOLD = 30.0
+NON_CROP_DOMINANCE_THRESHOLD = 60.0
+LOW_CROP_PROBABILITY_THRESHOLD = 25.0
+NON_CROP_DOMINANT_CLASSES = {
+    'water', 'trees', 'grass', 'flooded_vegetation',
+    'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+}
+
+def has_noncrop_dominance_veto(land_cover_df):
+    if land_cover_df is None or land_cover_df.empty:
+        return False
+
+    dw_cols = [
+        'water', 'trees', 'grass', 'flooded_vegetation',
+        'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+    ]
+    available_cols = [c for c in dw_cols if c in land_cover_df.columns]
+    if not available_cols:
+        return False
+
+    numeric_df = land_cover_df[available_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
+    dominant_classes = numeric_df.idxmax(axis=1)
+    dominant_share = dominant_classes.value_counts(normalize=True)
+    dominant_class = dominant_share.index[0] if not dominant_share.empty else None
+    dominant_percent = float(dominant_share.iloc[0] * 100) if not dominant_share.empty else 0.0
+    crop_probability_mean = float(numeric_df['crops'].mean() * 100) if 'crops' in numeric_df else 0.0
+
+    return (
+        dominant_class in NON_CROP_DOMINANT_CLASSES
+        and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
+        and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
+    )
+
 
 #
 
@@ -711,6 +744,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         print(seasonal_summary)
 
+        raw_indices_export = raw_indices_df.copy()
+        raw_indices_export['date'] = pd.to_datetime(raw_indices_export['date']).dt.strftime('%Y-%m-%d')
+        raw_indices_list = raw_indices_export.to_dict(orient="records")
+
         indices_data = dataset_df[['date', 'NDVI', 'EVI', 'RVI']].copy()
         indices_data['date'] = indices_data['date'].dt.strftime('%Y-%m-%d')
         # Convert to list of dicts: [{'date': '2025-01-01', 'NDVI': 0.45, ...}, ...]
@@ -733,7 +770,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # Re-verify activity ratio after possible guardband prediction flips
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        overall_conf = final_crop_score if current_activity_ratio >= 15 else final_nocrop_score
+        noncrop_veto = has_noncrop_dominance_veto(df_dw_raw)
+        is_active = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
+        overall_conf = final_crop_score if is_active else final_nocrop_score
 
         # --- UPDATED RETURN STATEMENT ---
         return {
@@ -746,13 +785,16 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 "total": len(predictions),
                 "crop_days": int(sum(activity_binary)),
                 "overall_confidence": float(overall_conf),
+                "is_active": bool(is_active),
+                "noncrop_dominance_veto": bool(noncrop_veto),
                 "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
                 "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
                 "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),
                 "p2_nocrop_avg_conf": float(dataset_df['p2_nocrop_conf'].mean())
             },
             "timeseries_data": {
-                "vegetation_indices": indices_raw_list, # NDVI, EVI, RVI points
+                "vegetation_indices": indices_raw_list,     # Smoothed daily NDVI, EVI, RVI points
+                "raw_vegetation_indices": raw_indices_list, # Sparse GEE scene observations for raw markers
                 "land_cover_probs": dw_raw_list         # Dynamic World probability points
             },
             "images": {

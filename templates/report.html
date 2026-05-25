@@ -368,9 +368,10 @@
         
         {% set stats = satellite.crop_activity_prediction_stats %}
         {% set activity_ratio = (stats.crop_days / stats.total * 100) if stats.total > 0 else 0 %}
+        {% set is_active = stats.is_active if stats.is_active is defined else (activity_ratio > 30) %}
 
-        <div class="verdict-banner {{ 'bg-green' if activity_ratio > 15 else 'bg-red' }}">
-            Verdict: {{ 'Agri activity detected' if activity_ratio > 15 else 'Low Agri activity detected' }} 
+        <div class="verdict-banner {{ 'bg-green' if is_active else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if is_active else 'Low Agri activity detected' }} 
             ({{ activity_ratio | round(1) }}% Active | Final Confidence: {{ stats.overall_confidence | round(1) }}%)
         </div>
 

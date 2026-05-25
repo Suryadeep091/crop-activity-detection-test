@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import plotly.io as pio
+import traceback
 from data_loader import create_test_data, process_parcel_data
 from test_model import predict_from_pickle
 from datetime import datetime
@@ -501,6 +502,8 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         tree_freq = (dominant_classes == 'trees').mean()
         water_freq = (dominant_classes == 'water').mean()
         built_freq = (dominant_classes == 'built').mean()
+        snow_freq = (dominant_classes == 'snow_and_ice').mean()
+        flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
         non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq)
         crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
@@ -766,4 +769,5 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         }
     except Exception as e:
             print(f"Engine Error: {e}")
+            print(traceback.format_exc())
             return None

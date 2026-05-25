@@ -375,7 +375,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 async def replay_test_from_pickle(task_id: str):
     try:
         # 1. Fetch and Load Pickle
-        pickle_bytes = download_from_gcs(f"test_310/{task_id}_raw.pkl")
+        pickle_bytes = download_from_gcs(f"no_lim_S2_analysis/{task_id}_full.pkl")
         if not pickle_bytes:
             raise HTTPException(status_code=404, detail="Pickle not found")
         raw_data = pickle.loads(pickle_bytes)
@@ -732,7 +732,7 @@ async def replay_test_from_pickle(task_id: str):
 
         # 7. Generate PDF and Response
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Raw/test_{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Raw_no_lim_S2_analysis/test_{task_id}.pdf", "application/pdf", is_file=True)
         
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Raw Satellite Data Fetching — Technical Guide</title>
+  <style>
+    @page { margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 14mm;
+    }
+    h1 {
+      font-size: 22pt;
+      color: #0f172a;
+      border-bottom: 3px solid #16a34a;
+      padding-bottom: 8px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 14pt;
+      color: #14532d;
+      margin-top: 28px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      color: #334155;
+      margin-top: 18px;
+      page-break-after: avoid;
+    }
+    p { margin: 8px 0; }
+    .subtitle {
+      font-size: 12pt;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+    .meta {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 10pt;
+    }
+    .callout {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .warning {
+      background: #fffbeb;
+      border-left: 4px solid #d97706;
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    th { background: #f1f5f9; font-weight: 600; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      page-break-inside: avoid;
+    }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9.5pt;
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .file-tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 9pt;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin: 4px 0; }
+    .flow {
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      padding: 14px;
+      font-family: Consolas, monospace;
+      font-size: 9pt;
+      line-height: 1.6;
+      border-radius: 8px;
+      white-space: pre;
+    }
+    .page-break { page-break-before: always; }
+    footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 9pt;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+<h1>How We Fetch “Raw” Satellite Indices</h1>
+<p class="subtitle">Technical guide for the AdvaRisk / TerraDrishti pipeline — NDVI, EVI, RVI, report charts, and monsoon data points</p>
+
+<div class="meta">
+  <strong>Repository:</strong> AdvaRisk Test<br>
+  <strong>Primary files:</strong> <code>data_loader.py</code>, <code>analytics_engine.py</code>, <code>api.py</code>, <code>templates/report.html</code><br>
+  <strong>Data source:</strong> Google Earth Engine (GEE)<br>
+  <strong>Generated:</strong> {{ generated_at }}
+</div>
+
+<h2>1. What this document explains</h2>
+<p>
+  Intelligence reports show a <strong>TREND ANALYSIS (NDVI/EVI/RVI)</strong> chart with two visual layers:
+  <strong>smoothed lines</strong> and <strong>scatter markers labeled “(raw)”</strong>.
+  This guide explains, step by step, how those values are produced in code, what “raw” really means in this project,
+  and why you can still see optical (NDVI/EVI) points during the Indian monsoon (June–July and beyond).
+</p>
+
+<div class="callout">
+  <strong>Key takeaway:</strong> “Raw” in our reports means <em>pre-Whittaker smoothing in Python</em> — not unprocessed satellite bands and not necessarily cloud-free parcel observations.
+</div>
+
+<h2>2. End-to-end pipeline (fetch → chart → PDF)</h2>
+<div class="flow">API /test/accuracy
+  → satellite_worker()
+    → run_full_analytics_pipeline()     [analytics_engine.py]
+      → process_parcel_data()           [data_loader.py — GEE fetch]
+      → raw_indices_df snapshot         [before smoothing]
+      → dataset_df                      [daily grid + Whittaker smooth]
+      → Plotly chart (lines + markers)
+      → ndvi_b64 (PNG base64)
+  → generate_intelligence_report()      [pdf_generator.py]
+    → report.html embeds satellite.images.ndvi_b64</div>
+
+<p>Entry point in the API:</p>
+<div class="file-tag">api.py</div>
+<pre>def satellite_worker(task_id, coords, end_date):
+    return run_full_analytics_pipeline(task_id, coords, end_date)</pre>
+
+<h2>3. Google Earth Engine setup</h2>
+<p>
+  Before any imagery is requested, Earth Engine is initialized with project credentials
+  (service account in production, or local <code>gcloud</code> auth).
+</p>
+<div class="file-tag">data_loader.py</div>
+<pre>def initialize_ee():
+    service_account = os.getenv("GEE_SERVICE_ACCOUNT")
+    ...
+    ee.Initialize(credentials, project=project_id)  # or local default
+
+initialize_ee()  # runs at import; called again inside process_parcel_data()</pre>
+
+<h2>4. Parcel geometry and date window</h2>
+<p>
+  The parcel is a polygon from KML coordinates. The analysis window is <strong>one calendar year</strong>
+  ending on the user-supplied <code>end_date</code>.
+</p>
+<div class="file-tag">data_loader.py — process_parcel_data()</div>
+<pre>end_date = pd.to_datetime(end_str)
+start_date = end_date - pd.DateOffset(years=1)
+start_str = start_date.strftime('%Y-%m-%d')
+
+polygon = ee.Geometry.Polygon([coordinates])</pre>
+
+<h2>5. Sentinel-2: cloud mask and index formulas (NDVI, EVI)</h2>
+<p>
+  We use the harmonized surface reflectance collection <code>COPERNICUS/S2_SR_HARMONIZED</code>.
+  Cloudy pixels are masked using the Scene Classification Layer (SCL), then reflectance is scaled to 0–1.
+</p>
+
+<h3>5.1 Cloud masking (pixel level)</h3>
+<p>SCL classes removed: <strong>3</strong> (cloud shadows), <strong>8</strong> (medium cloud), <strong>9</strong> (high cloud), <strong>10</strong> (thin cirrus).</p>
+<pre>def maskS2clouds(image):
+    scl = image.select('SCL')
+    mask = (
+        scl.neq(3).And(scl.neq(8))
+        .And(scl.neq(9)).And(scl.neq(10))
+    )
+    return image.updateMask(mask).divide(10000).copyProperties(image, ["system:time_start"])</pre>
+
+<h3>5.2 NDVI and EVI (computed on each image in GEE)</h3>
+<table>
+  <tr><th>Index</th><th>Bands</th><th>Formula in code</th></tr>
+  <tr><td>NDVI</td><td>B8 (NIR), B4 (RED)</td><td><code>normalizedDifference(['B8','B4'])</code> → (NIR−RED)/(NIR+RED)</td></tr>
+  <tr><td>EVI</td><td>B8, B4, B2 (BLUE)</td><td><code>2.5 * (NIR−RED) / (NIR + 6*RED − 7.5*BLUE + 1)</code></td></tr>
+</table>
+<pre>def compute_indices(img):
+    ndvi = img.normalizedDifference(['B8','B4']).rename('NDVI')
+    evi = img.expression(
+        '(2.5*((NIR-RED)/(NIR+6*RED-7.5*BLUE+1)))',
+        {'NIR': img.select('B8'), 'RED': img.select('B4'), 'BLUE': img.select('B2')}
+    ).rename('EVI')
+    return img.addBands([ndvi, evi]).select(['NDVI','EVI'])</pre>
+
+<h3>5.3 Scene-level cloud filter + full-scene fetch</h3>
+<ul>
+  <li><strong>Scene filter:</strong> entire tile must have <code>CLOUDY_PIXEL_PERCENTAGE &lt; 20</code> (metadata for the granule, not your parcel alone).</li>
+  <li><strong>Current behavior:</strong> all Sentinel-2 scenes that pass the filters are fetched. The old <code>limit_to_60()</code> thinning call is intentionally commented out.</li>
+</ul>
+<pre>s2_col = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+    .filterDate(start_str, end_str)
+    .filterBounds(polygon)
+    .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+    .map(maskS2clouds)
+    .map(compute_indices))
+# s2_col = limit_to_60(s2_col)</pre>
+
+<div class="page-break"></div>
+
+<h2>6. Sentinel-1: RVI (radar — works through clouds)</h2>
+<p>
+  Radar is not blocked by monsoon clouds. RVI is computed from VV and VH in decibels, converted to linear power first.
+</p>
+<pre>def compute_rvi(img):
+    vv = ee.Image(10).pow(img.select('VV').divide(10))
+    vh = ee.Image(10).pow(img.select('VH').divide(10))
+    rvi = vh.multiply(4).divide(vv.add(vh)).rename('RVI')
+    return img.addBands(rvi).select(['RVI'])
+
+s1_col = (ee.ImageCollection('COPERNICUS/S1_GRD')
+    .filterDate(start_str, end_str)
+    .filterBounds(polygon)
+    .filter(ee.Filter.eq('instrumentMode','IW'))
+    .filter(ee.Filter.listContains('transmitterReceiverPolarisation','VV'))
+    .filter(ee.Filter.listContains('transmitterReceiverPolarisation','VH'))
+    .filter(ee.Filter.eq('orbitProperties_pass','DESCENDING'))
+    .map(compute_rvi))</pre>
+<p><strong>Note:</strong> Sentinel-1 was already not passed through <code>limit_to_60</code>. Sentinel-2 and Dynamic World are now also fetched without that thinning step.</p>
+
+<h2>7. What <code>extract_timeseries</code> means</h2>
+<p>
+  This is a <strong>local helper function</strong> (not a GEE API name). It converts an <code>ImageCollection</code> into a
+  <strong>pandas table</strong>: one row per satellite acquisition date, one column per index/band.
+</p>
+<p>For <strong>each image</strong> in the collection it:</p>
+<ol>
+  <li>Computes the <strong>mean</strong> of each band inside the parcel polygon at <strong>10 m</strong> scale.</li>
+  <li>Stores the image acquisition date as <code>YYYY-MM-dd</code>.</li>
+  <li>Downloads all rows from GEE with <code>getInfo()</code> and builds a sorted DataFrame.</li>
+</ol>
+<pre>def extract_timeseries(collection, bands):
+    def reducer(img):
+        stats = img.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            geometry=polygon,
+            scale=10,
+            bestEffort=True,
+            maxPixels=1e13
+        )
+        props = {'date': img.date().format('YYYY-MM-dd')}
+        for b in bands:
+            props[b] = stats.get(b)
+        return ee.Feature(None, props)
+    fc = collection.map(reducer).filter(ee.Filter.notNull(bands))
+    info = fc.getInfo().get('features', [])
+    rows = [f['properties'] for f in info]
+    df = pd.DataFrame(rows)
+    df['date'] = pd.to_datetime(df['date'])
+    return df.sort_values('date')
+
+df_s2 = extract_timeseries(s2_col, ['NDVI','EVI'])
+df_s1 = extract_timeseries(s1_col, ['RVI'])</pre>
+
+<div class="warning">
+  <strong>Important:</strong> <code>bestEffort=True</code> allows a mean even when only part of the parcel has valid pixels after cloud masking.
+  There is <strong>no rule</strong> requiring e.g. 50% of the parcel to be cloud-free. This matters heavily during monsoon.
+</div>
+
+<h2>8. Merging sensors into <code>df_all</code></h2>
+<p>S2, S1, and Dynamic World are merged on <code>date</code> with an <strong>outer join</strong> — dates from each sensor are kept even when the others are missing (NaN).</p>
+<pre>df_all = df_s2.copy()
+df_all = df_all.merge(df_s1, on='date', how='outer')
+df_all = df_all.merge(df_dw, on='date', how='outer')
+df_all = df_all.sort_values('date')</pre>
+<p>Result: on an S2 date you may have NDVI+EVI but NaN for RVI; on an S1 date, RVI only.</p>
+
+<h2>9. What “raw” scatter points are in the report chart</h2>
+<p>
+  Immediately after GEE extraction, we snapshot index columns <strong>before</strong> Whittaker smoothing or daily resampling.
+</p>
+<div class="file-tag">analytics_engine.py</div>
+<pre>_raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI'] if c in df_all.columns]
+raw_indices_df = (
+    df_all[['date'] + _raw_index_cols]
+    .copy()
+    .assign(date=lambda d: pd.to_datetime(d['date']).dt.normalize())
+    .dropna(subset=_raw_index_cols, how='all')
+    .drop_duplicates(subset=['date'])
+    .sort_values('date')
+)</pre>
+
+<h3>9.1 How the chart is drawn</h3>
+<table>
+  <tr><th>Visual</th><th>Data source</th><th>Meaning</th></tr>
+  <tr><td>Lines — “(smoothed)”</td><td><code>dataset_df</code> after daily resample + Whittaker</td><td>Continuous ~365-day series used for predictions</td></tr>
+  <tr><td>Markers — “(raw)”</td><td><code>raw_indices_df</code></td><td>One point per acquisition date where that index is non-NaN</td></tr>
+</table>
+<pre># Smoothed lines
+for col in ['NDVI', 'EVI', 'RVI']:
+    fig_indices.add_trace(go.Scatter(
+        x=test_df['date'], y=test_df[col], mode='lines', name=f'{col} (smoothed)'))
+
+# Raw markers — per column, drop NaN for that index only
+raw_col = raw_indices_df.dropna(subset=[col])
+fig_indices.add_trace(go.Scatter(
+    x=raw_col['date'], y=raw_col[col], mode='markers', name=f'{col} (raw)'))</pre>
+
+<p>The PNG is embedded in the PDF as <code>satellite.images.ndvi_b64</code> in <code>templates/report.html</code>.</p>
+
+<h2>10. What happens after “raw” — smoothing (not shown as scatter)</h2>
+<pre>dataset_df = df_all_clean.merge(df_dw_raw, on='date', how='outer')
+dataset_df = dataset_df.groupby('date').mean()
+dataset_df = dataset_df.resample('D').mean()   # daily grid
+
+dataset_df['NDVI'] = whittaker_smooth(..., lambda_=50)
+dataset_df['EVI']  = whittaker_smooth(..., lambda_=50)
+dataset_df['RVI']  = whittaker_smooth(..., lambda_=200)</pre>
+<p>
+  The <strong>annexure table</strong> in the PDF uses <code>crop_activity_predictions_list</code>, which comes from this
+  <strong>smoothed daily</strong> dataframe — not from <code>raw_indices_df</code>. Table values and scatter markers
+  will not match on the same dates.
+</p>
+
+<div class="page-break"></div>
+
+<h2>11. Why monsoon (June–July) still shows NDVI/EVI points</h2>
+<p>
+  Over much of India, the southwest monsoon (roughly <strong>June–September</strong>) reduces usable optical imagery.
+  Many users expect <em>no</em> NDVI points in July. Our pipeline can still show some — for technical reasons below.
+  This is usually <strong>sparse real observations</strong>, not invented dates, but <strong>confidence is lower</strong>.
+</p>
+
+<h3>11.1 Scene cloud % is for the whole tile, not your field</h3>
+<p>
+  <code>CLOUDY_PIXEL_PERCENTAGE &lt; 20</code> applies to the entire Sentinel-2 granule. A scene can pass while your parcel
+  still has patchy clouds — or a relatively clear field can contribute to a scene that passes the 20% rule.
+</p>
+
+<h3>11.2 SCL masking is imperfect + partial means</h3>
+<p>
+  After SCL removes cloud classes, remaining pixels are averaged. With <code>bestEffort=True</code>, GEE may return a mean
+  from only the clear fraction of the parcel. Monsoon points often mean: <em>“we got some masked NDVI,”</em> not
+  <em>“full clear-sky view.”</em>
+</p>
+
+<h3>11.3 Monsoon ≠ zero satellite passes</h3>
+<p>
+  Sentinel-2 revisits every few days. Even in cloudy months, a fraction of scenes pass filters. Because the current code no longer applies
+  <code>limit_to_60</code>, all filtered June/July optical scenes are eligible to appear as raw markers.
+</p>
+
+<h3>11.4 Do not confuse NDVI with RVI in monsoon</h3>
+<p>
+  <strong>RVI (orange markers)</strong> comes from Sentinel-1 radar and is largely unaffected by clouds.
+  <strong>NDVI/EVI (green/blue markers)</strong> are optical. Monsoon charts often look “fuller” because of SAR — check the legend.
+</p>
+
+<h3>11.5 Smoothed lines can hide data gaps</h3>
+<p>
+  A continuous green line through July does <strong>not</strong> mean NDVI was measured every day.
+  Whittaker smoothing bridges gaps between sparse scene dates. Always compare <strong>marker density</strong> to the line.
+</p>
+
+<h2>12. Does this create false data or reduce accuracy?</h2>
+<table>
+  <tr><th>Question</th><th>Answer</th></tr>
+  <tr><td>Are scatter dates fabricated?</td><td><strong>No</strong> — each marker ties to a real filtered GEE scene date.</td></tr>
+  <tr><td>Are daily smoothed values measured?</td><td><strong>Not all</strong> — resample + Whittaker synthesize values on days without observations.</td></tr>
+  <tr><td>Are monsoon optical points always wrong?</td><td><strong>No</strong> — but they are often noisier and should be lower confidence.</td></tr>
+  <tr><td>Impact on crop verdict?</td><td>Predictions use smoothed daily series — monsoon gaps can be <strong>under-filled</strong> or <strong>over-smoothed</strong>, affecting activity %.</td></tr>
+</table>
+
+<h2>13. Glossary</h2>
+<table>
+  <tr><th>Term</th><th>In this project</th></tr>
+  <tr><td>GEE</td><td>Google Earth Engine — cloud platform for satellite processing</td></tr>
+  <tr><td>extract_timeseries</td><td>Helper: ImageCollection → pandas (parcel mean per date)</td></tr>
+  <tr><td>raw_indices_df</td><td>Pre-Whittaker snapshot for chart markers</td></tr>
+  <tr><td>dataset_df</td><td>Daily smoothed series for ML logic and annexure</td></tr>
+  <tr><td>Outer join</td><td>Keep all dates from S2, S1, DW even when other sensors missing</td></tr>
+  <tr><td>Whittaker</td><td>Smoothing algorithm to denoise and fill gaps on daily grid</td></tr>
+</table>
+
+<h2>14. Possible improvements (future work)</h2>
+<ul>
+  <li>Require minimum % of parcel pixels valid after cloud mask before keeping a scene.</li>
+  <li>Tighten <code>CLOUDY_PIXEL_PERCENTAGE</code> (e.g. &lt; 10) or add parcel-level QA.</li>
+  <li>Plot optical and radar on separate panels; annotate scene count per month on the PDF.</li>
+  <li>Store true scene-level series in pickle (<code>vegetation_indices</code> currently saves smoothed daily data).</li>
+  <li>Flag annexure rows as <em>observed</em> vs <em>interpolated/smoothed</em>.</li>
+</ul>
+
+<footer>
+  AdvaRisk / TerraDrishti — Internal technical documentation. Generated from codebase analysis of data_loader.py and analytics_engine.py.
+</footer>
+
+</body>
+</html>

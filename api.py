@@ -269,7 +269,7 @@ def weather_worker(coords, end_date):
 
 # --- UNIFIED ENDPOINT ---
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PICKLE_DIR = os.path.join(PROJECT_DIR, "2023_test")
+PICKLE_DIR = os.path.join(PROJECT_DIR, "no_lim_S2_analysis")
 os.makedirs(PICKLE_DIR, exist_ok=True)
 
 @app.post("/test/accuracy")
@@ -307,7 +307,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         # 3. Upload to GCS (using your existing function)
         pickle_url = upload_private_to_gcs(
             data=pickle_bytes, 
-            destination_blob_name=f"2023_test/{task_id}_raw.pkl", 
+            destination_blob_name=f"no_lim_S2_analysis/{task_id}_full.pkl", 
             content_type="application/octet-stream", # Standard for binary files
             is_file=False
         )
@@ -325,7 +325,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         }
         
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"2023_test/{task_id}.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"no_lim_S2_analysis/{task_id}_full.pdf", "application/pdf", is_file=True)
 
         # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):

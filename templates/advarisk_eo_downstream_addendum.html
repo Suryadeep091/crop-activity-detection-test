@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AdvaRisk — EO Downstream Thesis Addendum</title>
+  <style>
+    @page { margin: 14mm 14mm; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.5;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 10mm 12mm;
+    }
+    h1 {
+      font-size: 17pt;
+      color: #0f172a;
+      border-bottom: 2px solid #16a34a;
+      padding-bottom: 6px;
+      margin: 0 0 4px 0;
+    }
+    .tagline { font-size: 10pt; color: #64748b; margin-bottom: 14px; }
+    h2 {
+      font-size: 11pt;
+      color: #14532d;
+      margin: 14px 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    p { margin: 6px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin: 8px 0;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    th { background: #f1f5f9; width: 28%; }
+    .flow {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: Consolas, monospace;
+      font-size: 8.5pt;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      margin: 8px 0;
+    }
+    .insight {
+      background: #f0fdf4;
+      border-left: 3px solid #16a34a;
+      padding: 8px 12px;
+      margin: 10px 0;
+      font-size: 10pt;
+    }
+    code {
+      font-family: Consolas, monospace;
+      font-size: 9pt;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+    ul { margin: 4px 0; padding-left: 18px; }
+    li { margin: 3px 0; }
+    footer {
+      margin-top: 12px;
+      font-size: 8.5pt;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+    }
+    .cols { display: table; width: 100%; }
+    .col { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>AdvaRisk &amp; the EO Downstream Thesis</h1>
+<p class="tagline">Technical addendum — how industry thinking (SatSure / EO application layer) maps to this codebase · {{ generated_at }}</p>
+
+<div class="insight">
+  <strong>Core thesis (EO industry):</strong> More satellites do not automatically improve decisions. The binding constraint is turning pixels into answers that fit <em>how a customer decides</em> — orchestration, context, and decision-ready modelling. AdvaRisk is built in that direction, not as a data-vendor stack.
+</div>
+
+<h2>1. Where value is created</h2>
+<div class="flow">Satellite catalogs (GEE: S2, S1, Dynamic World)
+        ↓  data_loader.process_parcel_data()
+Orchestration + fusion + QA (merge, masks, extract_timeseries)
+        ↓  analytics_engine.run_full_analytics_pipeline()
+Context + rules (weather, land cover, cycles, guardband)
+        ↓
+Decision outputs (verdict, activity %, confidence, PDF annexure)
+        ↓  api.py → pdf_generator → lender-facing report</div>
+<p>
+  <strong>Upstream</strong> (~20% of product code): fetch indices via Earth Engine.
+  <strong>Downstream</strong> (~80%): smoothing, empirical logic, seasonal tables, environmental veto, PDF/API packaging.
+</p>
+
+<h2>2. The three “hard parts” — mapped to files</h2>
+<table>
+  <tr>
+    <th>Layer</th>
+    <th>What it means</th>
+    <th>AdvaRisk today</th>
+  </tr>
+  <tr>
+    <td><strong>1. Orchestration</strong></td>
+    <td>Reliable multi-source pipelines, lineage, automated QA</td>
+    <td>
+      <code>api.py</code> parallel workers (satellite, location, weather);
+      <code>data_loader.py</code> GEE init, S2/S1/DW collections, <code>extract_timeseries</code>, CSV/pickle;
+      replay via GCS pickle.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>2. Context</strong></td>
+    <td>Fuse EO with weather, land semantics, sector meaning</td>
+    <td>
+      Dynamic World 9-class fusion; <code>rain_temp.py</code> in PDF;
+      parcel KML + static map;
+      <strong>lender lens</strong>: same NDVI read through crop-probability + trees/water guardband.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>3. Modelling</strong></td>
+    <td>Outputs usable in workflow; speed vs accuracy trade-offs</td>
+    <td>
+      <code>detect_crop_cycles</code>, <code>apply_empirical_logic</code>;
+      Whittaker daily series;
+      verdict: <code>activity_ratio &gt; 15%</code> → “Crop activity detected”.
+    </td>
+  </tr>
+</table>
+
+<h2>3. Parallel to ag credit (SatSource pattern)</h2>
+<div class="cols">
+  <div class="col">
+    <p><strong>Mature EO-credit product</strong></p>
+    <ul>
+      <li>Many parameters + calibrated score</li>
+      <li>Embedded in business rule engine / LOS</li>
+      <li>Weeks → minutes; fewer field visits</li>
+    </ul>
+  </div>
+  <div class="col">
+    <p><strong>AdvaRisk (this repo)</strong></p>
+    <ul>
+      <li>Indices + land cover + seasons + cycles + confidence</li>
+      <li>API verdict + intelligence PDF (not yet LOS)</li>
+      <li>Automated parcel pipeline; threshold-based verdict</li>
+    </ul>
+  </div>
+</div>
+<p>
+  Same <strong>decision family</strong> (is this land actively used for agriculture / what is the risk signal?),
+  earlier maturity: strong on <em>signal assembly</em>, lighter on <em>score calibration with banks</em> and <em>enterprise integration</em>.
+</p>
+
+<h2>4. Trade-offs we already encode</h2>
+<table>
+  <tr><th>Trade-off</th><th>Code choice</th><th>Effect</th></tr>
+  <tr><td>Speed vs density</td><td><code>limit_to_60</code> on S2</td><td>Cheaper runs; fewer optical scene dates</td></tr>
+  <tr><td>Readability vs fidelity</td><td>Whittaker + daily <code>resample('D')</code></td><td>Smooth reports; monsoon can look “continuous”</td></tr>
+  <tr><td>Recall vs lender caution</td><td>Environmental guardband</td><td>Suppresses crop calls when trees/water dominate</td></tr>
+  <tr><td>Transparency</td><td><code>raw_indices_df</code> scatter vs smoothed lines</td><td>Honest scene dates — if explained (see companion PDF)</td></tr>
+</table>
+
+<h2>5. Gaps vs “essential workflow” (pilot → production)</h2>
+<ul>
+  <li><strong>QA:</strong> no minimum clear-pixel fraction per parcel before accepting monsoon NDVI scenes.</li>
+  <li><strong>Semantics:</strong> 15% activity threshold not yet co-defined with risk teams as score bands.</li>
+  <li><strong>Integration:</strong> PDF/API output, not wired into loan origination or audit trail standards.</li>
+  <li><strong>Context breadth:</strong> no socio-economic / ground-truth layers in pipeline yet.</li>
+</ul>
+
+<h2>6. Where the moat should sit (for this team)</h2>
+<div class="insight">
+  <strong>Not the moat:</strong> downloading more Sentinel scenes.<br>
+  <strong>The moat:</strong> (1) trusted orchestration + QA, (2) sector-specific fusion and rules banks accept,
+  (3) embedding in their decision engine so switching cost is high.
+  Compounding comes from each deployment improving pipelines and the next sector shipping faster.
+</div>
+
+<p>
+  <strong>Answer to “data vs models vs decision integration?”</strong> —
+  For AdvaRisk, lasting advantage aligns with <strong>decision integration + contextual fusion</strong>;
+  satellite data and heuristics/models are enablers. Next engineering priority: tighten downstream honesty
+  (cloud QA, optical vs SAR separation) and co-design verdict/score meaning with customers — not add indices alone.
+</p>
+
+<footer>
+  Companion doc: <em>Raw_Satellite_Data_Fetching_Guide.pdf</em> · Repo: AdvaRisk Test · TerraDrishti / AdvaRisk
+</footer>
+
+</body>
+</html>

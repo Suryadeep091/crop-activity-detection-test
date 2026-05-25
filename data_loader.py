@@ -327,7 +327,8 @@ def process_parcel_data(run_id, coordinates, end_str):
             .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
             .map(maskS2clouds)
             .map(compute_indices))
-        s2_col = limit_to_60(s2_col)
+        # Fetch all filtered Sentinel-2 scenes instead of thinning to ~60 images.
+        # s2_col = limit_to_60(s2_col)
 
         # Print collection sizes
         print("\nCollection sizes:")
@@ -362,7 +363,8 @@ def process_parcel_data(run_id, coordinates, end_str):
             .filterDate(start_str, end_str)
             .filterBounds(polygon)
             .select(DW_BANDS))
-        dw_col = limit_to_60(dw_col)
+        # Fetch all Dynamic World scenes instead of thinning to ~60 images.
+        # dw_col = limit_to_60(dw_col)
         print(f"Dynamic World images: {dw_col.size().getInfo()}")
 
         # Extract timeseries for given bands

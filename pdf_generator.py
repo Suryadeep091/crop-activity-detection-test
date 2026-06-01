@@ -37,8 +37,14 @@ async def generate_intelligence_report(data: dict):
 
     # Use Playwright to convert HTML to PDF
     async with async_playwright() as p:
-        # Launch headless browser
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage"
+            ]
+        )
         page = await browser.new_page()
         
         # Set content directly from memory (Fast!)

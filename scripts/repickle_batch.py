@@ -9,7 +9,7 @@ import requests
 
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
 input_json_path = os.path.join(downloads_path, "test_parcels_300.json")
-output_json_path = os.path.join(downloads_path, "raw_no_lim_S2_repickle.json")
+output_json_path = os.path.join(downloads_path, "2024-2025.json")
 API_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/accuracy"
 
 
@@ -30,7 +30,7 @@ def main():
         payload = {
             "task_id": task_id,
             "kml_coordinates": kml,
-            "end_date": "2023-03-15",
+            "end_date": "2025-04-25",
         }
         try:
             resp = requests.post(API_URL, json=payload, timeout=300)

@@ -36,7 +36,7 @@ def run_live_batch_test():
         payload = {
             "task_id": task_id,
             "kml_coordinates": kml,
-            "end_date": "2023-03-15" # Consistent date for accuracy benchmarking
+            "end_date": "2026-05-25" # Consistent date for accuracy benchmarking
         }
 
         try:

@@ -248,9 +248,22 @@ def compute_parcel_certainty(
     guardband_conflict=False,
     missing_periods=None,
 ):
-    winning_score = final_crop_score if is_active else final_nocrop_score
-    losing_score = final_nocrop_score if is_active else final_crop_score
-    verdict_margin = abs(winning_score - losing_score)
+    if is_active:
+        # For active parcels, we expect crops during peaks and no-crops during off-seasons.
+        # So daily winning confidence is the confidence of the predicted state on that day.
+        daily_winning = np.maximum(
+            dataset_df['p1_crop_conf'] * 0.60 + dataset_df['p2_crop_conf'] * 0.40,
+            dataset_df['p1_nocrop_conf'] * 0.60 + dataset_df['p2_nocrop_conf'] * 0.40
+        )
+        daily_losing = 100.0 - daily_winning
+        winning_score = float(daily_winning.mean())
+        losing_score = float(daily_losing.mean())
+        verdict_margin = abs(winning_score - losing_score)
+    else:
+        # For inactive parcels, we expect no-crops all year round.
+        winning_score = final_nocrop_score
+        losing_score = final_crop_score
+        verdict_margin = abs(winning_score - losing_score)
 
     pipeline_disagreement = float(dataset_df['p1_crop_conf'].sub(dataset_df['p2_crop_conf']).abs().mean())
     pipeline_agreement = max(0.0, 100.0 - pipeline_disagreement)
@@ -259,12 +272,14 @@ def compute_parcel_certainty(
         n_s2_scenes = int(raw_indices_df['NDVI'].notna().sum())
     else:
         n_s2_scenes = 0
-    data_sufficiency = min(100.0, 100.0 * (n_s2_scenes / 40.0))
+    # Realistic data sufficiency: 20 scenes per year is 100% sufficient for Whittaker
+    data_sufficiency = min(100.0, 100.0 * (n_s2_scenes / 20.0))
     if missing_periods:
         data_sufficiency *= max(0.5, 1.0 - (len(missing_periods) * 0.05))
 
     if is_active:
-        land_alignment = min(100.0, (crop_freq * 100.0) + (1.0 - non_crop_freq) * 40.0)
+        # Scaled crop frequency: 25% crop dominance over the year is highly sufficient for an active land.
+        land_alignment = min(100.0, (crop_freq / 0.25) * 80.0 + (1.0 - non_crop_freq) * 20.0)
     else:
         land_alignment = min(100.0, (non_crop_freq * 100.0) + (20.0 if noncrop_veto else 0.0))
 

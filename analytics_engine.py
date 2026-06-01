@@ -30,7 +30,16 @@ DW_COLS = [
 ]
 
 def has_noncrop_dominance_veto(land_cover_df):
-    if land_cover_df is None or land_cover_df.empty:
+    if land_cover_df is None:
+        return False
+    if isinstance(land_cover_df, list):
+        if not land_cover_df:
+            return False
+        land_cover_df = pd.DataFrame(land_cover_df)
+    elif isinstance(land_cover_df, pd.DataFrame):
+        if land_cover_df.empty:
+            return False
+    else:
         return False
 
     dw_cols = [

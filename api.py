@@ -22,17 +22,20 @@ import numpy as np
 import traceback
 from analytics_engine import (
     apply_empirical_logic,
-    summarize_crop_activity_table_data, 
-    summarize_indices_for_table
+    summarize_crop_activity_table_data,
+    summarize_indices_for_table,
+    run_full_analytics_pipeline,
+    prepare_daily_modeling_dataframe,
+    build_vegetation_indices_chart,
+    compute_parcel_certainty,
+    has_noncrop_dominance_veto,
+    ACTIVE_ACTIVITY_THRESHOLD,
 )
-# Module Imports (Ensure these files are in your deployment directory)
-from analytics_engine import run_full_analytics_pipeline
 from data_loader import get_centroid_location, get_places_info
 from rain_temp import get_one_year_weather_data, get_five_year_weather_data
 from pdf_generator import generate_intelligence_report 
 from location import get_static_map_b64
 from data_loader import detect_crop_cycles
-from decision_policy import decide_parcel
 
 # Configuration
 matplotlib.use('Agg')
@@ -344,12 +347,19 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         stats = sat_res.get("crop_activity_prediction_stats", {})
         total_instances = stats.get("total", 1) # Default to 1 to avoid division by zero
         active_instances = stats.get("crop_days", 0)
+        land_cover_probs = sat_res.get("timeseries_data", {}).get("land_cover_probs", [])
         
         # 2. Calculate the Activity Percentage
         activity_ratio = (active_instances / total_instances) * 100
-        is_active = bool(stats.get("is_active", False))
-        decision_label = stats.get("decision_label") or ("Active" if is_active else "Inactive")
-        agri_verdict = "Crop activity detected" if is_active else "Low/No Crop activity detected"
+        noncrop_veto = has_noncrop_dominance_veto(land_cover_probs)
+        
+        # 3. Apply parcel-level activity threshold and non-crop dominance guard.
+        if activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto:
+            agri_verdict = "Crop activity detected"
+            is_active = True
+        else:
+            agri_verdict = "Low/No Crop activity detected"
+            is_active = False
 
         # --- FINAL RETURN ---
         return {
@@ -358,16 +368,9 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
             "verdict": agri_verdict,        # The text: "Crop activity detected"
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
-            "decision_label": decision_label,
-            "decision_reason": stats.get("decision_reason", ""),
-            "reason_codes": stats.get("reason_codes", []),
-            "review_reasons": stats.get("review_reasons", []),
-            "noncrop_dominance_veto": bool(stats.get("noncrop_dominance_veto", False)),
-            "evidence_scores": stats.get("evidence_scores", {}),
-            "landcover_summary": stats.get("landcover_summary", {}),
-            "data_quality": stats.get("data_quality", {}),
-            "vegetation_summary": stats.get("vegetation_summary", {}),
-            "final_confidence_score": f"{round(stats.get('overall_confidence', 0), 2)}%",
+            "noncrop_dominance_veto": noncrop_veto,
+            "final_confidence_score": f"{round(stats.get('certainty_score', stats.get('overall_confidence', 0)), 2)}%",
+            "certainty_tier": stats.get("certainty_tier", ""),
             "report_url": report_url,
             "local_pickle_path": pickle_url,
         }
@@ -429,65 +432,20 @@ async def replay_test_from_pickle(task_id: str):
                 "percent": round((count / total_points * 100), 2) if total_points > 0 else 0.0
             }
         
-        ###################
-        dataset_df = df_veg.merge(df_dw, on='date', how='outer').sort_values('date')
-
-        # --- D. WHITTAKER SMOOTHER & DAILY UPSAMPLING ---
-        dataset_df.set_index('date', inplace=True)
-        # Handle duplicated dates by taking mean
-        dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
-
         if not df_raw_veg.empty and 'date' in df_raw_veg.columns:
-            raw_points_df = (
-                df_raw_veg
-                .set_index('date')
-                .groupby('date')
-                .mean(numeric_only=True)
-                .reset_index()
-            )
+            veg_source = df_raw_veg
+            already_smoothed = False
+        elif not df_veg.empty and 'date' in df_veg.columns:
+            veg_source = df_veg
+            already_smoothed = True
         else:
-            # Older pickles did not persist true raw scene observations. Avoid plotting
-            # smoothed daily values as "raw" dots in replay reports.
+            raise HTTPException(status_code=400, detail="Pickle has no vegetation index data")
+
+        dataset_df, raw_points_df = prepare_daily_modeling_dataframe(
+            veg_source, df_dw, already_smoothed=already_smoothed
+        )
+        if already_smoothed and df_raw_veg.empty:
             raw_points_df = pd.DataFrame(columns=['date', 'NDVI', 'EVI', 'RVI'])
-        # Resample strictly to daily points to hit exactly 365 days
-        dataset_df = dataset_df.resample('D').mean(numeric_only=True)
-        dataset_df.reset_index(inplace=True)
-
-        def whittaker_smooth(y, lambda_=100, d=2):
-            import numpy as np
-            from scipy.sparse import eye, diags
-            from scipy.sparse.linalg import spsolve
-            m = len(y)
-            if m < d + 1: return y
-            weight = np.ones(m)
-            weight[np.isnan(y)] = 0.0
-            W = diags(weight, 0, shape=(m, m), format='csc')
-            D = eye(m, format='csc')
-            for _ in range(d):
-                D = D[:-1, :] - D[1:, :]
-            y_solve = np.copy(y)
-            if np.isnan(y_solve).all(): return y_solve
-            y_solve[np.isnan(y_solve)] = 0.0 
-            A = W + (lambda_ * D.T.dot(D))
-            return spsolve(A, W.dot(y_solve))
-
-        # Apply Adaptive Whittaker parameters
-        if 'NDVI' in dataset_df.columns:
-            # Aggressive short-cycle kernel for peak preservation
-            dataset_df['NDVI_short_smooth'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=10)
-            # Default smoothing for standard extraction
-            dataset_df['NDVI'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=50)
-            
-        if 'EVI' in dataset_df.columns:
-            dataset_df['EVI'] = whittaker_smooth(dataset_df['EVI'].values, lambda_=50)
-            
-        if 'RVI' in dataset_df.columns:
-            # Stiffness mode to combat radar speckle
-            dataset_df['RVI'] = whittaker_smooth(dataset_df['RVI'].values, lambda_=200)
-
-        # Fill gaps via interpolation for remaining columns
-        cols_to_fix = [c for c in dataset_df.columns if c not in ['date', 'prediction', 'NDVI', 'EVI', 'RVI', 'NDVI_short_smooth']]
-        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
 
         # 4. RUN YOUR ENGINE LOGIC
         # We no longer need aggressive rolling windows because Whittaker has effectively smoothed it perfectly
@@ -515,9 +473,10 @@ async def replay_test_from_pickle(task_id: str):
         built_freq = (dominant_classes == 'built').mean()
         snow_freq = (dominant_classes == 'snow_and_ice').mean()
         flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
+        shrub_freq = (dominant_classes == 'shrub_and_scrub').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
         
-        non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq)
+        non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq, shrub_freq)
         crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         total_days = len(dataset_df)
         activity_ratio = (crop_days / total_days) if total_days > 0 else 0
@@ -534,15 +493,19 @@ async def replay_test_from_pickle(task_id: str):
         # 2. Define the Tree Trap
         # Logic: If trees are the majority AND crops are scarce AND biological sync is mediocre
         is_tree_trap = (tree_freq > 0.50) and (crop_freq < 0.35) and (avg_bioscore < 70)
+        is_shrub_trap = (shrub_freq > 0.55) and (crop_freq < 0.20)
+        guardband_conflict = False
 
         # 3. Guardband & Penalty logic (Scenario A/B/C)
         if is_guardband_triggered:
             if non_crop_freq > 0.85 and activity_ratio > 0.0:
                 # Scenario C: Extreme AI Domination
+                guardband_conflict = True
                 dataset_df['p2_crop_conf'] *= 0.10
                 if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.10
             elif activity_ratio > 0.50 and non_crop_freq > 0.50:
                 # Scenario B: Major Conflict
+                guardband_conflict = True
                 dataset_df['p2_crop_conf'] *= 0.30
                 if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.30
             else:
@@ -563,7 +526,7 @@ async def replay_test_from_pickle(task_id: str):
                 (dataset_df['p1_crop_conf'] > 50) & 
                 (total_cycles > 0) & 
                 (crop_freq > 0.07) & 
-                (~is_tree_trap),  # <--- NEW: Block the override for tree-dominant noise
+                (~is_tree_trap) & (~is_shrub_trap),
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
@@ -602,6 +565,8 @@ async def replay_test_from_pickle(task_id: str):
         # crop_days = total_days - no_crop_days
         
         activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
+        noncrop_veto = has_noncrop_dominance_veto(df_dw)
+        is_active = activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
 
         # Format list for Annexure table
         predictions_list = dataset_df.copy()
@@ -625,7 +590,7 @@ async def replay_test_from_pickle(task_id: str):
         ))
         
         fig.update_layout(
-            title="Verdict Certainty Over Time",
+            title="Daily Classification Strength",
             yaxis=dict(
                 title="Certainty (%)",
                 range=[0, 105],
@@ -641,76 +606,36 @@ async def replay_test_from_pickle(task_id: str):
         )
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
-        # Then override images in full_data:
-        # Create the Trend Analysis Graph
-        fig_trend = go.Figure()
-
-        # Define Colors
-        colors = {'NDVI': '#27ae60', 'EVI': '#2980b9', 'RVI': '#f1c40f'}
-
-        for col in ['NDVI', 'EVI', 'RVI']:
-            if col in dataset_df.columns:
-                # 1. Add the Whittaker Smooth Line
-                fig_trend.add_trace(go.Scatter(
-                    x=dataset_df['date'],
-                    y=dataset_df[col],
-                    mode='lines',
-                    line=dict(color=colors[col], width=2),
-                    name=f"{col} (Smoothed)",
-                    hoverinfo='skip'
-                ))
-                
-                # 2. Add the Raw Observation Points
-                # We filter out NaNs to ensure only real satellite passes are plotted
-                if col in raw_points_df.columns:
-                    valid_raw = raw_points_df[raw_points_df[col].notna()]
-                    if not valid_raw.empty:
-                        fig_trend.add_trace(go.Scatter(
-                            x=valid_raw['date'],
-                            y=valid_raw[col],
-                            mode='markers',
-                            marker=dict(color=colors[col], size=6, symbol='circle', 
-                                        line=dict(color='white', width=1)),
-                            name=f"{col} (Raw)",
-                            showlegend=True
-                        ))
-
-        fig_trend.update_layout(
-            xaxis_title="Date",
-            yaxis_title="Index Value",
-            template="plotly_white",
-            hovermode="x unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=50, r=20, t=80, b=50),
-            height=500
+        fig_trend = build_vegetation_indices_chart(
+            dataset_df, raw_points_df, (analysis_start, analysis_end)
         )
-
-        # Generate the new B64 string
         ndvi_rvi_b64 = fig_to_base64(fig_trend, is_plotly=True)
 
-        # 4-Axis Synthesis for Overall Parcel Confidence
         p1_crop_mean = dataset_df['p1_crop_conf'].mean()
         p1_nocrop_mean = dataset_df['p1_nocrop_conf'].mean()
         p2_crop_mean = dataset_df['p2_crop_conf'].mean()
         p2_nocrop_mean = dataset_df['p2_nocrop_conf'].mean()
+        final_crop_score = (p1_crop_mean * 0.60) + (p2_crop_mean * 0.40)
+        final_nocrop_score = (p1_nocrop_mean * 0.60) + (p2_nocrop_mean * 0.40)
 
-        # Re-verify activity ratio after possible guardband prediction flips
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        parcel_decision = decide_parcel(
-            activity_ratio=current_activity_ratio,
-            daily_data=dataset_df,
-            land_cover_data=df_dw,
-            raw_vegetation_data=df_raw_veg,
-            cycle_info=cycle_info,
-            p1_crop_mean=p1_crop_mean,
-            p1_nocrop_mean=p1_nocrop_mean,
-            p2_crop_mean=p2_crop_mean,
-            p2_nocrop_mean=p2_nocrop_mean,
+        is_active_final = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
+
+        certainty = compute_parcel_certainty(
+            dataset_df,
+            raw_points_df,
+            is_active_final,
+            noncrop_veto,
+            final_crop_score,
+            final_nocrop_score,
+            crop_freq,
+            non_crop_freq,
+            is_guardband_triggered,
+            guardband_conflict=guardband_conflict,
+            missing_periods=missing_periods,
         )
-        is_active = parcel_decision["is_active"]
-        noncrop_veto = parcel_decision["noncrop_dominance_veto"]
-        overall_conf = parcel_decision["confidence"]
+        overall_conf = certainty["certainty_score"]
 
         full_data = {
             "task_id": task_id,
@@ -721,16 +646,12 @@ async def replay_test_from_pickle(task_id: str):
                     "crop_days": crop_days,
                     "total": total_days,
                     "overall_confidence": float(overall_conf),
+                    "certainty_score": float(overall_conf),
+                    "certainty_tier": certainty["certainty_tier"],
+                    "certainty_components": certainty["components"],
+                    "certainty_penalties": certainty["penalties_applied"],
                     "is_active": bool(is_active),
-                    "noncrop_dominance_veto": bool(noncrop_veto),
-                    "decision_label": parcel_decision["decision_label"],
-                    "decision_reason": parcel_decision["decision_reason"],
-                    "reason_codes": parcel_decision["reason_codes"],
-                    "review_reasons": parcel_decision["review_reasons"],
-                    "evidence_scores": parcel_decision["evidence_scores"],
-                    "landcover_summary": parcel_decision["landcover_summary"],
-                    "data_quality": parcel_decision["data_quality"],
-                    "vegetation_summary": parcel_decision["vegetation_summary"],
+                    "noncrop_dominance_veto": bool(noncrop_veto)
                 },
                 "crop_activity_predictions_list": predictions_list.to_dict(orient="records"),
                  "images": {
@@ -763,15 +684,7 @@ async def replay_test_from_pickle(task_id: str):
             "agri_activity": "Agri activity detected" if is_active else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
-            "decision_label": parcel_decision["decision_label"],
-            "decision_reason": parcel_decision["decision_reason"],
-            "reason_codes": parcel_decision["reason_codes"],
-            "review_reasons": parcel_decision["review_reasons"],
             "noncrop_dominance_veto": noncrop_veto,
-            "evidence_scores": parcel_decision["evidence_scores"],
-            "landcover_summary": parcel_decision["landcover_summary"],
-            "data_quality": parcel_decision["data_quality"],
-            "vegetation_summary": parcel_decision["vegetation_summary"],
             "report_url": report_url,
             "crop_cycles_count": cycle_info["total_cycles"],
             "detected_seasons": cycle_info["detected_seasons"],
@@ -779,7 +692,8 @@ async def replay_test_from_pickle(task_id: str):
             "p2_avg_conf": f"{round(dataset_df['p2_crop_conf'].mean(), 2)}%",
             "p1_nocrop_avg_conf": f"{round(dataset_df['p1_nocrop_conf'].mean(), 2)}%",
             "p2_nocrop_avg_conf": f"{round(dataset_df['p2_nocrop_conf'].mean(), 2)}%",
-            "final_confidence_score": f"{round(overall_conf, 2)}%"
+            "final_confidence_score": f"{round(overall_conf, 2)}%",
+            "certainty_tier": certainty["certainty_tier"],
         }
 
     except Exception as e:

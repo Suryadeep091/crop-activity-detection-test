@@ -19,6 +19,7 @@ def generate_accuracy_report():
 
     comparisons = []
     correct_count = 0
+    review_count = 0
 
     for entry in data:
         task_id = entry.get("task_id", "")
@@ -30,9 +31,14 @@ def generate_accuracy_report():
         else:
             ground_truth = "Unknown"
 
-        # Map AI Verdict to binary
-        is_active = entry.get("is_active", False)
-        ai_result = "Active" if is_active else "Inactive"
+        # Preserve the internal Review state when the newer policy returns it.
+        decision_label = str(entry.get("decision_label") or "").strip()
+        if decision_label.lower() == "review":
+            ai_result = "Review"
+            review_count += 1
+        else:
+            is_active = entry.get("is_active", False)
+            ai_result = "Active" if is_active else "Inactive"
         
         # Check for match
         match = (ground_truth == ai_result)
@@ -40,19 +46,23 @@ def generate_accuracy_report():
             correct_count += 1
 
         final_conf_str = entry.get("final_confidence_score", "0%")
+        conf_level = str(entry.get("certainty_tier") or "").strip()
         try:
             conf_val = float(final_conf_str.replace('%', '').strip())
         except ValueError:
             conf_val = 0.0
-            
-        if conf_val < 30:
-            conf_level = "Very Low"
-        elif conf_val < 50:
-            conf_level = "Low"
-        elif conf_val < 75:
-            conf_level = "High"
-        else:
-            conf_level = "Very High"
+
+        if not conf_level:
+            if conf_val >= 80:
+                conf_level = "Very High"
+            elif conf_val >= 65:
+                conf_level = "High"
+            elif conf_val >= 50:
+                conf_level = "Moderate"
+            elif conf_val >= 35:
+                conf_level = "Low"
+            else:
+                conf_level = "Very Low"
 
         comparisons.append({
             "task_id": task_id,
@@ -69,16 +79,21 @@ def generate_accuracy_report():
 
     # Print & Save Results
     with open(comparison_report, "w", encoding="utf-8") as f:
-        header = f"{'TASK ID':<20} | {'TRUTH':<10} | {'AI':<10} | {'SCORE':<8} | {'CONF':<8} | {'LEVEL':<10} | {'STATUS'}"
+        header = f"{'TASK ID':<20} | {'TRUTH':<10} | {'AI':<10} | {'SCORE':<8} | {'CONF':<8} | {'CERT_TIER':<12} | {'STATUS'}"
         print(header)
         f.write(header + "\n" + "-"*90 + "\n")
         
         for c in comparisons:
-            line = f"{c['task_id']:<20} | {c['ground_truth']:<10} | {c['ai_result']:<10} | {c['score']:<8} | {c['final_conf']:<8} | {c['conf_level']:<10} | {c['match']}"
+            line = f"{c['task_id']:<20} | {c['ground_truth']:<10} | {c['ai_result']:<10} | {c['score']:<8} | {c['final_conf']:<8} | {c['conf_level']:<12} | {c['match']}"
             print(line)
             f.write(line + "\n")
 
-        summary = f"\n{'='*30}\nOVERALL ACCURACY: {accuracy:.2f}%\n{'='*30}"
+        summary = (
+            f"\n{'='*30}\n"
+            f"OVERALL ACCURACY: {accuracy:.2f}%\n"
+            f"REVIEW CASES: {review_count}\n"
+            f"{'='*30}"
+        )
         print(summary)
         f.write(summary)
 

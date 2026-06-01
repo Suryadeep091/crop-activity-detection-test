@@ -13,10 +13,300 @@ from data_loader import create_test_data, process_parcel_data
 from test_model import predict_from_pickle
 from datetime import datetime
 from data_loader import detect_crop_cycles
-from decision_policy import decide_parcel
 
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
+
+ACTIVE_ACTIVITY_THRESHOLD = 30.0
+NON_CROP_DOMINANCE_THRESHOLD = 60.0
+LOW_CROP_PROBABILITY_THRESHOLD = 25.0
+NON_CROP_DOMINANT_CLASSES = {
+    'water', 'trees', 'grass', 'flooded_vegetation',
+    'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+}
+DW_COLS = [
+    'water', 'trees', 'grass', 'flooded_vegetation', 'crops',
+    'shrub_and_scrub', 'built', 'bare', 'snow_and_ice',
+]
+
+def has_noncrop_dominance_veto(land_cover_df):
+    if land_cover_df is None or land_cover_df.empty:
+        return False
+
+    dw_cols = [
+        'water', 'trees', 'grass', 'flooded_vegetation',
+        'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice'
+    ]
+    available_cols = [c for c in dw_cols if c in land_cover_df.columns]
+    if not available_cols:
+        return False
+
+    numeric_df = land_cover_df[available_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
+    dominant_classes = numeric_df.idxmax(axis=1)
+    dominant_share = dominant_classes.value_counts(normalize=True)
+    dominant_class = dominant_share.index[0] if not dominant_share.empty else None
+    dominant_percent = float(dominant_share.iloc[0] * 100) if not dominant_share.empty else 0.0
+    crop_probability_mean = float(numeric_df['crops'].mean() * 100) if 'crops' in numeric_df else 0.0
+
+    if (
+        dominant_class in NON_CROP_DOMINANT_CLASSES
+        and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
+        and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
+    ):
+        return True
+
+    if 'grass' in numeric_df.columns:
+        grass_day_share = float((dominant_classes == 'grass').mean() * 100)
+        if (
+            grass_day_share >= NON_CROP_DOMINANCE_THRESHOLD
+            and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
+            and dominant_class not in ('trees', 'water')
+        ):
+            return True
+
+    return False
+
+
+def whittaker_smooth(y, lambda_=100, d=2):
+    from scipy.sparse import eye, diags
+    from scipy.sparse.linalg import spsolve
+    m = len(y)
+    if m < d + 1:
+        return y
+    weight = np.ones(m)
+    weight[np.isnan(y)] = 0.0
+    W = diags(weight, 0, shape=(m, m), format='csc')
+    D = eye(m, format='csc')
+    for _ in range(d):
+        D = D[:-1, :] - D[1:, :]
+    y_solve = np.copy(y)
+    if np.isnan(y_solve).all():
+        return y_solve
+    y_solve[np.isnan(y_solve)] = 0.0
+    A = W + (lambda_ * D.T.dot(D))
+    return spsolve(A, W.dot(y_solve))
+
+
+def apply_whittaker_smoothing(dataset_df):
+    if 'NDVI' in dataset_df.columns:
+        dataset_df['NDVI_short_smooth'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=10)
+        dataset_df['NDVI'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=50)
+    if 'EVI' in dataset_df.columns:
+        dataset_df['EVI'] = whittaker_smooth(dataset_df['EVI'].values, lambda_=50)
+    if 'RVI' in dataset_df.columns:
+        dataset_df['RVI'] = whittaker_smooth(dataset_df['RVI'].values, lambda_=200)
+    return dataset_df
+
+
+def prepare_daily_modeling_dataframe(df_veg_sparse, df_dw_raw, already_smoothed=False):
+    """Merge sparse vegetation with DW, daily resample, optional single Whittaker pass."""
+    veg = df_veg_sparse.copy()
+    dw = df_dw_raw.copy()
+    veg['date'] = pd.to_datetime(veg['date']).dt.normalize()
+    dw['date'] = pd.to_datetime(dw['date']).dt.normalize()
+
+    index_cols = [c for c in ['NDVI', 'EVI', 'RVI'] if c in veg.columns]
+    raw_points_df = (
+        veg[['date'] + index_cols]
+        .dropna(subset=index_cols, how='all')
+        .drop_duplicates(subset=['date'])
+        .sort_values('date')
+    )
+
+    veg_clean = veg.drop(columns=[c for c in DW_COLS if c in veg.columns])
+    dataset_df = veg_clean.merge(dw, on='date', how='outer').sort_values('date')
+    dataset_df.set_index('date', inplace=True)
+    dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
+    dataset_df = dataset_df.resample('D').mean(numeric_only=True)
+    dataset_df.reset_index(inplace=True)
+
+    if not already_smoothed:
+        apply_whittaker_smoothing(dataset_df)
+
+    cols_to_fix = [c for c in DW_COLS if c in dataset_df.columns]
+    if cols_to_fix:
+        dataset_df[cols_to_fix] = (
+            dataset_df[cols_to_fix]
+            .interpolate(method='linear', limit_direction='both')
+            .fillna(0)
+        )
+    dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
+    return dataset_df, raw_points_df
+
+
+def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
+    """Whittaker-smoothed daily lines plus sparse GEE scene markers."""
+    analysis_start, analysis_end = date_range
+    line_styles = {
+        'NDVI': ('green', 'NDVI (smoothed)'),
+        'EVI': ('blue', 'EVI (smoothed)'),
+        'RVI': ('orange', 'RVI (smoothed)'),
+    }
+    marker_styles = {
+        'NDVI': ('darkgreen', 'NDVI (observed)'),
+        'EVI': ('darkblue', 'EVI (observed)'),
+        'RVI': ('darkorange', 'RVI (observed)'),
+    }
+
+    fig = go.Figure()
+    plot_df = smoothed_df.copy()
+    plot_df['date'] = pd.to_datetime(plot_df['date'])
+
+    for col, (color, name) in line_styles.items():
+        if col in plot_df.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_df['date'],
+                    y=plot_df[col],
+                    mode='lines',
+                    name=name,
+                    line=dict(color=color, width=2),
+                    connectgaps=False,
+                )
+            )
+
+    if raw_df is not None and not raw_df.empty:
+        raw_plot = raw_df.copy()
+        raw_plot['date'] = pd.to_datetime(raw_plot['date'])
+        for col, (color, name) in marker_styles.items():
+            if col in raw_plot.columns:
+                observed = raw_plot.dropna(subset=[col])
+                if not observed.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=observed['date'],
+                            y=observed[col],
+                            mode='markers',
+                            name=name,
+                            marker=dict(
+                                color=color,
+                                size=5,
+                                symbol='circle',
+                                opacity=0.75,
+                            ),
+                        )
+                    )
+
+    fig.update_layout(
+        xaxis_title="Date",
+        yaxis_title="Index Value",
+        template="plotly_white",
+        xaxis=dict(
+            type="date",
+            range=[
+                pd.Timestamp(analysis_start).strftime("%Y-%m-%d"),
+                pd.Timestamp(analysis_end).strftime("%Y-%m-%d"),
+            ],
+            tickformat="%b %Y",
+            dtick="M1",
+        ),
+        yaxis=dict(range=[-0.1, 1.0]),
+        showlegend=True,
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=0.99,
+            xanchor="right",
+            x=0.99,
+            bgcolor="rgba(255, 255, 255, 0.6)",
+            bordercolor="lightgrey",
+            borderwidth=1,
+        ),
+        margin=dict(l=50, r=20, t=50, b=50),
+        height=400,
+    )
+    return fig
+
+
+def certainty_tier_from_score(score):
+    if score >= 80:
+        return "Very High"
+    if score >= 65:
+        return "High"
+    if score >= 50:
+        return "Moderate"
+    if score >= 35:
+        return "Low"
+    return "Very Low"
+
+
+def _smoothstep_certainty(raw_score):
+    nx = min((raw_score / 100.0) / 0.85, 1.0)
+    return float((nx * nx * (3.0 - 2.0 * nx)) * 100.0)
+
+
+def compute_parcel_certainty(
+    dataset_df,
+    raw_indices_df,
+    is_active,
+    noncrop_veto,
+    final_crop_score,
+    final_nocrop_score,
+    crop_freq,
+    non_crop_freq,
+    is_guardband_triggered,
+    guardband_conflict=False,
+    missing_periods=None,
+):
+    winning_score = final_crop_score if is_active else final_nocrop_score
+    losing_score = final_nocrop_score if is_active else final_crop_score
+    verdict_margin = abs(winning_score - losing_score)
+
+    pipeline_disagreement = float(dataset_df['p1_crop_conf'].sub(dataset_df['p2_crop_conf']).abs().mean())
+    pipeline_agreement = max(0.0, 100.0 - pipeline_disagreement)
+
+    if raw_indices_df is not None and not raw_indices_df.empty and 'NDVI' in raw_indices_df.columns:
+        n_s2_scenes = int(raw_indices_df['NDVI'].notna().sum())
+    else:
+        n_s2_scenes = 0
+    data_sufficiency = min(100.0, 100.0 * (n_s2_scenes / 40.0))
+    if missing_periods:
+        data_sufficiency *= max(0.5, 1.0 - (len(missing_periods) * 0.05))
+
+    if is_active:
+        land_alignment = min(100.0, (crop_freq * 100.0) + (1.0 - non_crop_freq) * 40.0)
+    else:
+        land_alignment = min(100.0, (non_crop_freq * 100.0) + (20.0 if noncrop_veto else 0.0))
+
+    composite = (
+        0.35 * verdict_margin
+        + 0.25 * pipeline_agreement
+        + 0.20 * data_sufficiency
+        + 0.20 * land_alignment
+    )
+
+    penalties = []
+    activity_ratio = (
+        (dataset_df['prediction'] == "Crop-Activity").mean() * 100.0
+        if len(dataset_df) > 0
+        else 0.0
+    )
+    if abs(activity_ratio - ACTIVE_ACTIVITY_THRESHOLD) <= 5.0:
+        composite *= 0.75
+        penalties.append("borderline_activity")
+    if noncrop_veto and activity_ratio > ACTIVE_ACTIVITY_THRESHOLD:
+        composite *= 0.6
+        penalties.append("noncrop_veto_conflict")
+    if is_guardband_triggered and guardband_conflict:
+        composite *= 0.7
+        penalties.append("guardband_conflict")
+    if n_s2_scenes < 12:
+        composite *= 0.8
+        penalties.append("sparse_optical")
+
+    certainty_score = max(15.0, _smoothstep_certainty(composite))
+    return {
+        "certainty_score": certainty_score,
+        "certainty_tier": certainty_tier_from_score(certainty_score),
+        "components": {
+            "verdict_margin": round(verdict_margin, 2),
+            "pipeline_agreement": round(pipeline_agreement, 2),
+            "data_sufficiency": round(data_sufficiency, 2),
+            "land_alignment": round(land_alignment, 2),
+            "n_s2_scenes": n_s2_scenes,
+        },
+        "penalties_applied": penalties,
+    }
 
 
 #
@@ -418,60 +708,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         df_all['date'] = pd.to_datetime(df_all['date']).dt.normalize()
         df_dw_raw['date'] = pd.to_datetime(df_dw_raw['date']).dt.normalize()
 
-        # B. REMOVE DUPLICATES: Drop DW columns from df_all before merging
-        # This prevents the creation of _x and _y columns
-        dw_cols = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
-        df_all_clean = df_all.drop(columns=[c for c in dw_cols if c in df_all.columns])
-
-        # C. Perform Outer Join (Now creates a single 'crops' column)
-        dataset_df = df_all_clean.merge(df_dw_raw, on='date', how='outer').sort_values('date')
-
-        # --- D. WHITTAKER SMOOTHER & DAILY UPSAMPLING ---
-        dataset_df.set_index('date', inplace=True)
-        # Handle duplicated dates by taking mean
-        dataset_df = dataset_df.groupby('date').mean(numeric_only=True)
-        # Resample strictly to daily points to hit exactly 365 days
-        dataset_df = dataset_df.resample('D').mean(numeric_only=True)
-        dataset_df.reset_index(inplace=True)
-
-        def whittaker_smooth(y, lambda_=100, d=2):
-            import numpy as np
-            from scipy.sparse import eye, diags
-            from scipy.sparse.linalg import spsolve
-            m = len(y)
-            if m < d + 1: return y
-            weight = np.ones(m)
-            weight[np.isnan(y)] = 0.0
-            W = diags(weight, 0, shape=(m, m), format='csc')
-            D = eye(m, format='csc')
-            for _ in range(d):
-                D = D[:-1, :] - D[1:, :]
-            y_solve = np.copy(y)
-            if np.isnan(y_solve).all(): return y_solve
-            y_solve[np.isnan(y_solve)] = 0.0 
-            A = W + (lambda_ * D.T.dot(D))
-            return spsolve(A, W.dot(y_solve))
-
-        # Apply Adaptive Whittaker parameters
-        if 'NDVI' in dataset_df.columns:
-            # Aggressive short-cycle kernel for peak preservation
-            dataset_df['NDVI_short_smooth'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=10)
-            # Default smoothing for standard extraction
-            dataset_df['NDVI'] = whittaker_smooth(dataset_df['NDVI'].values, lambda_=50)
-            
-        if 'EVI' in dataset_df.columns:
-            dataset_df['EVI'] = whittaker_smooth(dataset_df['EVI'].values, lambda_=50)
-            
-        if 'RVI' in dataset_df.columns:
-            # Stiffness mode to combat radar speckle
-            dataset_df['RVI'] = whittaker_smooth(dataset_df['RVI'].values, lambda_=200)
-
-        # For Dynamic World discrete classes, standard linear interpolation is sufficient
-        cols_to_fix = [c for c in dw_cols if c in dataset_df.columns]
-        dataset_df[cols_to_fix] = dataset_df[cols_to_fix].interpolate(method='linear', limit_direction='both').fillna(0)
-
-        # E. Final Sanitize & Apply Logic
-        dataset_df = dataset_df.replace([np.inf, -np.inf], np.nan).fillna(0)
+        df_all_clean = df_all.drop(columns=[c for c in DW_COLS if c in df_all.columns])
+        dataset_df, _ = prepare_daily_modeling_dataframe(
+            df_all_clean, df_dw_raw, already_smoothed=False
+        )
                         
         # We no longer need aggressive rolling windows because Whittaker has effectively smoothed it perfectly
         dataset_df['NDVI_smooth_slope'] = dataset_df['NDVI']
@@ -505,8 +745,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         built_freq = (dominant_classes == 'built').mean()
         snow_freq = (dominant_classes == 'snow_and_ice').mean()
         flooded_freq = (dominant_classes == 'flooded_vegetation').mean()
+        shrub_freq = (dominant_classes == 'shrub_and_scrub').mean()
         crop_freq = (dominant_classes == 'crops').mean() + (dominant_classes == 'flooded_vegetation').mean()
-        non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq)
+        non_crop_freq = max(tree_freq, water_freq, built_freq, snow_freq, flooded_freq, shrub_freq)
         crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         total_days = len(dataset_df)
         activity_ratio = (crop_days / total_days) if total_days > 0 else 0
@@ -520,18 +761,20 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         # 1. Calculate the Average BioScore for the parcel (if cycles exist)
         avg_bioscore = np.mean([c['confidence'] for c in cycle_info['details']]) if total_cycles > 0 else 0
 
-        # 2. Define the Tree Trap
-        # Logic: If trees are the majority AND crops are scarce AND biological sync is mediocre
         is_tree_trap = (tree_freq > 0.50) and (crop_freq < 0.35) and (avg_bioscore < 70)
+        is_shrub_trap = (shrub_freq > 0.55) and (crop_freq < 0.20)
+        guardband_conflict = False
 
         # 3. Guardband & Penalty logic (Scenario A/B/C)
         if is_guardband_triggered:
             if non_crop_freq > 0.85 and activity_ratio > 0.0:
                 # Scenario C: Extreme AI Domination
+                guardband_conflict = True
                 dataset_df['p2_crop_conf'] *= 0.10
                 if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.10
             elif activity_ratio > 0.50 and non_crop_freq > 0.50:
                 # Scenario B: Major Conflict
+                guardband_conflict = True
                 dataset_df['p2_crop_conf'] *= 0.30
                 if total_cycles == 0: dataset_df['p1_crop_conf'] *= 0.30
             else:
@@ -552,7 +795,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 (dataset_df['p1_crop_conf'] > 50) & 
                 (total_cycles > 0) & 
                 (crop_freq > 0.07) & 
-                (~is_tree_trap),  # <--- NEW: Block the override for tree-dominant noise
+                (~is_tree_trap) & (~is_shrub_trap),
                 "Crop-Activity",
                 np.where(avg_crop > avg_nocrop, "Crop-Activity", "No Crop-Activity")
             )
@@ -616,7 +859,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         ))
 
         fig.update_layout(
-            title="Verdict Certainty Over Time",
+            title="Daily Classification Strength",
             yaxis=dict(
                 title="Certainty (%)",
                 range=[0, 105],
@@ -638,76 +881,9 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
 
         activity_base64 = fig_to_base64(fig, is_plotly=True)
 
-        # --- 5. Save NDVI/EVI/RVI Static Plot (Base64) ---
-        fig_indices = go.Figure()
-
-        # Smoothed lines (Whittaker-processed, used by the pipeline)
-        for col, color in [('NDVI', 'green'), ('EVI', 'blue'), ('RVI', 'orange')]:
-            if col in test_df.columns:
-                fig_indices.add_trace(
-                    go.Scatter(
-                        x=test_df['date'],
-                        y=test_df[col],
-                        mode='lines',
-                        name=f'{col} (smoothed)',
-                        line=dict(color=color, width=2)
-                    )
-                )
-
-        # Raw fetched scatter points (actual GEE satellite observations, pre-smoothing)
-        raw_colors = {'NDVI': 'darkgreen', 'EVI': 'darkblue', 'RVI': 'darkorange'}
-        for col in ['NDVI', 'EVI', 'RVI']:
-            if col in raw_indices_df.columns:
-                raw_col = raw_indices_df.dropna(subset=[col])
-                if not raw_col.empty:
-                    fig_indices.add_trace(
-                        go.Scatter(
-                            x=raw_col['date'],
-                            y=raw_col[col],
-                            mode='markers',
-                            name=f'{col} (raw)',
-                            marker=dict(
-                                color=raw_colors.get(col, 'black'),
-                                size=5,
-                                symbol='circle',
-                                opacity=0.7
-                            ),
-                            showlegend=True
-                        )
-                    )
-
-        # Update layout for top-right internal legend
-        fig_indices.update_layout(
-
-            xaxis_title="Date",
-            yaxis_title="Index Value",
-            template="plotly_white",
-            xaxis=dict(
-                type="date",
-                range=[
-                    analysis_start.strftime("%Y-%m-%d"),
-                    analysis_end.strftime("%Y-%m-%d"),
-                ],# Use the 1-year range derived earlier
-                tickformat="%b %Y",
-                dtick="M1"
-            ),
-            yaxis=dict(range=[-0.1, 1.0]), # Indices usually stay between -0.1 and 1
-            showlegend=True,
-            legend=dict(
-                orientation="v",
-                yanchor="top",
-                y=0.99,
-                xanchor="right",
-                x=0.99,
-                bgcolor="rgba(255, 255, 255, 0.6)", # Slight transparency to see grid lines
-                bordercolor="lightgrey",
-                borderwidth=1
-            ),
-            margin=dict(l=50, r=20, t=50, b=50), # Expanded horizontal area
-            height=400
+        fig_indices = build_vegetation_indices_chart(
+            test_df, raw_indices_df, (analysis_start, analysis_end)
         )
-
-        # Convert to Base64 for the PDF
         ndvi_base64 = fig_to_base64(fig_indices, is_plotly=True)
 
         print(seasonal_summary)
@@ -732,23 +908,28 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         p2_crop_mean = dataset_df['p2_crop_conf'].mean()
         p2_nocrop_mean = dataset_df['p2_nocrop_conf'].mean()
 
-        # Re-verify activity ratio after possible guardband prediction flips.
+        final_crop_score = (p1_crop_mean * 0.60) + (p2_crop_mean * 0.40)
+        final_nocrop_score = (p1_nocrop_mean * 0.60) + (p2_nocrop_mean * 0.40)
+
+        # Re-verify activity ratio after possible guardband prediction flips
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        parcel_decision = decide_parcel(
-            activity_ratio=current_activity_ratio,
-            daily_data=dataset_df,
-            land_cover_data=df_dw_raw,
-            raw_vegetation_data=raw_indices_df,
-            cycle_info=cycle_info,
-            p1_crop_mean=p1_crop_mean,
-            p1_nocrop_mean=p1_nocrop_mean,
-            p2_crop_mean=p2_crop_mean,
-            p2_nocrop_mean=p2_nocrop_mean,
+        noncrop_veto = has_noncrop_dominance_veto(df_dw_raw)
+        is_active = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
+        certainty = compute_parcel_certainty(
+            dataset_df,
+            raw_indices_df,
+            is_active,
+            noncrop_veto,
+            final_crop_score,
+            final_nocrop_score,
+            crop_freq,
+            non_crop_freq,
+            is_guardband_triggered,
+            guardband_conflict=guardband_conflict,
+            missing_periods=missing_periods,
         )
-        is_active = parcel_decision["is_active"]
-        noncrop_veto = parcel_decision["noncrop_dominance_veto"]
-        overall_conf = parcel_decision["confidence"]
+        overall_conf = certainty["certainty_score"]
 
         # --- UPDATED RETURN STATEMENT ---
         return {
@@ -759,18 +940,14 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             "crop_activity_predictions_list": predictions_list,
             "crop_activity_prediction_stats": {
                 "total": len(predictions),
-                "crop_days": current_crop_days,
+                "crop_days": int(sum(activity_binary)),
                 "overall_confidence": float(overall_conf),
+                "certainty_score": float(certainty["certainty_score"]),
+                "certainty_tier": certainty["certainty_tier"],
+                "certainty_components": certainty["components"],
+                "certainty_penalties": certainty["penalties_applied"],
                 "is_active": bool(is_active),
                 "noncrop_dominance_veto": bool(noncrop_veto),
-                "decision_label": parcel_decision["decision_label"],
-                "decision_reason": parcel_decision["decision_reason"],
-                "reason_codes": parcel_decision["reason_codes"],
-                "review_reasons": parcel_decision["review_reasons"],
-                "evidence_scores": parcel_decision["evidence_scores"],
-                "landcover_summary": parcel_decision["landcover_summary"],
-                "data_quality": parcel_decision["data_quality"],
-                "vegetation_summary": parcel_decision["vegetation_summary"],
                 "p1_avg_conf": float(dataset_df['p1_crop_conf'].mean()),
                 "p2_avg_conf": float(dataset_df['p2_crop_conf'].mean()),
                 "p1_nocrop_avg_conf": float(dataset_df['p1_nocrop_conf'].mean()),

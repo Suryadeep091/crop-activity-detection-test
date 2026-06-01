@@ -6,7 +6,7 @@ import os
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
 input_json_path = os.path.join(downloads_path, "test_parcels_300.json")
-output_json_path = os.path.join(downloads_path, "raw_no_lim_S2_retest.json") # NEW FILE
+output_json_path = os.path.join(downloads_path, "raw_no_lim_S2_retest1.json") # NEW FILE
 BASE_REPLAY_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/replay"  
 
 def run_batch_replay_with_logging():
@@ -41,7 +41,8 @@ def run_batch_replay_with_logging():
                 p2_crop = data.get('p2_avg_conf', 'N/A')
                 p2_nocrop = data.get('p2_nocrop_avg_conf', 'N/A')
                 final_conf = data.get('final_confidence_score', 'N/A')
-                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Overall Conf: {final_conf} | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
+                cert_tier = data.get('certainty_tier', '')
+                print(f" ✅ DONE: {data.get('agri_activity')} ({data.get('activity_score')}) | Certainty: {final_conf} ({cert_tier}) | Seasons: {seasons} | P1: [Crop:{p1_crop}, NoCrop:{p1_nocrop}] | P2: [Crop:{p2_crop}, NoCrop:{p2_nocrop}]")
                 
                 # Append the full response to our list
                 master_results.append(data)

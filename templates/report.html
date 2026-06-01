@@ -29,12 +29,7 @@
         /* Dynamic Classes */
         .bg-green { background-color: #27ae60; } /* Success Green */
         .bg-red { background-color: #e74c3c; }   /* Alert Red */
-        .bg-yellow { background-color: #f59e0b; } /* Review Amber */
         .section-banner { background-color: #e8f4fd; color: #2c3e50; text-align: center; padding: 8px; font-weight: bold; font-size: 16px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #d1e9ff; }
-        .decision-explain { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-bottom: 18px; }
-        .evidence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0 25px 0; }
-        .evidence-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f8fafc; font-size: 12px; }
-        .evidence-card b { display: block; color: #0f172a; font-size: 14px; margin-top: 4px; }
 
         /* Geospatial Context Grid */
         .geospatial-section { display: grid; grid-template-columns: 1.6fr 1fr; gap: 15px; margin-bottom: 25px; }
@@ -374,21 +369,16 @@
         {% set stats = satellite.crop_activity_prediction_stats %}
         {% set activity_ratio = (stats.crop_days / stats.total * 100) if stats.total > 0 else 0 %}
         {% set is_active = stats.is_active if stats.is_active is defined else (activity_ratio > 30) %}
-        {% set decision_label = stats.decision_label if stats.decision_label is defined else ('Active' if is_active else 'Inactive') %}
-        {% set data_quality = stats.data_quality if stats.data_quality is defined else {} %}
-        {% set evidence_scores = stats.evidence_scores if stats.evidence_scores is defined else {} %}
 
-        <div class="verdict-banner {{ 'bg-yellow' if decision_label == 'Review' else ('bg-green' if is_active else 'bg-red') }}">
-            Verdict: {{ decision_label }} 
-            ({{ activity_ratio | round(1) }}% Active | Final Confidence: {{ stats.overall_confidence | round(1) }}%)
+        {% set certainty_tier = stats.certainty_tier if stats.certainty_tier is defined else '' %}
+        {% set certainty_score = stats.certainty_score if stats.certainty_score is defined else stats.overall_confidence %}
+        <div class="verdict-banner {{ 'bg-green' if is_active else 'bg-red' }}">
+            Verdict: {{ 'Agri activity detected' if is_active else 'Low Agri activity detected' }} 
+            ({{ activity_ratio | round(1) }}% Active | Final Certainty: {{ certainty_score | round(1) }}%{% if certainty_tier %} — {{ certainty_tier }}{% endif %})
         </div>
-        <div class="decision-explain">
-            <strong>Decision reason:</strong> {{ stats.decision_reason if stats.decision_reason is defined else 'Legacy threshold verdict' }}<br>
-            <strong>Raw observations:</strong>
-            S2 optical {{ data_quality.raw_s2_count if data_quality.raw_s2_count is defined else 0 }},
-            S1 radar {{ data_quality.raw_s1_count if data_quality.raw_s1_count is defined else 0 }},
-            interpolation dependency {{ ((data_quality.interpolation_ratio if data_quality.interpolation_ratio is defined else 0) * 100) | round(1) }}%.
-        </div>
+        <p class="report-description" style="margin-top: 8px; font-size: 11px; color: #64748b;">
+            Certainty reflects agreement between vegetation physics, land-cover AI, and data coverage—not the same as % active days.
+        </p>
 
         <div class="section-banner">Land Parcel Under Analysis</div>
         <div class="geospatial-section">
@@ -520,15 +510,6 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                     </p>
                 </div>
             </div>
-
-            <div class="evidence-grid">
-                <div class="evidence-card">Phenology evidence<b>{{ evidence_scores.phenology_score | round(1) if evidence_scores.phenology_score is defined else 'N/A' }}</b></div>
-                <div class="evidence-card">Optical evidence<b>{{ evidence_scores.optical_score | round(1) if evidence_scores.optical_score is defined else 'N/A' }}</b></div>
-                <div class="evidence-card">Radar evidence<b>{{ evidence_scores.radar_score | round(1) if evidence_scores.radar_score is defined else 'N/A' }}</b></div>
-                <div class="evidence-card">Land-cover evidence<b>{{ evidence_scores.landcover_score | round(1) if evidence_scores.landcover_score is defined else 'N/A' }}</b></div>
-                <div class="evidence-card">Data quality<b>{{ evidence_scores.quality_score | round(1) if evidence_scores.quality_score is defined else 'N/A' }}</b></div>
-                <div class="evidence-card">Conflict score<b>{{ evidence_scores.conflict_score | round(1) if evidence_scores.conflict_score is defined else 'N/A' }}</b></div>
-            </div>
         
         <div class="section-banner force-page-break">🌦️ 1-Year Weather Intelligence</div>
             <div class="vertical-chart-container">
@@ -563,9 +544,12 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                 <div class="chart-card" style="margin-bottom: 20px;">
                     <p style="text-align:center; font-weight:bold; margin-top:10px;">TREND ANALYSIS (NDVI/EVI/RVI)</p>
                     <img src="data:image/png;base64,{{ satellite.images.ndvi_b64 }}" style="width: 100%; border-radius: 8px;">
+                    <p class="report-description" style="margin-top: 8px;">
+                        Solid lines = Whittaker-smoothed daily model; dots = cloud-filtered satellite scenes (Sentinel-2 NDVI/EVI, Sentinel-1 RVI).
+                    </p>
                 </div>
                 
-                <p class="report-description">These ranges represent the probability of crop activity, with values <0.3 indicating low, 0.3 - 0.6 moderate, and >0.6 high activity</p>
+                <p class="report-description">Peak index values below are derived from the smoothed daily series. Values &lt;0.3 indicate low, 0.3–0.6 moderate, and &gt;0.6 high vegetation vigor.</p>
                 <div class="table-container">
                     <table class="info-table">
                         <thead>
@@ -599,6 +583,16 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
                         </div>
                         <div class="stat-subtext" style="color: #64748b; font-size: 11px; margin-top: 5px;">
                             {{ satellite.missing_data | join(', ') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if stats.certainty_components is defined and stats.certainty_components.data_sufficiency is defined and stats.certainty_components.data_sufficiency < 50 %}
+                    <div class="stat-card missing-data-warning" style="border-color: #f59e0b; background: #fffbeb;">
+                        <div class="stat-title" style="color:#b45309; font-size: 12px; font-weight: 800;">
+                            Limited optical scene coverage
+                        </div>
+                        <div class="stat-subtext" style="color: #64748b; font-size: 11px; margin-top: 5px;">
+                            Fewer than expected Sentinel-2 observations; interpret certainty and peak values cautiously.
                         </div>
                     </div>
                     {% endif %}
@@ -646,9 +640,12 @@ Cropping indicates periods when the land was likely under cultivation, while Fal
 <div class="vertical-analytics-container">
     <div class="chart-card" style="margin-bottom: 25px;">
         <p style="text-align:center; font-weight:bold; margin-top:10px; color: #1e293b; text-transform: uppercase;">
-            Time-Series Activity Classification
+            Daily Classification Strength
         </p>
         <img src="data:image/png;base64,{{ satellite.images.activity_b64 }}" style="width: 100%; border-radius: 8px;">
+        <p class="report-description" style="margin-top: 8px;">
+            Bar height shows per-day model strength for the winning class (crop vs no-crop). Parcel-level final certainty is shown in the banner above.
+        </p>
     </div>
 
     <div class="seasonal-container">

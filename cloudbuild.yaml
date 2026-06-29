@@ -17,7 +17,11 @@ steps:
       '.'
     ]
  
-  # 3. Deploy to Cloud Run
+  # 3. 👇 PUSH THE IMAGE EXPLICITLY SO CLOUD RUN CAN SEE IT
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:$COMMIT_SHA']
+
+  # 4. Deploy to Cloud Run (Now it will find the image!)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -31,10 +35,9 @@ steps:
       - '--platform'
       - 'managed'
  
+# Keeps track of artifacts and ensures the 'latest' tag also gets pushed at the very end
 images:
-  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:$COMMIT_SHA'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:latest'
 
-# 👇 ADD THIS BLOCK TO FIX THE ERROR
 options:
   logging: CLOUD_LOGGING_ONLY

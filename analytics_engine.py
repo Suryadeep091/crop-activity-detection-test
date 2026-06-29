@@ -686,7 +686,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
         fig_dw.update_layout(
 
             xaxis_title="Date",
-            yaxis_title="Probability Share of Classes",
+            yaxis_title="Probability Share of Classes (0-1)",
             template="plotly_white",
             xaxis=dict(
                 type="date",

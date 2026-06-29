@@ -222,7 +222,7 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
                 borderwidth=1,
                 font=dict(size=9)        # Slightly smaller font keeps it from bunching up
         ),
-        margin=dict(l=50, r=20, t=15, b=100),
+        margin=dict(l=50, r=20, t=10, b=110),
         height=400,
     )
     return fig
@@ -906,7 +906,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             ),
             template="plotly_white",
             showlegend=False,
-            margin=dict(l=50, r=20, t=15, b=100),
+            margin=dict(l=50, r=20, t=10, b=110),
             height=400,
         )
 

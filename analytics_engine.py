@@ -683,10 +683,10 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                 )
 
         # Update layout for consistency
+        # Update layout for consistency
         fig_dw.update_layout(
-
             xaxis_title="Date",
-            yaxis_title="Probability Share of Classes (0-1)",
+            yaxis_title="Probability Share of Classes",
             template="plotly_white",
             xaxis=dict(
                 type="date",
@@ -694,24 +694,30 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
                     analysis_start.strftime("%Y-%m-%d"),
                     analysis_end.strftime("%Y-%m-%d"),
                 ],
-               
                 tickformat="%b %Y",
                 dtick="M1"
             ),
-            yaxis=dict(range=[0, 1.05]), # Probabilities range from 0 to 1
+            yaxis=dict(range=[0, 1.05]), 
             showlegend=True,
+            
+            # 1. Move legend completely underneath with a clean container
             legend=dict(
-                orientation="h",        # Change to horizontal layout
+                orientation="h",
                 yanchor="top",
-                y=-0.2,                 # Moves it below the X-axis (0 is the bottom of the graph)
+                y=-0.25,                 # Pushed a bit lower to clear the X-axis label
                 xanchor="center",
-                x=0.5,                  # Centers it horizontally
-                bgcolor="rgba(255, 255, 255, 0.7)",
+                x=0.5,
+                bgcolor="rgba(255, 255, 255, 0.9)", # Less transparent to keep it readable
                 bordercolor="lightgrey",
                 borderwidth=1,
-                font=dict(size=10)
+                font=dict(size=9)        # Slightly smaller font keeps it from bunching up
             ),
-            margin=dict(l=50, r=20, t=50, b=50),
+            
+            # 2. INCREASE THE BOTTOM MARGIN 
+            # This forces Plotly to expand the bottom white space for the legend, 
+            # preserving the vertical height of the grid itself.
+            margin=dict(l=50, r=20, t=40, b=100), 
+            
             height=400
         )
 

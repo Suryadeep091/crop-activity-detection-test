@@ -701,11 +701,11 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             yaxis=dict(range=[0, 1.05]), # Probabilities range from 0 to 1
             showlegend=True,
             legend=dict(
-                orientation="v",
+                orientation="h",        # Change to horizontal layout
                 yanchor="top",
-                y=0.99,
-                xanchor="right",
-                x=0.99,
+                y=-0.2,                 # Moves it below the X-axis (0 is the bottom of the graph)
+                xanchor="center",
+                x=0.5,                  # Centers it horizontally
                 bgcolor="rgba(255, 255, 255, 0.7)",
                 bordercolor="lightgrey",
                 borderwidth=1,

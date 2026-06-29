@@ -1,0 +1,11 @@
+{
+    "model_type": "Standard LSTM Regressor",
+    "overall": {
+        "train_r2": 0.9232894111927509,
+        "test_r2": 0.8918403842677249,
+        "train_rmse": 0.06913631881342339,
+        "test_rmse": 0.094456843403568,
+        "train_mae": 0.05133177966347144,
+        "test_mae": 0.066627672784843
+    }
+}

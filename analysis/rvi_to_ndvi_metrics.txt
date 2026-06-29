@@ -1,0 +1,9 @@
+Model Type: Random Forest Regressor
+Train R^2: 0.9686 | Test R^2: 0.8975
+Train RMSE: 0.0442 | Test RMSE: 0.0919
+Train MAE: 0.0369 | Test MAE: 0.0634
+
+Seasonal Metrics (Test Split):
+  Kharif: R^2=0.8439 | RMSE=0.1223 | MAE=0.0698 (Samples=1007)
+  Rabi: R^2=0.8486 | RMSE=0.1134 | MAE=0.0637 (Samples=2685)
+  Zaid: R^2=0.7942 | RMSE=0.1063 | MAE=0.0571 (Samples=1118)

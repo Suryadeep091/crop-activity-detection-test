@@ -1,0 +1,7850 @@
+{
+    "yearly": {
+        "2023-24": {
+            "accuracy": 92.43421052631578,
+            "precision": 96.19047619047619,
+            "recall": 93.08755760368663,
+            "f1": 94.61358313817331,
+            "TP": 202,
+            "FP": 8,
+            "TN": 79,
+            "FN": 15,
+            "total": 304
+        },
+        "2024-25": {
+            "accuracy": 89.54248366013073,
+            "precision": 95.58823529411765,
+            "recall": 89.44954128440367,
+            "f1": 92.41706161137441,
+            "TP": 195,
+            "FP": 9,
+            "TN": 79,
+            "FN": 23,
+            "total": 306
+        },
+        "2025-26": {
+            "accuracy": 88.52459016393442,
+            "precision": 95.97989949748744,
+            "recall": 87.61467889908256,
+            "f1": 91.60671462829735,
+            "TP": 191,
+            "FP": 8,
+            "TN": 79,
+            "FN": 27,
+            "total": 305
+        }
+    },
+    "states": [
+        {
+            "state": "AP",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "AP",
+            "year": "2024-25",
+            "accuracy": 80.0,
+            "total": 20
+        },
+        {
+            "state": "AP",
+            "year": "2025-26",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "BH",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "BH",
+            "year": "2024-25",
+            "accuracy": 88.88888888888889,
+            "total": 9
+        },
+        {
+            "state": "BH",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "CH",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "CH",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "CH",
+            "year": "2025-26",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "GJ",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "GJ",
+            "year": "2024-25",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "GJ",
+            "year": "2025-26",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "HP",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "HP",
+            "year": "2024-25",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "HP",
+            "year": "2025-26",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "HR",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "HR",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "HR",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "JH",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "JH",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "JH",
+            "year": "2025-26",
+            "accuracy": 70.0,
+            "total": 10
+        },
+        {
+            "state": "JK",
+            "year": "2023-24",
+            "accuracy": 88.88888888888889,
+            "total": 9
+        },
+        {
+            "state": "JK",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "JK",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "KL",
+            "year": "2023-24",
+            "accuracy": 75.0,
+            "total": 8
+        },
+        {
+            "state": "KL",
+            "year": "2024-25",
+            "accuracy": 62.5,
+            "total": 8
+        },
+        {
+            "state": "KL",
+            "year": "2025-26",
+            "accuracy": 75.0,
+            "total": 8
+        },
+        {
+            "state": "KT",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "KT",
+            "year": "2024-25",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "KT",
+            "year": "2025-26",
+            "accuracy": 80.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2024-25",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2025-26",
+            "accuracy": 84.21052631578947,
+            "total": 19
+        },
+        {
+            "state": "NE",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "NE",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "NE",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "OD",
+            "year": "2023-24",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "OD",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "OD",
+            "year": "2025-26",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "PB",
+            "year": "2023-24",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "PB",
+            "year": "2024-25",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "PB",
+            "year": "2025-26",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "RJ",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "RJ",
+            "year": "2024-25",
+            "accuracy": 75.0,
+            "total": 20
+        },
+        {
+            "state": "RJ",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "TL",
+            "year": "2023-24",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "TL",
+            "year": "2024-25",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "TL",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "TN",
+            "year": "2023-24",
+            "accuracy": 89.47368421052632,
+            "total": 19
+        },
+        {
+            "state": "TN",
+            "year": "2024-25",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "TN",
+            "year": "2025-26",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "UK",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "UK",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "UK",
+            "year": "2025-26",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "UP",
+            "year": "2023-24",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "UP",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "UP",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "WB",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "WB",
+            "year": "2024-25",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "WB",
+            "year": "2025-26",
+            "accuracy": 90.0,
+            "total": 10
+        }
+    ],
+    "certainty": [
+        {
+            "certainty_tier": "Very High",
+            "accuracy": 96.3855421686747,
+            "count": 664
+        },
+        {
+            "certainty_tier": "High",
+            "accuracy": 80.3030303030303,
+            "count": 66
+        },
+        {
+            "certainty_tier": "Moderate",
+            "accuracy": 79.03225806451613,
+            "count": 62
+        },
+        {
+            "certainty_tier": "Low",
+            "accuracy": 72.6027397260274,
+            "count": 73
+        },
+        {
+            "certainty_tier": "Very Low",
+            "accuracy": 60.0,
+            "count": 50
+        }
+    ],
+    "transitions": {
+        "Active -> Active -> Active": {
+            "count": 218,
+            "accuracy": 83.02752293577981
+        },
+        "Inactive -> Inactive -> Inactive": {
+            "count": 88,
+            "accuracy": 79.54545454545455
+        }
+    },
+    "errors": [
+        {
+            "task_id": "24-JK02 (No-Crop)",
+            "year": "2023-24",
+            "base_name": "JK02 (No-Crop)",
+            "state": "JK",
+            "ground_truth": false,
+            "error_msg": "{\"detail\":\"Satellite analytics failed before producing a result. Check the Cloud Run logs above this request for the GEE extraction/analytics error.\"}"
+        },
+        {
+            "task_id": "24-TN08 (Crop)",
+            "year": "2023-24",
+            "base_name": "TN08 (Crop)",
+            "state": "TN",
+            "ground_truth": true,
+            "error_msg": "HTTPSConnectionPool(host='test-terradrishti-413500342905.asia-south1.run.app', port=443): Read timed out. (read timeout=300)"
+        },
+        {
+            "task_id": "MP08 (No-Crop)",
+            "year": "2025-26",
+            "base_name": "MP08 (No-Crop)",
+            "state": "MP",
+            "ground_truth": false,
+            "error_msg": "HTTPSConnectionPool(host='test-terradrishti-413500342905.asia-south1.run.app', port=443): Read timed out. (read timeout=60)"
+        }
+    ],
+    "state_counts": {
+        "UP": 60,
+        "RJ": 60,
+        "GJ": 60,
+        "MH": 60,
+        "PB": 60,
+        "KT": 60,
+        "TL": 60,
+        "AP": 60,
+        "MP": 59,
+        "TN": 59,
+        "WB": 30,
+        "OD": 30,
+        "HR": 30,
+        "JH": 30,
+        "HP": 30,
+        "UK": 30,
+        "CH": 30,
+        "JK": 29,
+        "NE": 27,
+        "BH": 27,
+        "KL": 24
+    },
+    "completed_farms_count": 306,
+    "farms": [
+        {
+            "farm_name": "AP01 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP02 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP03 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP04 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP05 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP06 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP07 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP08 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP09 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP10 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "AP11 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP12 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP13 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                false,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP14 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP15 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "AP16 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP17 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP18 (Crop)",
+            "state": "AP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP19 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "AP20 (No-Crop)",
+            "state": "AP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH01 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH02 (No-Crop)",
+            "state": "BH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH03 (No-Crop)",
+            "state": "BH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very Low",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH04 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH05 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH06 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH07 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH08 (Crop)",
+            "state": "BH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "BH10 (No-Crop)",
+            "state": "BH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH01 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "CH02 (No-Crop)",
+            "state": "CH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH03 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH04 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "CH05 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH06 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH07 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH08 (No-Crop)",
+            "state": "CH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH09 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "CH10 (Crop)",
+            "state": "CH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ01 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ02 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ03 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very Low",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "GJ04 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ05 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ06 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "GJ07 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ08 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ09 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ10 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ11 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ12 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ13 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ14 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ15 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ16 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ17 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ18 (No-Crop)",
+            "state": "GJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ19 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "GJ20 (Crop)",
+            "state": "GJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP01 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP02 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP03 (No-Crop)",
+            "state": "HP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP04 (No-Crop)",
+            "state": "HP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP05 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP06 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP07 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very Low",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "HP08 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP09 (No-Crop)",
+            "state": "HP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HP10 (Crop)",
+            "state": "HP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "HR01 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR02 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR03 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR04 (No-Crop)",
+            "state": "HR",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                false,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR05 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR06 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR07 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR08 (No-Crop)",
+            "state": "HR",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR09 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "HR10 (Crop)",
+            "state": "HR",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH01 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH02 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH03 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "JH04 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH05 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "JH06 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH07 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH08 (No-Crop)",
+            "state": "JH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JH09 (Crop)",
+            "state": "JH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                false,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "JH10 (No-Crop)",
+            "state": "JH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK01 (No-Crop)",
+            "state": "JK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK02 (No-Crop)",
+            "state": "JK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Error",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "N/A",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK03 (No-Crop)",
+            "state": "JK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK04 (Crop)",
+            "state": "JK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK05 (No-Crop)",
+            "state": "JK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK06 (Crop)",
+            "state": "JK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK07 (Crop)",
+            "state": "JK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK08 (Crop)",
+            "state": "JK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK09 (Crop)",
+            "state": "JK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "JK10 (No-Crop)",
+            "state": "JK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Very Low",
+                "Very Low"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL01 (Crop)",
+            "state": "KL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL02 (No-Crop)",
+            "state": "KL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL03 (No-Crop)",
+            "state": "KL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL04 (No-Crop)",
+            "state": "KL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL05 (No-Crop)",
+            "state": "KL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Low"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "KL06 (Crop)",
+            "state": "KL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Moderate"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "KL07 (Crop)",
+            "state": "KL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "KL10 (No-Crop)",
+            "state": "KL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT01 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Low"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "KT02 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT03 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT04 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT05 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT06 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "KT07 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT08 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT09 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "KT10 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT11 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT12 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT13 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT14 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "KT15 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT16 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT17 (Crop)",
+            "state": "KT",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT18 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                false,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT19 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "KT20 (No-Crop)",
+            "state": "KT",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH01 (No-Crop)",
+            "state": "MH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH02 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH03 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH04 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH05 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH06 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH07 (No-Crop)",
+            "state": "MH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH08 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "MH09 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "MH10 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH11 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH12 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH13 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH14 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "MH15 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH16 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH17 (No-Crop)",
+            "state": "MH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH18 (No-Crop)",
+            "state": "MH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH19 (Crop)",
+            "state": "MH",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MH20 (No-Crop)",
+            "state": "MH",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP01 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP02 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very Low",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP03 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP04 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP05 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP06 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP07 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP08 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Error"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "N/A"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "MP09 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP10 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP11 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "MP12 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP13 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP14 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "MP15 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP16 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP17 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP18 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "MP19 (No-Crop)",
+            "state": "MP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "MP20 (Crop)",
+            "state": "MP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE01 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE02 (No-Crop)",
+            "state": "NE",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE03 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE04 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE05 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE06 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE07 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE08 (No-Crop)",
+            "state": "NE",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "NE09 (Crop)",
+            "state": "NE",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD01 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD02 (No-Crop)",
+            "state": "OD",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD03 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD05 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD06 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD07 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD08 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "OD09 (No-Crop)",
+            "state": "OD",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD10 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very Low",
+                "High",
+                "High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "OD4 (Crop)",
+            "state": "OD",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB01 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB02 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB03 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB04 (No-Crop)",
+            "state": "PB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB05 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB06 (No-Crop)",
+            "state": "PB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB07 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB08 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB09 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB10 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Very Low",
+                "High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "PB11 (No-Crop)",
+            "state": "PB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB12 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB13 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB14 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB15 (No-Crop)",
+            "state": "PB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB16 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB17 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB18 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB19 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "PB20 (Crop)",
+            "state": "PB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ01 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ02 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "RJ03 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ04 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ05 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Low",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                false,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ06 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ07 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ08 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "Low"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "RJ09 (No-Crop)",
+            "state": "RJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ10 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very Low",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "RJ11 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ12 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ13 (No-Crop)",
+            "state": "RJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very High",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ14 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ15 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ16 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ17 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ18 (Crop)",
+            "state": "RJ",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ19 (No-Crop)",
+            "state": "RJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "RJ20 (No-Crop)",
+            "state": "RJ",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL01 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL02 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL03 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL04 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL05 (No-Crop)",
+            "state": "TL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very Low",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL06 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "TL07 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL08 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Very Low"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "TL09 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very Low",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL10 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL11 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL12 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "TL13 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL14 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL15 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL16 (No-Crop)",
+            "state": "TL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL17 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL18 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL19 (No-Crop)",
+            "state": "TL",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TL20 (Crop)",
+            "state": "TL",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN01 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN02 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN03 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN04 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN05 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "Very High"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "TN06 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN07 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN08 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Error",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "N/A",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN09 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN10 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN11 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN12 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN13 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN14 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN15 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN16 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Moderate",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN17 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "Low",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN18 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN19 (Crop)",
+            "state": "TN",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Moderate",
+                "Moderate",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "TN20 (No-Crop)",
+            "state": "TN",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "High",
+                "Low",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK01 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK02 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "UK03 (No-Crop)",
+            "state": "UK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK04 (No-Crop)",
+            "state": "UK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "farm_name": "UK05 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK06 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK07 (No-Crop)",
+            "state": "UK",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK08 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK09 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UK10 (Crop)",
+            "state": "UK",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP1 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP10 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very Low",
+                "Low",
+                "High"
+            ],
+            "match": [
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP11 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP12 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP13 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP14 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP15 (No-Crop)",
+            "state": "UP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP16 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP17 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP18 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP19 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP2 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP20 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP3 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP4 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP5 (No-Crop)",
+            "state": "UP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP6 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Low",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP7 (No-Crop)",
+            "state": "UP",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP8 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "UP9 (Crop)",
+            "state": "UP",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB01 (No-Crop)",
+            "state": "WB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Low",
+                "Moderate",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB02 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB03 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB04 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Inactive",
+                "Active"
+            ],
+            "cert": [
+                "High",
+                "High",
+                "High"
+            ],
+            "match": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB05 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB06 (No-Crop)",
+            "state": "WB",
+            "gt": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Moderate",
+                "Low",
+                "Moderate"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB07 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very Low"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB08 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "Very High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "farm_name": "WB09 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Inactive",
+                "Inactive",
+                "Inactive"
+            ],
+            "cert": [
+                "Very Low",
+                "Very Low",
+                "Very Low"
+            ],
+            "match": [
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "farm_name": "WB10 (Crop)",
+            "state": "WB",
+            "gt": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "pred": [
+                "Active",
+                "Active",
+                "Active"
+            ],
+            "cert": [
+                "Very High",
+                "Very High",
+                "High"
+            ],
+            "match": [
+                true,
+                true,
+                true
+            ]
+        }
+    ]
+}

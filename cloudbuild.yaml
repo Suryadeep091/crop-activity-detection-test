@@ -1,5 +1,5 @@
 steps:
-  # 1. Pull the 'latest' image to use as a layer cache
+  # Step 0: Pull the 'latest' image to use as a layer cache
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
@@ -7,7 +7,7 @@ steps:
       - |
         docker pull asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:latest || exit 0
 
-  # 2. Build the Docker image
+  # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
@@ -17,11 +17,11 @@ steps:
       '.'
     ]
  
-  # 3. 👇 PUSH THE IMAGE EXPLICITLY SO CLOUD RUN CAN SEE IT
+  # Step 2: 👇 CRITICAL - PUSH THE IMAGE BEFORE DEPLOYING
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:$COMMIT_SHA']
 
-  # 4. Deploy to Cloud Run (Now it will find the image!)
+  # Step 3: Deploy to Cloud Run (Now it will find the image!)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -35,7 +35,7 @@ steps:
       - '--platform'
       - 'managed'
  
-# Keeps track of artifacts and ensures the 'latest' tag also gets pushed at the very end
+# Ensures the 'latest' tag also gets pushed at the very end
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/terradrishti-repo/terradrishti-engine:latest'
 

@@ -212,16 +212,17 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
         yaxis=dict(range=[-0.1, 1.0]),
         showlegend=True,
         legend=dict(
-            orientation="v",
-            yanchor="top",
-            y=0.99,
-            xanchor="right",
-            x=0.99,
-            bgcolor="rgba(255, 255, 255, 0.6)",
-            bordercolor="lightgrey",
-            borderwidth=1,
+                orientation="h",
+                yanchor="top",
+                y=-0.25,                 # Pushed a bit lower to clear the X-axis label
+                xanchor="center",
+                x=0.5,
+                bgcolor="rgba(255, 255, 255, 0.9)", # Less transparent to keep it readable
+                bordercolor="lightgrey",
+                borderwidth=1,
+                font=dict(size=9)        # Slightly smaller font keeps it from bunching up
         ),
-        margin=dict(l=50, r=20, t=50, b=50),
+        margin=dict(l=50, r=20, t=15, b=100),
         height=400,
     )
     return fig
@@ -716,7 +717,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             # 2. INCREASE THE BOTTOM MARGIN 
             # This forces Plotly to expand the bottom white space for the legend, 
             # preserving the vertical height of the grid itself.
-            margin=dict(l=50, r=20, t=40, b=100), 
+            margin=dict(l=50, r=20, t=15, b=100), 
             
             height=400
         )
@@ -905,7 +906,7 @@ def run_full_analytics_pipeline(task_id, coords, end_date_str):
             ),
             template="plotly_white",
             showlegend=False,
-            margin=dict(l=50, r=20, t=50, b=50),
+            margin=dict(l=50, r=20, t=15, b=100),
             height=400,
         )
 

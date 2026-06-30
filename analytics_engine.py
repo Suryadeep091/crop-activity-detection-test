@@ -17,7 +17,7 @@ from data_loader import detect_crop_cycles
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', 100)      # Show more rows
 
-ACTIVE_ACTIVITY_THRESHOLD = 30.0
+ACTIVE_ACTIVITY_THRESHOLD = 15.0
 NON_CROP_DOMINANCE_THRESHOLD = 60.0
 LOW_CROP_PROBABILITY_THRESHOLD = 25.0
 NON_CROP_DOMINANT_CLASSES = {

@@ -4,7 +4,7 @@ import os
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
 results_file = os.path.join(downloads_path, "dummy_run_1.json")
-comparison_report = os.path.join(downloads_path, "dummy_run_1_analysis.txt")
+comparison_report = os.path.join(downloads_path, "25-26_analysis.txt")
 
 def generate_accuracy_report():
     try:

@@ -484,7 +484,7 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
                 borderwidth=1,
                 font=dict(size=9)        # Slightly smaller font keeps it from bunching up
         ),
-        margin=dict(l=50, r=20, t=5, b=120),
+        margin=dict(l=50, r=20, t=5, b=125),
         height=400,
     )
     return fig
@@ -993,7 +993,7 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
             # 2. INCREASE THE BOTTOM MARGIN 
             # This forces Plotly to expand the bottom white space for the legend, 
             # preserving the vertical height of the grid itself.
-            margin=dict(l=50, r=20, t=10, b=120), 
+            margin=dict(l=50, r=20, t=5, b=125), 
             
             height=400
         )
@@ -1166,7 +1166,6 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
         ))
 
         fig.update_layout(
-            title="Daily Classification Strength",
             yaxis=dict(
                 title="Certainty (%)",
                 range=[0, 105],

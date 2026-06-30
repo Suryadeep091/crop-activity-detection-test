@@ -471,7 +471,7 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
             tickformat="%b %Y",
             dtick="M1",
         ),
-        yaxis=dict(range=[-0.1, 1.0]),
+        yaxis=dict(range=[-0.1, None]),
         showlegend=True,
         legend=dict(
                 orientation="h",

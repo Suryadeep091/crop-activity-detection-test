@@ -30,17 +30,18 @@ DW_COLS = [
 ]
 
 def has_noncrop_dominance_veto(land_cover_df):
+    default_info = {"dominant_class": None, "dominant_percent": 0.0, "transitional_dominance": False}
     if land_cover_df is None:
-        return False
+        return False, default_info
     if isinstance(land_cover_df, list):
         if not land_cover_df:
-            return False
+            return False, default_info
         land_cover_df = pd.DataFrame(land_cover_df)
     elif isinstance(land_cover_df, pd.DataFrame):
         if land_cover_df.empty:
-            return False
+            return False, default_info
     else:
-        return False
+        return False, default_info
 
     dw_cols = [
         'water', 'trees', 'grass', 'flooded_vegetation',
@@ -48,22 +49,52 @@ def has_noncrop_dominance_veto(land_cover_df):
     ]
     available_cols = [c for c in dw_cols if c in land_cover_df.columns]
     if not available_cols:
-        return False
+        return False, default_info
 
     numeric_df = land_cover_df[available_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
     dominant_classes = numeric_df.idxmax(axis=1)
     dominant_share = dominant_classes.value_counts(normalize=True)
     dominant_class = dominant_share.index[0] if not dominant_share.empty else None
     dominant_percent = float(dominant_share.iloc[0] * 100) if not dominant_share.empty else 0.0
+    
     crop_probability_mean = float(numeric_df['crops'].mean() * 100) if 'crops' in numeric_df else 0.0
+    crop_probability_max = float(numeric_df['crops'].max() * 100) if 'crops' in numeric_df else 0.0
+    crop_probability_90 = float(numeric_df['crops'].quantile(0.90) * 100) if 'crops' in numeric_df else 0.0
 
+    veto_info = {
+        "dominant_class": dominant_class,
+        "dominant_percent": dominant_percent,
+        "transitional_dominance": False
+    }
+
+    # Define categories of non-crop dominant classes
+    HARD_NON_CROP_CLASSES = {'water', 'built', 'snow_and_ice', 'trees'}
+    TRANSITIONAL_NON_CROP_CLASSES = {'bare', 'shrub_and_scrub', 'grass'}
+
+    if dominant_class in TRANSITIONAL_NON_CROP_CLASSES and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD:
+        veto_info["transitional_dominance"] = True
+
+    # 1. Hard veto check
     if (
-        dominant_class in NON_CROP_DOMINANT_CLASSES
+        dominant_class in HARD_NON_CROP_CLASSES
         and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
         and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
     ):
-        return True
+        return True, veto_info
 
+    # 2. Transitional class check
+    if (
+        dominant_class in TRANSITIONAL_NON_CROP_CLASSES
+        and dominant_percent >= NON_CROP_DOMINANCE_THRESHOLD
+        and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
+    ):
+        # Bypass veto if a seasonal crop signature is found (max >= 35% or 90th percentile >= 20%)
+        if crop_probability_max >= 35.0 or crop_probability_90 >= 20.0:
+            return False, veto_info
+        else:
+            return True, veto_info
+
+    # 3. Fallback check for grass dominance
     if 'grass' in numeric_df.columns:
         grass_day_share = float((dominant_classes == 'grass').mean() * 100)
         if (
@@ -71,9 +102,13 @@ def has_noncrop_dominance_veto(land_cover_df):
             and crop_probability_mean <= LOW_CROP_PROBABILITY_THRESHOLD
             and dominant_class not in ('trees', 'water')
         ):
-            return True
+            if crop_probability_max >= 35.0 or crop_probability_90 >= 20.0:
+                veto_info["transitional_dominance"] = True
+                return False, veto_info
+            else:
+                return True, veto_info
 
-    return False
+    return False, veto_info
 
 
 def whittaker_smooth(y, lambda_=100, d=2):
@@ -519,6 +554,7 @@ def compute_parcel_certainty(
     is_guardband_triggered,
     guardband_conflict=False,
     missing_periods=None,
+    transitional_dominance: bool = False,
 ):
     if is_active:
         # For active parcels, we expect crops during peaks and no-crops during off-seasons.
@@ -580,6 +616,9 @@ def compute_parcel_certainty(
     if n_s2_scenes < 12:
         composite *= 0.8
         penalties.append("sparse_optical")
+    if transitional_dominance and is_active:
+        composite *= 0.85
+        penalties.append("transitional_noncrop_dominance")
 
     certainty_score = max(15.0, _smoothstep_certainty(composite))
     return {
@@ -1220,7 +1259,7 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
         # Re-verify activity ratio after possible guardband prediction flips
         current_crop_days = int((dataset_df['prediction'] == "Crop-Activity").sum())
         current_activity_ratio = (current_crop_days / len(dataset_df) * 100) if len(dataset_df) > 0 else 0
-        noncrop_veto = has_noncrop_dominance_veto(df_dw_raw)
+        noncrop_veto, veto_info = has_noncrop_dominance_veto(df_dw_raw)
         is_active = current_activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
         certainty = compute_parcel_certainty(
             dataset_df,
@@ -1234,6 +1273,7 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
             is_guardband_triggered,
             guardband_conflict=guardband_conflict,
             missing_periods=missing_periods,
+            transitional_dominance=veto_info.get("transitional_dominance", False),
         )
         overall_conf = certainty["certainty_score"]
 

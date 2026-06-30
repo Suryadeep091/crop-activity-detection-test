@@ -365,7 +365,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         
         # 2. Calculate the Activity Percentage
         activity_ratio = (active_instances / total_instances) * 100
-        noncrop_veto = has_noncrop_dominance_veto(land_cover_probs)
+        noncrop_veto, veto_info = has_noncrop_dominance_veto(land_cover_probs)
         
         # 3. Apply parcel-level activity threshold and non-crop dominance guard.
         if activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto:
@@ -588,7 +588,7 @@ async def replay_test_from_pickle(task_id: str):
         # crop_days = total_days - no_crop_days
         
         activity_ratio = (crop_days / total_days * 100) if total_days > 0 else 0
-        noncrop_veto = has_noncrop_dominance_veto(df_dw)
+        noncrop_veto, veto_info = has_noncrop_dominance_veto(df_dw)
         is_active = activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto
 
         # Format list for Annexure table
@@ -657,6 +657,7 @@ async def replay_test_from_pickle(task_id: str):
             is_guardband_triggered,
             guardband_conflict=guardband_conflict,
             missing_periods=missing_periods,
+            transitional_dominance=veto_info.get("transitional_dominance", False),
         )
         overall_conf = certainty["certainty_score"]
 

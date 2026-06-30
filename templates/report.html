@@ -368,7 +368,7 @@
         
         {% set stats = satellite.crop_activity_prediction_stats %}
         {% set activity_ratio = (stats.crop_days / stats.total * 100) if stats.total > 0 else 0 %}
-        {% set is_active = stats.is_active if stats.is_active is defined else False %}
+        {% set is_active = stats.is_active if stats.is_active is defined else (activity_ratio > 15) %}
 
         {% set certainty_tier = stats.certainty_tier if stats.certainty_tier is defined else '' %}
         {% set certainty_score = stats.certainty_score if stats.certainty_score is defined else stats.overall_confidence %}

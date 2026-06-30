@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+data/
+.gemini/
+.idea/
+.vscode/
+Cycle_Test_310_Draft_Latest/

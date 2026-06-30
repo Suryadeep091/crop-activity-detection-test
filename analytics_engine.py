@@ -107,6 +107,247 @@ def apply_whittaker_smoothing(dataset_df):
     return dataset_df
 
 
+def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, df_weather=None):
+    """
+    Imputes missing NDVI values using the RF + BiGRU Ensemble model.
+    """
+    import os
+    import joblib
+    import numpy as np
+    import pandas as pd
+    import torch
+    import torch.nn as nn
+    
+    # 1. Fetch or parse weather data
+    if df_weather is None:
+        try:
+            from rain_temp import get_one_year_weather_data
+            df_weather = get_one_year_weather_data(coords, end_date_str)
+        except Exception as e:
+            print(f"[Ensemble Imputation] Weather fetch failed: {e}. Skipping imputation.")
+            return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
+            
+    df_weather_df = df_weather.copy()
+    if 'Date' in df_weather_df.columns:
+        df_weather_df['date'] = pd.to_datetime(df_weather_df['Date'])
+    elif 'date' in df_weather_df.columns:
+        df_weather_df['date'] = pd.to_datetime(df_weather_df['date'])
+    else:
+        print("[Ensemble Imputation] Warning: Weather Date column not found. Skipping.")
+        return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
+        
+    df_weather_df['date'] = df_weather_df['date'].dt.normalize()
+    
+    # 2. Get centroid coordinates
+    lons = [pt[0] for pt in coords]
+    lats = [pt[1] for pt in coords]
+    lat = sum(lats) / len(lats)
+    lon = sum(lons) / len(lons)
+    
+    # 3. Create continuous daily series
+    df_all_norm = df_all.copy()
+    df_all_norm['date'] = pd.to_datetime(df_all_norm['date']).dt.normalize()
+    df_dw_norm = df_dw_raw.copy()
+    df_dw_norm['date'] = pd.to_datetime(df_dw_norm['date']).dt.normalize()
+    
+    min_date = df_all_norm['date'].min()
+    max_date = df_all_norm['date'].max()
+    all_dates = pd.date_range(start=min_date, end=max_date, freq='D')
+    
+    df_daily = pd.DataFrame({'date': all_dates})
+    df_daily['latitude'] = lat
+    df_daily['longitude'] = lon
+    
+    dw_cols = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
+    
+    # Merge raw vegetation indices
+    veg_cols = [c for c in ['raw_NDVI', 'raw_EVI', 'raw_RVI', 'NDVI', 'EVI', 'RVI'] if c in df_all_norm.columns]
+    df_veg_to_merge = df_all_norm[['date'] + veg_cols].copy()
+    if 'raw_NDVI' not in df_veg_to_merge.columns and 'NDVI' in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_NDVI'] = df_veg_to_merge['NDVI']
+    if 'raw_RVI' not in df_veg_to_merge.columns and 'RVI' in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_RVI'] = df_veg_to_merge['RVI']
+        
+    if 'raw_NDVI' not in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_NDVI'] = np.nan
+    if 'raw_RVI' not in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_RVI'] = np.nan
+        
+    df_daily = df_daily.merge(df_veg_to_merge[['date', 'raw_NDVI', 'raw_RVI']], on='date', how='left')
+    
+    # Merge Dynamic World columns
+    available_dw = [c for c in dw_cols if c in df_dw_norm.columns]
+    if available_dw:
+        df_dw_clean = df_dw_norm[['date'] + available_dw].copy()
+        df_daily = df_daily.merge(df_dw_clean, on='date', how='left')
+    for col in dw_cols:
+        if col not in df_daily.columns:
+            df_daily[col] = np.nan
+            
+    # Merge weather data
+    df_weather_clean = df_weather_df[['date', 'Rainfall_mm', 'Max_temp_celsius', 'Min_temp_celsius']].copy()
+    df_daily = df_daily.merge(df_weather_clean, on='date', how='left')
+    
+    # Interpolate DW and weather daily
+    df_daily[dw_cols] = df_daily[dw_cols].interpolate(method='linear', limit_direction='both').fillna(0)
+    weather_cols = ['Rainfall_mm', 'Max_temp_celsius', 'Min_temp_celsius']
+    df_daily[weather_cols] = df_daily[weather_cols].interpolate(method='linear', limit_direction='both').fillna(0)
+    
+    # Calculate daily weather rolling windows
+    df_daily['Rainfall_15d_sum'] = df_daily['Rainfall_mm'].rolling(window=15, min_periods=1).sum()
+    df_daily['MaxTemp_7d_avg'] = df_daily['Max_temp_celsius'].rolling(window=7, min_periods=1).mean()
+    df_daily['MinTemp_7d_avg'] = df_daily['Min_temp_celsius'].rolling(window=7, min_periods=1).mean()
+    
+    # Calculate daily interpolated RVI for lags/leads
+    df_daily['interp_RVI'] = df_daily['raw_RVI'].interpolate(method='linear', limit_direction='both').fillna(0)
+    df_daily['raw_RVI'] = df_daily['interp_RVI']
+    df_daily['RVI_lag_12'] = df_daily['interp_RVI'].shift(12).ffill().bfill().fillna(0)
+    df_daily['RVI_lag_6'] = df_daily['interp_RVI'].shift(6).ffill().bfill().fillna(0)
+    df_daily['RVI_lead_6'] = df_daily['interp_RVI'].shift(-6).ffill().bfill().fillna(0)
+    df_daily['RVI_lead_12'] = df_daily['interp_RVI'].shift(-12).ffill().bfill().fillna(0)
+    
+    # Extract cyclic DOY and seasonal flags
+    doys = df_daily['date'].dt.dayofyear
+    df_daily['doy_sin'] = np.sin(2 * np.pi * doys / 365.25)
+    df_daily['doy_cos'] = np.cos(2 * np.pi * doys / 365.25)
+    months = df_daily['date'].dt.month
+    df_daily['is_kharif'] = ((months >= 6) & (months <= 10)).astype(int)
+    df_daily['is_rabi'] = ((months >= 11) | (months <= 3)).astype(int)
+    df_daily['is_zaid'] = ((months == 4) | (months == 5)).astype(int)
+    
+    # Get target union dates
+    union_mask = df_all_norm['NDVI'].notna() | df_all_norm['RVI'].notna()
+    union_dates = df_all_norm[union_mask]['date'].unique()
+    union_dates = pd.DatetimeIndex(sorted(union_dates))
+    
+    # Filter daily features to union dates
+    df_obs = df_daily[df_daily['date'].isin(union_dates)].sort_values('date').reset_index(drop=True)
+    
+    # Find indices of dates where RVI is present but NDVI is missing
+    impute_idx = df_obs[df_obs['raw_RVI'].notna() & df_obs['raw_NDVI'].isna()].index.tolist()
+    
+    if not impute_idx:
+        print("[Ensemble Imputation] No dates found with RVI but no NDVI.")
+        return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
+        
+    print(f"[Ensemble Imputation] Imputing NDVI for {len(impute_idx)} dates...")
+    
+    # Scale features
+    feature_cols = [
+        'latitude', 'longitude', 'raw_RVI',
+        'is_kharif', 'is_rabi', 'is_zaid', 'doy_sin', 'doy_cos',
+        'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
+        'water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice',
+        'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12'
+    ]
+    
+    # Load models
+    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    models_dir = os.path.join(PROJECT_DIR, "models")
+    
+    scaler_path = os.path.join(models_dir, "lstm_scaler.pkl")
+    bigru_path = os.path.join(models_dir, "rvi_to_ndvi_lstm.pt")
+    rf_path = os.path.join(models_dir, "rvi_to_ndvi_model.pkl")
+    
+    if not (os.path.exists(scaler_path) and os.path.exists(bigru_path) and os.path.exists(rf_path)):
+        print("[Ensemble Imputation] Warning: Model files not found. Skipping imputation.")
+        return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
+        
+    scaler = joblib.load(scaler_path)
+    
+    # Create scaled features for BiGRU
+    df_obs_scaled = df_obs.copy()
+    df_obs_scaled[feature_cols] = scaler.transform(df_obs[feature_cols])
+    
+    # Build sequences for the impute indices
+    seq_length = 5
+    target_offset = seq_length // 2
+    X_seq = []
+    raw_features_sorted = []
+    
+    features_scaled = df_obs_scaled[feature_cols].values
+    features_raw = df_obs[feature_cols].values
+    n_obs = len(df_obs)
+    
+    for idx in impute_idx:
+        start_idx = idx - target_offset
+        end_idx = idx + (seq_length - 1 - target_offset)
+        
+        seq = []
+        for s_idx in range(start_idx, end_idx + 1):
+            if s_idx < 0 or s_idx >= n_obs:
+                seq.append(np.zeros(features_scaled.shape[1]))
+            else:
+                seq.append(features_scaled[s_idx])
+        X_seq.append(np.array(seq))
+        raw_features_sorted.append(features_raw[idx])
+        
+    X_seq = np.array(X_seq)
+    raw_features_sorted = np.array(raw_features_sorted)
+    
+    # Run BiGRU predictions
+    class NDVI_BiGRU(nn.Module):
+        def __init__(self, input_dim, hidden_dim=64, num_layers=2, output_dim=1):
+            super(NDVI_BiGRU, self).__init__()
+            self.hidden_dim = hidden_dim
+            self.num_layers = num_layers
+            self.gru = nn.GRU(
+                input_dim, 
+                hidden_dim, 
+                num_layers, 
+                batch_first=True, 
+                dropout=0.3 if num_layers > 1 else 0.0,
+                bidirectional=True
+            )
+            self.hidden_fc = nn.Linear(hidden_dim * 2, 64)
+            self.relu = nn.ReLU()
+            self.dropout = nn.Dropout(0.3)
+            self.fc = nn.Linear(64, output_dim)
+            
+        def forward(self, x):
+            out, _ = self.gru(x)
+            out = out[:, x.size(1) // 2, :]
+            out = self.hidden_fc(out)
+            out = self.relu(out)
+            out = self.dropout(out)
+            out = self.fc(out)
+            return out
+            
+    bigru_model = NDVI_BiGRU(input_dim=len(feature_cols), hidden_dim=64, num_layers=2)
+    bigru_model.load_state_dict(torch.load(bigru_path, map_location='cpu'))
+    bigru_model.eval()
+    
+    with torch.no_grad():
+        preds_bigru = bigru_model(torch.tensor(X_seq, dtype=torch.float32)).numpy().squeeze()
+        if len(impute_idx) == 1:
+            preds_bigru = np.array([preds_bigru])
+            
+    # Run RF predictions
+    rf_model = joblib.load(rf_path)
+    preds_rf = rf_model.predict(raw_features_sorted)
+    
+    # Blending Ensemble (0.4 RF + 0.6 BiGRU)
+    preds_ensemble = 0.4 * preds_rf + 0.6 * preds_bigru
+    preds_ensemble = np.clip(preds_ensemble, 0.0, 1.0)
+    
+    # Build predicted dataframe
+    impute_dates = df_obs.loc[impute_idx, 'date'].values
+    df_imputed = pd.DataFrame({
+        'date': impute_dates,
+        'NDVI_predicted': preds_ensemble
+    })
+    
+    # Integrate back into df_all
+    df_all_updated = df_all.copy()
+    df_all_updated['date'] = pd.to_datetime(df_all_updated['date']).dt.normalize()
+    df_all_updated = df_all_updated.merge(df_imputed, on='date', how='left')
+    
+    impute_mask = df_all_updated['NDVI'].isna() & df_all_updated['NDVI_predicted'].notna()
+    df_all_updated.loc[impute_mask, 'NDVI'] = df_all_updated.loc[impute_mask, 'NDVI_predicted']
+    
+    return df_all_updated, df_imputed
+
+
 def prepare_daily_modeling_dataframe(df_veg_sparse, df_dw_raw, already_smoothed=False):
     """Merge sparse vegetation with DW, daily resample, optional single Whittaker pass."""
     veg = df_veg_sparse.copy()
@@ -114,7 +355,7 @@ def prepare_daily_modeling_dataframe(df_veg_sparse, df_dw_raw, already_smoothed=
     veg['date'] = pd.to_datetime(veg['date']).dt.normalize()
     dw['date'] = pd.to_datetime(dw['date']).dt.normalize()
 
-    index_cols = [c for c in ['NDVI', 'EVI', 'RVI'] if c in veg.columns]
+    index_cols = [c for c in ['NDVI', 'EVI', 'RVI', 'NDVI_predicted'] if c in veg.columns]
     raw_points_df = (
         veg[['date'] + index_cols]
         .dropna(subset=index_cols, how='all')
@@ -179,7 +420,10 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
         raw_plot['date'] = pd.to_datetime(raw_plot['date'])
         for col, (color, name) in marker_styles.items():
             if col in raw_plot.columns:
-                observed = raw_plot.dropna(subset=[col])
+                if col == 'NDVI' and 'NDVI_predicted' in raw_plot.columns:
+                    observed = raw_plot[raw_plot['NDVI_predicted'].isna()].dropna(subset=['NDVI'])
+                else:
+                    observed = raw_plot.dropna(subset=[col])
                 if not observed.empty:
                     fig.add_trace(
                         go.Scatter(
@@ -195,6 +439,24 @@ def build_vegetation_indices_chart(smoothed_df, raw_df, date_range):
                             ),
                         )
                     )
+        # Plot predicted NDVI
+        if 'NDVI_predicted' in raw_plot.columns:
+            predicted = raw_plot.dropna(subset=['NDVI_predicted'])
+            if not predicted.empty:
+                fig.add_trace(
+                    go.Scatter(
+                        x=predicted['date'],
+                        y=predicted['NDVI_predicted'],
+                        mode='markers',
+                        name='NDVI (predicted)',
+                        marker=dict(
+                            color='#e74c3c',
+                            size=6,
+                            symbol='triangle-up',
+                            opacity=0.85,
+                        ),
+                    )
+                )
 
     fig.update_layout(
         xaxis_title="Date",
@@ -633,25 +895,39 @@ def apply_empirical_logic(row, detected_seasons):
     return prediction, p1_crop_conf, p2_crop_conf, final_confidence
 
 
-def run_full_analytics_pipeline(task_id, coords, end_date_str):
+def run_full_analytics_pipeline(task_id, coords, end_date_str, df_weather=None):
     try:
         # 1. Extraction (GEE)
         extraction_result = process_parcel_data(task_id, coords, end_date_str)
         if not extraction_result:
             return None
         
+        return compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_result, df_weather)
+    except Exception as e:
+        print(f"Engine Error: {e}")
+        print(traceback.format_exc())
+        return None
+
+
+def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_result, df_weather=None):
+    try:
         df_all, summary_dict, df_dw_raw = extraction_result
+
+        # --- ENSEMBLE IMPUTATION ---
+        df_all, df_imputed = impute_missing_ndvi_using_ensemble(
+            df_all, df_dw_raw, coords, end_date_str, df_weather=df_weather
+        )
 
         # --- CAPTURE TRULY RAW GEE-FETCHED DATA ---
         # df_all at this point contains the original S2 (NDVI/EVI) and S1 (RVI) rows
         # exactly as returned by Earth Engine, before any resampling, outer-join with DW,
         # or Whittaker smoothing. This is the earliest possible capture point.
-        _raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI'] if c in df_all.columns]
+        _raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI', 'NDVI_predicted'] if c in df_all.columns]
         raw_indices_df = (
             df_all[['date'] + _raw_index_cols]
             .copy()
             .assign(date=lambda d: pd.to_datetime(d['date']).dt.normalize())
-            .dropna(subset=_raw_index_cols, how='all')
+            .dropna(subset=[c for c in ['NDVI', 'EVI', 'RVI'] if c in _raw_index_cols], how='all')
             .drop_duplicates(subset=['date'])
             .sort_values('date')
         )

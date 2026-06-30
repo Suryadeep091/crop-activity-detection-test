@@ -92,9 +92,9 @@ def create_sequences(df, feature_cols, target_col, seq_length=5):
     return np.array(X_seq), np.array(y_seq)
 
 def main():
-    dataset_path = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/data/model_training_dataset.csv"
-    models_dir = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/models"
-    analysis_dir = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/analysis"
+    dataset_path = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\data\model_training_dataset.csv"
+    models_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\models"
+    analysis_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\analysis"
     
     os.makedirs(models_dir, exist_ok=True)
     os.makedirs(analysis_dir, exist_ok=True)

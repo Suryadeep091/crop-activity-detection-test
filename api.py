@@ -25,6 +25,8 @@ from analytics_engine import (
     summarize_crop_activity_table_data,
     summarize_indices_for_table,
     run_full_analytics_pipeline,
+    compute_analytics_from_extracted,
+    impute_missing_ndvi_using_ensemble,
     prepare_daily_modeling_dataframe,
     build_vegetation_indices_chart,
     compute_parcel_certainty,
@@ -133,8 +135,9 @@ def download_from_gcs(blob_name, bucket_name="terradrishti"):
         return None
     
 # --- WORKERS (Same as before) ---
-def satellite_worker(task_id, coords, end_date):
-    return run_full_analytics_pipeline(task_id, coords, end_date)
+def satellite_extraction_worker(task_id, coords, end_date):
+    from data_loader import process_parcel_data
+    return process_parcel_data(task_id, coords, end_date)
 
 def location_worker(task_id, coords):
     """Fetches Address, Water Sources, and the Static Map Image."""
@@ -284,18 +287,29 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
 
     try:
         # Step 1: Execute Extraction Workers
-        b1 = loop.run_in_executor(executor, satellite_worker, task_id, coords, request.end_date)
+        b1 = loop.run_in_executor(executor, satellite_extraction_worker, task_id, coords, request.end_date)
         b2 = loop.run_in_executor(executor, location_worker, task_id, coords)
         b3 = loop.run_in_executor(executor, weather_worker, coords, request.end_date)
 
-        sat_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
-        if sat_res is None:
+        extraction_res, loc_res, weather_res = await asyncio.gather(b1, b2, b3)
+        if extraction_res is None:
             raise HTTPException(
                 status_code=502,
                 detail=(
-                    "Satellite analytics failed before producing a result. "
-                    "Check the Cloud Run logs above this request for the GEE extraction/analytics error."
+                    "Satellite extraction failed before producing a result. "
+                    "Check the Cloud Run logs above this request for the GEE extraction error."
                 ),
+            )
+
+        # Convert daily weather data back to DataFrame for ensemble imputation
+        df_weather = pd.DataFrame(weather_res["daily_weather_data"])
+        
+        # Run local computations of the analytics pipeline (deferred computation)
+        sat_res = compute_analytics_from_extracted(task_id, coords, request.end_date, extraction_res, df_weather)
+        if sat_res is None:
+            raise HTTPException(
+                status_code=502,
+                detail="Satellite analytics computation failed."
             )
 
         # Step 2: Extract ONLY raw signals for future model testing
@@ -433,7 +447,15 @@ async def replay_test_from_pickle(task_id: str):
             }
         
         if not df_raw_veg.empty and 'date' in df_raw_veg.columns:
-            veg_source = df_raw_veg
+            # Run ensemble imputation on raw data during replay
+            coords = raw_data.get("coords") or []
+            end_date_val = pd.to_datetime(df_raw_veg['date']).max().strftime('%Y-%m-%d')
+            df_weather_raw = pd.DataFrame(raw_data.get("weather_data", {}).get("daily_weather_data", []))
+            
+            df_raw_veg_updated, df_imputed = impute_missing_ndvi_using_ensemble(
+                df_raw_veg, df_dw, coords, end_date_val, df_weather=df_weather_raw
+            )
+            veg_source = df_raw_veg_updated
             already_smoothed = False
         elif not df_veg.empty and 'date' in df_veg.columns:
             veg_source = df_veg

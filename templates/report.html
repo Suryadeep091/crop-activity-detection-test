@@ -368,12 +368,12 @@
         
         {% set stats = satellite.crop_activity_prediction_stats %}
         {% set activity_ratio = (stats.crop_days / stats.total * 100) if stats.total > 0 else 0 %}
-        {% set is_active = stats.is_active if stats.is_active is defined else (activity_ratio > 30) %}
+        {% set is_active = stats.is_active if stats.is_active is defined else False %}
 
         {% set certainty_tier = stats.certainty_tier if stats.certainty_tier is defined else '' %}
         {% set certainty_score = stats.certainty_score if stats.certainty_score is defined else stats.overall_confidence %}
         <div class="verdict-banner {{ 'bg-green' if is_active else 'bg-red' }}">
-            Verdict: {{ 'Agri activity detected' if is_active else 'Low Agri activity detected' }} 
+            Verdict: {{ 'Agri activity detected' if is_active else 'Low Agri activity detected' }}{{ ' (Vetoed by Non-Crop Dominance)' if (not is_active and stats.noncrop_dominance_veto) else '' }}
             ({{ activity_ratio | round(1) }}% Active | Final Certainty: {{ certainty_score | round(1) }}%{% if certainty_tier %} — {{ certainty_tier }}{% endif %})
         </div>
         <p class="report-description" style="margin-top: 8px; font-size: 11px; color: #64748b;">

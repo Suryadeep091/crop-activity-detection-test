@@ -369,17 +369,18 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         
         # 3. Apply parcel-level activity threshold and non-crop dominance guard.
         if activity_ratio > ACTIVE_ACTIVITY_THRESHOLD and not noncrop_veto:
-            agri_verdict = "Crop activity detected"
+            agri_verdict = "Agri activity detected"
             is_active = True
         else:
-            agri_verdict = "Low/No Crop activity detected"
+            agri_verdict = "Low Agri activity detected"
             is_active = False
 
         # --- FINAL RETURN ---
         return {
             "status": "success",
             "task_id": task_id,
-            "verdict": agri_verdict,        # The text: "Crop activity detected"
+            "verdict": agri_verdict,
+            "agri_activity": agri_verdict,
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,
             "noncrop_dominance_veto": noncrop_veto,
@@ -703,6 +704,7 @@ async def replay_test_from_pickle(task_id: str):
         return {
             "status": "success",
             "task_id": task_id,
+            "verdict": "Agri activity detected" if is_active else "Low Agri activity detected",
             "agri_activity": "Agri activity detected" if is_active else "Low Agri activity detected",
             "activity_score": f"{round(activity_ratio, 2)}%",
             "is_active": is_active,

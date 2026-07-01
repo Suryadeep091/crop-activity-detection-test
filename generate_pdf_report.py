@@ -523,20 +523,20 @@ async def main():
         <div class="rank-grid">
             <div class="rank-column" style="border-left: 3px solid #10b981;">
                 <div class="rank-column-title" style="color: #047857;">Top 5 Performing States (Avg Accuracy)</div>
-                <div class="rank-item"><span>1. Northeast (NE)</span><strong>100.0%</strong></div>
-                <div class="rank-item"><span>2. Uttar Pradesh (UP)</span><strong>98.3%</strong></div>
-                <div class="rank-item"><span>3. Bihar (BH)</span><strong>96.3%</strong></div>
-                <div class="rank-item"><span>4. Jammu & Kashmir (JK)</span><strong>96.3%</strong></div>
-                <div class="rank-item"><span>5. Gujarat (GJ)</span><strong>95.0%</strong></div>
+                <div class="rank-item"><span>1. Uttar Pradesh (UP)</span><strong>100.0%</strong></div>
+                <div class="rank-item"><span>2. Jammu & Kashmir (JK)</span><strong>96.7%</strong></div>
+                <div class="rank-item"><span>3. Uttarakhand (UK)</span><strong>96.7%</strong></div>
+                <div class="rank-item"><span>4. Chhattisgarh (CH)</span><strong>96.7%</strong></div>
+                <div class="rank-item"><span>5. Northeast (NE)</span><strong>96.3%</strong></div>
             </div>
             
             <div class="rank-column" style="border-left: 3px solid #ef4444;">
                 <div class="rank-column-title" style="color: #b91c1c;">Lowest Performing States (Avg Accuracy)</div>
-                <div class="rank-item"><span>1. Kerala (KL)</span><strong>70.8%</strong></div>
-                <div class="rank-item"><span>2. Rajasthan (RJ)</span><strong>83.3%</strong></div>
+                <div class="rank-item"><span>1. Kerala (KL)</span><strong>79.2%</strong></div>
+                <div class="rank-item"><span>2. Karnataka (KT)</span><strong>80.0%</strong></div>
                 <div class="rank-item"><span>3. Himachal Pradesh (HP)</span><strong>83.3%</strong></div>
-                <div class="rank-item"><span>4. Telangana (TL)</span><strong>85.0%</strong></div>
-                <div class="rank-item"><span>5. Karnataka (KT)</span><strong>85.0%</strong></div>
+                <div class="rank-item"><span>4. Andhra Pradesh (AP)</span><strong>86.7%</strong></div>
+                <div class="rank-item"><span>5. Rajasthan (RJ)</span><strong>86.7%</strong></div>
             </div>
         </div>
         

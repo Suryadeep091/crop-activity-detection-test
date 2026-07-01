@@ -1,50 +1,50 @@
 {
     "yearly": {
         "2023-24": {
-            "accuracy": 92.43421052631578,
-            "precision": 96.19047619047619,
-            "recall": 93.08755760368663,
-            "f1": 94.61358313817331,
-            "TP": 202,
-            "FP": 8,
-            "TN": 79,
-            "FN": 15,
-            "total": 304
+            "accuracy": 92.48366013071896,
+            "precision": 94.11764705882352,
+            "recall": 95.41284403669725,
+            "f1": 94.76082004555809,
+            "TP": 208,
+            "FP": 13,
+            "TN": 75,
+            "FN": 10,
+            "total": 306
         },
         "2024-25": {
             "accuracy": 89.54248366013073,
-            "precision": 95.58823529411765,
-            "recall": 89.44954128440367,
-            "f1": 92.41706161137441,
-            "TP": 195,
-            "FP": 9,
-            "TN": 79,
-            "FN": 23,
+            "precision": 93.05555555555556,
+            "recall": 92.20183486238533,
+            "f1": 92.62672811059909,
+            "TP": 201,
+            "FP": 15,
+            "TN": 73,
+            "FN": 17,
             "total": 306
         },
         "2025-26": {
-            "accuracy": 88.52459016393442,
-            "precision": 95.97989949748744,
-            "recall": 87.61467889908256,
-            "f1": 91.60671462829735,
-            "TP": 191,
+            "accuracy": 90.19607843137256,
+            "precision": 96.07843137254902,
+            "recall": 89.90825688073394,
+            "f1": 92.89099526066352,
+            "TP": 196,
             "FP": 8,
-            "TN": 79,
-            "FN": 27,
-            "total": 305
+            "TN": 80,
+            "FN": 22,
+            "total": 306
         }
     },
     "states": [
         {
             "state": "AP",
             "year": "2023-24",
-            "accuracy": 90.0,
+            "accuracy": 85.0,
             "total": 20
         },
         {
             "state": "AP",
             "year": "2024-25",
-            "accuracy": 80.0,
+            "accuracy": 85.0,
             "total": 20
         },
         {
@@ -56,7 +56,7 @@
         {
             "state": "BH",
             "year": "2023-24",
-            "accuracy": 100.0,
+            "accuracy": 88.88888888888889,
             "total": 9
         },
         {
@@ -74,31 +74,31 @@
         {
             "state": "CH",
             "year": "2023-24",
-            "accuracy": 90.0,
+            "accuracy": 100.0,
             "total": 10
         },
         {
             "state": "CH",
             "year": "2024-25",
-            "accuracy": 90.0,
+            "accuracy": 100.0,
             "total": 10
         },
         {
             "state": "CH",
             "year": "2025-26",
-            "accuracy": 80.0,
+            "accuracy": 90.0,
             "total": 10
         },
         {
             "state": "GJ",
             "year": "2023-24",
-            "accuracy": 100.0,
+            "accuracy": 90.0,
             "total": 20
         },
         {
             "state": "GJ",
             "year": "2024-25",
-            "accuracy": 95.0,
+            "accuracy": 90.0,
             "total": 20
         },
         {
@@ -146,124 +146,124 @@
         {
             "state": "JH",
             "year": "2023-24",
-            "accuracy": 90.0,
-            "total": 10
-        },
-        {
-            "state": "JH",
-            "year": "2024-25",
             "accuracy": 100.0,
             "total": 10
         },
         {
             "state": "JH",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "JH",
             "year": "2025-26",
+            "accuracy": 80.0,
+            "total": 10
+        },
+        {
+            "state": "JK",
+            "year": "2023-24",
+            "accuracy": 90.0,
+            "total": 10
+        },
+        {
+            "state": "JK",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "JK",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
+            "state": "KL",
+            "year": "2023-24",
+            "accuracy": 87.5,
+            "total": 8
+        },
+        {
+            "state": "KL",
+            "year": "2024-25",
+            "accuracy": 75.0,
+            "total": 8
+        },
+        {
+            "state": "KL",
+            "year": "2025-26",
+            "accuracy": 75.0,
+            "total": 8
+        },
+        {
+            "state": "KT",
+            "year": "2023-24",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "KT",
+            "year": "2024-25",
             "accuracy": 70.0,
-            "total": 10
+            "total": 20
         },
         {
-            "state": "JK",
+            "state": "KT",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
             "year": "2023-24",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "MH",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2023-24",
+            "accuracy": 95.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2024-25",
+            "accuracy": 90.0,
+            "total": 20
+        },
+        {
+            "state": "MP",
+            "year": "2025-26",
+            "accuracy": 85.0,
+            "total": 20
+        },
+        {
+            "state": "NE",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 9
+        },
+        {
+            "state": "NE",
+            "year": "2024-25",
             "accuracy": 88.88888888888889,
             "total": 9
         },
         {
-            "state": "JK",
-            "year": "2024-25",
-            "accuracy": 100.0,
-            "total": 10
-        },
-        {
-            "state": "JK",
-            "year": "2025-26",
-            "accuracy": 100.0,
-            "total": 10
-        },
-        {
-            "state": "KL",
-            "year": "2023-24",
-            "accuracy": 75.0,
-            "total": 8
-        },
-        {
-            "state": "KL",
-            "year": "2024-25",
-            "accuracy": 62.5,
-            "total": 8
-        },
-        {
-            "state": "KL",
-            "year": "2025-26",
-            "accuracy": 75.0,
-            "total": 8
-        },
-        {
-            "state": "KT",
-            "year": "2023-24",
-            "accuracy": 90.0,
-            "total": 20
-        },
-        {
-            "state": "KT",
-            "year": "2024-25",
-            "accuracy": 85.0,
-            "total": 20
-        },
-        {
-            "state": "KT",
-            "year": "2025-26",
-            "accuracy": 80.0,
-            "total": 20
-        },
-        {
-            "state": "MH",
-            "year": "2023-24",
-            "accuracy": 100.0,
-            "total": 20
-        },
-        {
-            "state": "MH",
-            "year": "2024-25",
-            "accuracy": 90.0,
-            "total": 20
-        },
-        {
-            "state": "MH",
-            "year": "2025-26",
-            "accuracy": 85.0,
-            "total": 20
-        },
-        {
-            "state": "MP",
-            "year": "2023-24",
-            "accuracy": 100.0,
-            "total": 20
-        },
-        {
-            "state": "MP",
-            "year": "2024-25",
-            "accuracy": 95.0,
-            "total": 20
-        },
-        {
-            "state": "MP",
-            "year": "2025-26",
-            "accuracy": 84.21052631578947,
-            "total": 19
-        },
-        {
-            "state": "NE",
-            "year": "2023-24",
-            "accuracy": 100.0,
-            "total": 9
-        },
-        {
-            "state": "NE",
-            "year": "2024-25",
-            "accuracy": 100.0,
-            "total": 9
-        },
-        {
             "state": "NE",
             "year": "2025-26",
             "accuracy": 100.0,
@@ -272,7 +272,7 @@
         {
             "state": "OD",
             "year": "2023-24",
-            "accuracy": 80.0,
+            "accuracy": 90.0,
             "total": 10
         },
         {
@@ -314,38 +314,38 @@
         {
             "state": "RJ",
             "year": "2024-25",
-            "accuracy": 75.0,
+            "accuracy": 80.0,
             "total": 20
         },
         {
             "state": "RJ",
             "year": "2025-26",
-            "accuracy": 85.0,
+            "accuracy": 90.0,
             "total": 20
         },
         {
             "state": "TL",
             "year": "2023-24",
-            "accuracy": 85.0,
+            "accuracy": 95.0,
             "total": 20
         },
         {
             "state": "TL",
             "year": "2024-25",
-            "accuracy": 85.0,
+            "accuracy": 90.0,
             "total": 20
         },
         {
             "state": "TL",
             "year": "2025-26",
-            "accuracy": 85.0,
+            "accuracy": 90.0,
             "total": 20
         },
         {
             "state": "TN",
             "year": "2023-24",
-            "accuracy": 89.47368421052632,
-            "total": 19
+            "accuracy": 95.0,
+            "total": 20
         },
         {
             "state": "TN",
@@ -374,128 +374,103 @@
         {
             "state": "UK",
             "year": "2025-26",
-            "accuracy": 80.0,
-            "total": 10
-        },
-        {
-            "state": "UP",
-            "year": "2023-24",
-            "accuracy": 95.0,
-            "total": 20
-        },
-        {
-            "state": "UP",
-            "year": "2024-25",
-            "accuracy": 100.0,
-            "total": 20
-        },
-        {
-            "state": "UP",
-            "year": "2025-26",
-            "accuracy": 100.0,
-            "total": 20
-        },
-        {
-            "state": "WB",
-            "year": "2023-24",
             "accuracy": 90.0,
             "total": 10
         },
         {
+            "state": "UP",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "UP",
+            "year": "2024-25",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "UP",
+            "year": "2025-26",
+            "accuracy": 100.0,
+            "total": 20
+        },
+        {
+            "state": "WB",
+            "year": "2023-24",
+            "accuracy": 100.0,
+            "total": 10
+        },
+        {
             "state": "WB",
             "year": "2024-25",
-            "accuracy": 80.0,
+            "accuracy": 100.0,
             "total": 10
         },
         {
             "state": "WB",
             "year": "2025-26",
-            "accuracy": 90.0,
+            "accuracy": 80.0,
             "total": 10
         }
     ],
     "certainty": [
         {
             "certainty_tier": "Very High",
-            "accuracy": 96.3855421686747,
-            "count": 664
+            "accuracy": 95.61527581329563,
+            "count": 707
         },
         {
             "certainty_tier": "High",
-            "accuracy": 80.3030303030303,
-            "count": 66
+            "accuracy": 75.38461538461539,
+            "count": 65
         },
         {
             "certainty_tier": "Moderate",
-            "accuracy": 79.03225806451613,
-            "count": 62
+            "accuracy": 88.46153846153845,
+            "count": 52
         },
         {
             "certainty_tier": "Low",
-            "accuracy": 72.6027397260274,
-            "count": 73
+            "accuracy": 77.58620689655173,
+            "count": 58
         },
         {
             "certainty_tier": "Very Low",
-            "accuracy": 60.0,
-            "count": 50
+            "accuracy": 47.22222222222222,
+            "count": 36
         }
     ],
     "transitions": {
         "Active -> Active -> Active": {
             "count": 218,
-            "accuracy": 83.02752293577981
+            "accuracy": 86.69724770642202
         },
         "Inactive -> Inactive -> Inactive": {
             "count": 88,
             "accuracy": 79.54545454545455
         }
     },
-    "errors": [
-        {
-            "task_id": "24-JK02 (No-Crop)",
-            "year": "2023-24",
-            "base_name": "JK02 (No-Crop)",
-            "state": "JK",
-            "ground_truth": false,
-            "error_msg": "{\"detail\":\"Satellite analytics failed before producing a result. Check the Cloud Run logs above this request for the GEE extraction/analytics error.\"}"
-        },
-        {
-            "task_id": "24-TN08 (Crop)",
-            "year": "2023-24",
-            "base_name": "TN08 (Crop)",
-            "state": "TN",
-            "ground_truth": true,
-            "error_msg": "HTTPSConnectionPool(host='test-terradrishti-413500342905.asia-south1.run.app', port=443): Read timed out. (read timeout=300)"
-        },
-        {
-            "task_id": "MP08 (No-Crop)",
-            "year": "2025-26",
-            "base_name": "MP08 (No-Crop)",
-            "state": "MP",
-            "ground_truth": false,
-            "error_msg": "HTTPSConnectionPool(host='test-terradrishti-413500342905.asia-south1.run.app', port=443): Read timed out. (read timeout=60)"
-        }
-    ],
+    "errors": [],
     "state_counts": {
         "UP": 60,
         "RJ": 60,
+        "MP": 60,
         "GJ": 60,
         "MH": 60,
         "PB": 60,
-        "KT": 60,
         "TL": 60,
+        "KT": 60,
+        "TN": 60,
         "AP": 60,
-        "MP": 59,
-        "TN": 59,
         "WB": 30,
         "OD": 30,
-        "HR": 30,
+        "JK": 30,
         "JH": 30,
         "HP": 30,
-        "UK": 30,
+        "HR": 30,
         "CH": 30,
-        "JK": 29,
+        "UK": 30,
         "NE": 27,
         "BH": 27,
         "KL": 24
@@ -540,7 +515,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
@@ -583,19 +558,19 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
                 "Active",
-                "Inactive"
+                "Active",
+                "Active"
             ],
             "cert": [
                 "Very High",
-                "Moderate",
-                "High"
+                "Very High",
+                "Very High"
             ],
             "match": [
-                true,
                 false,
-                true
+                false,
+                false
             ]
         },
         {
@@ -608,17 +583,17 @@
             ],
             "pred": [
                 "Inactive",
-                "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
                 "Very High",
-                "Very High",
-                "Low"
+                "Moderate",
+                "Very High"
             ],
             "match": [
                 true,
-                true,
+                false,
                 true
             ]
         },
@@ -728,18 +703,18 @@
             ],
             "pred": [
                 "Active",
-                "Active",
-                "Active"
+                "Inactive",
+                "Inactive"
             ],
             "cert": [
                 "Very High",
                 "Very High",
-                "Moderate"
+                "Very High"
             ],
             "match": [
                 false,
-                false,
-                false
+                true,
+                true
             ]
         },
         {
@@ -828,9 +803,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Very Low",
-                "Very Low",
-                "Low"
+                "Moderate",
+                "Low",
+                "Very High"
             ],
             "match": [
                 true,
@@ -848,17 +823,17 @@
             ],
             "pred": [
                 "Active",
-                "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
+                "High",
                 "Moderate",
-                "Very Low",
-                "Low"
+                "Moderate"
             ],
             "match": [
                 true,
-                false,
+                true,
                 false
             ]
         },
@@ -876,7 +851,7 @@
                 "Active"
             ],
             "cert": [
-                "High",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
@@ -948,8 +923,8 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
-                "Low",
+                "Moderate",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -973,7 +948,7 @@
             ],
             "cert": [
                 "Low",
-                "Very Low",
+                "Low",
                 "Low"
             ],
             "match": [
@@ -1015,17 +990,17 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
+                "Moderate",
                 "High",
-                "Very High",
                 "Very High"
             ],
             "match": [
-                true,
+                false,
                 true,
                 true
             ]
@@ -1045,7 +1020,7 @@
             ],
             "cert": [
                 "Moderate",
-                "Very Low",
+                "Low",
                 "Moderate"
             ],
             "match": [
@@ -1190,7 +1165,7 @@
             "cert": [
                 "Low",
                 "Low",
-                "Very Low"
+                "Moderate"
             ],
             "match": [
                 true,
@@ -1279,19 +1254,19 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
-                "Inactive"
+                "Active",
+                "Active",
+                "Active"
             ],
             "cert": [
+                "Very High",
                 "Moderate",
-                "Low",
-                "Very High"
+                "Moderate"
             ],
             "match": [
-                false,
-                false,
-                false
+                true,
+                true,
+                true
             ]
         },
         {
@@ -1381,7 +1356,7 @@
             ],
             "cert": [
                 "Moderate",
-                "Moderate",
+                "Low",
                 "Moderate"
             ],
             "match": [
@@ -1406,7 +1381,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Low"
+                "High"
             ],
             "match": [
                 true,
@@ -1429,7 +1404,7 @@
             ],
             "cert": [
                 "Very High",
-                "High",
+                "Very High",
                 "High"
             ],
             "match": [
@@ -1495,17 +1470,17 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Active",
                 "Active"
             ],
             "cert": [
-                "Very Low",
+                "Very High",
                 "Low",
                 "Very High"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -1567,18 +1542,18 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
+                "Active",
+                "Active",
                 "Active"
             ],
             "cert": [
-                "Low",
-                "Low",
+                "Very High",
+                "Very High",
                 "Very High"
             ],
             "match": [
-                true,
-                true,
+                false,
+                false,
                 false
             ]
         },
@@ -1644,9 +1619,9 @@
                 "Inactive"
             ],
             "cert": [
+                "Low",
                 "Moderate",
-                "Moderate",
-                "High"
+                "Low"
             ],
             "match": [
                 true,
@@ -1910,7 +1885,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "High"
+                "Very High"
             ],
             "match": [
                 true,
@@ -1982,7 +1957,7 @@
             "cert": [
                 "Moderate",
                 "Moderate",
-                "Moderate"
+                "High"
             ],
             "match": [
                 true,
@@ -2078,7 +2053,7 @@
             "cert": [
                 "Very High",
                 "Very Low",
-                "Very Low"
+                "Low"
             ],
             "match": [
                 true,
@@ -2149,8 +2124,8 @@
             ],
             "cert": [
                 "Low",
-                "Low",
-                "Low"
+                "Very Low",
+                "Very Low"
             ],
             "match": [
                 false,
@@ -2342,7 +2317,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Moderate"
+                "Very High"
             ],
             "match": [
                 true,
@@ -2433,17 +2408,17 @@
             "pred": [
                 "Active",
                 "Active",
-                "Active"
+                "Inactive"
             ],
             "cert": [
                 "Very High",
                 "Very High",
-                "High"
+                "Low"
             ],
             "match": [
                 true,
                 true,
-                true
+                false
             ]
         },
         {
@@ -2457,17 +2432,17 @@
             "pred": [
                 "Active",
                 "Active",
-                "Inactive"
+                "Active"
             ],
             "cert": [
                 "Very High",
                 "Very High",
-                "Very Low"
+                "Moderate"
             ],
             "match": [
                 true,
                 true,
-                false
+                true
             ]
         },
         {
@@ -2504,17 +2479,17 @@
             ],
             "pred": [
                 "Active",
-                "Active",
+                "Inactive",
                 "Inactive"
             ],
             "cert": [
                 "High",
-                "High",
+                "Low",
                 "Very Low"
             ],
             "match": [
                 true,
-                true,
+                false,
                 false
             ]
         },
@@ -2534,7 +2509,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Moderate"
+                "High"
             ],
             "match": [
                 true,
@@ -2599,19 +2574,19 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
                 "Active",
-                "Inactive"
+                "Active",
+                "Active"
             ],
             "cert": [
-                "Very High",
-                "Very High",
-                "Low"
+                "Moderate",
+                "High",
+                "Moderate"
             ],
             "match": [
-                false,
                 true,
-                false
+                true,
+                true
             ]
         },
         {
@@ -2671,17 +2646,17 @@
                 "Inactive"
             ],
             "pred": [
-                "Error",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "N/A",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
             "match": [
-                false,
+                true,
                 true,
                 true
             ]
@@ -2748,7 +2723,7 @@
                 "Inactive"
             ],
             "cert": [
-                "High",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
@@ -2870,7 +2845,7 @@
             "cert": [
                 "High",
                 "Very Low",
-                "Very Low"
+                "Low"
             ],
             "match": [
                 false,
@@ -2893,7 +2868,7 @@
             ],
             "cert": [
                 "Very High",
-                "High",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -2916,7 +2891,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
@@ -2940,9 +2915,9 @@
                 "Inactive"
             ],
             "cert": [
-                "High",
-                "High",
-                "High"
+                "Very High",
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
@@ -2964,9 +2939,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
                 "Very Low",
-                "Low"
+                "Low",
+                "Very Low"
             ],
             "match": [
                 true,
@@ -2984,17 +2959,17 @@
             ],
             "pred": [
                 "Inactive",
-                "Active",
+                "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "Low",
-                "Moderate",
-                "Low"
+                "Very High",
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
-                false,
+                true,
                 true
             ]
         },
@@ -3012,9 +2987,9 @@
                 "Inactive"
             ],
             "cert": [
+                "Low",
                 "Very Low",
-                "Very Low",
-                "Moderate"
+                "Very High"
             ],
             "match": [
                 false,
@@ -3031,17 +3006,17 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "High",
                 "Very High",
-                "High"
+                "Very High",
+                "Very High"
             ],
             "match": [
-                false,
+                true,
                 false,
                 false
             ]
@@ -3060,7 +3035,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
@@ -3079,17 +3054,17 @@
                 "Active"
             ],
             "pred": [
-                "Active",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
+                "Low",
                 "Very High",
-                "Moderate",
                 "Low"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -3103,18 +3078,18 @@
                 "Inactive"
             ],
             "pred": [
-                "Active",
                 "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
                 "Very High",
-                "Low",
+                "High",
                 "Very High"
             ],
             "match": [
-                false,
                 true,
+                false,
                 true
             ]
         },
@@ -3158,7 +3133,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Low"
+                "Very High"
             ],
             "match": [
                 true,
@@ -3199,17 +3174,17 @@
                 "Active"
             ],
             "pred": [
-                "Active",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "Very High",
-                "Very High",
+                "High",
+                "Very Low",
                 "Very High"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -3248,17 +3223,17 @@
             ],
             "pred": [
                 "Inactive",
-                "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
-                "Very High",
+                "Low",
                 "Low",
                 "Low"
             ],
             "match": [
                 true,
-                true,
+                false,
                 true
             ]
         },
@@ -3272,18 +3247,18 @@
             ],
             "pred": [
                 "Inactive",
-                "Inactive",
-                "Active"
+                "Active",
+                "Inactive"
             ],
             "cert": [
-                "High",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
             "match": [
                 true,
-                true,
-                false
+                false,
+                true
             ]
         },
         {
@@ -3301,7 +3276,7 @@
             ],
             "cert": [
                 "Very High",
-                "Moderate",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -3420,9 +3395,9 @@
                 "Active"
             ],
             "cert": [
+                "High",
                 "Very High",
-                "Very High",
-                "Very High"
+                "High"
             ],
             "match": [
                 true,
@@ -3446,7 +3421,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Moderate"
+                "High"
             ],
             "match": [
                 true,
@@ -3493,7 +3468,7 @@
             ],
             "cert": [
                 "Very High",
-                "Moderate",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -3518,7 +3493,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Very Low"
+                "Very High"
             ],
             "match": [
                 true,
@@ -3540,9 +3515,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
-                "Moderate",
-                "Moderate"
+                "Very High",
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
@@ -3566,7 +3541,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Low"
+                "Very High"
             ],
             "match": [
                 true,
@@ -3703,19 +3678,19 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
-                "Inactive"
+                "Active",
+                "Active",
+                "Active"
             ],
             "cert": [
-                "Very Low",
-                "Low",
-                "Low"
+                "High",
+                "High",
+                "High"
             ],
             "match": [
-                true,
-                true,
-                true
+                false,
+                false,
+                false
             ]
         },
         {
@@ -3727,17 +3702,17 @@
                 "Active"
             ],
             "pred": [
-                "Active",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "Very High",
+                "Very Low",
                 "Low",
                 "Very Low"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -3751,18 +3726,18 @@
                 "Active"
             ],
             "pred": [
-                "Active",
                 "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
-                "Very High",
                 "Low",
-                "High"
+                "Moderate",
+                "Low"
             ],
             "match": [
-                true,
                 false,
+                true,
                 false
             ]
         },
@@ -3780,7 +3755,7 @@
                 "Active"
             ],
             "cert": [
-                "Very High",
+                "High",
                 "Very High",
                 "High"
             ],
@@ -3873,17 +3848,17 @@
             "pred": [
                 "Active",
                 "Active",
-                "Inactive"
+                "Active"
             ],
             "cert": [
                 "Very High",
-                "High",
-                "Moderate"
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
                 true,
-                false
+                true
             ]
         },
         {
@@ -3950,7 +3925,7 @@
             "cert": [
                 "Very High",
                 "Very High",
-                "Very High"
+                "High"
             ],
             "match": [
                 true,
@@ -3973,7 +3948,7 @@
             ],
             "cert": [
                 "Moderate",
-                "Moderate",
+                "Very Low",
                 "Very High"
             ],
             "match": [
@@ -4020,7 +3995,7 @@
                 "Inactive"
             ],
             "cert": [
-                "High",
+                "Very High",
                 "High",
                 "Very High"
             ],
@@ -4068,9 +4043,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
+                "Very High",
                 "Very Low",
-                "High"
+                "Very High"
             ],
             "match": [
                 true,
@@ -4164,7 +4139,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
+                "High",
                 "Moderate",
                 "High"
             ],
@@ -4209,17 +4184,17 @@
             "pred": [
                 "Inactive",
                 "Inactive",
-                "Error"
+                "Inactive"
             ],
             "cert": [
-                "Very High",
-                "High",
-                "N/A"
+                "Moderate",
+                "Moderate",
+                "Moderate"
             ],
             "match": [
                 true,
                 true,
-                false
+                true
             ]
         },
         {
@@ -4260,7 +4235,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
+                "Moderate",
                 "Moderate",
                 "Moderate"
             ],
@@ -4351,7 +4326,7 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Active",
                 "Active"
             ],
@@ -4361,7 +4336,7 @@
                 "High"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -4472,17 +4447,17 @@
             ],
             "pred": [
                 "Inactive",
-                "Inactive",
+                "Active",
                 "Active"
             ],
             "cert": [
                 "Very High",
                 "High",
-                "Low"
+                "High"
             ],
             "match": [
                 true,
-                true,
+                false,
                 false
             ]
         },
@@ -4664,17 +4639,17 @@
             ],
             "pred": [
                 "Active",
-                "Active",
+                "Inactive",
                 "Active"
             ],
             "cert": [
                 "Very High",
-                "Very High",
+                "High",
                 "Very High"
             ],
             "match": [
                 true,
-                true,
+                false,
                 true
             ]
         },
@@ -4692,9 +4667,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
                 "Very High",
-                "Very High"
+                "Very High",
+                "Moderate"
             ],
             "match": [
                 true,
@@ -4879,17 +4854,17 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "Very Low",
-                "Very High",
-                "Very High"
+                "Low",
+                "High",
+                "Very Low"
             ],
             "match": [
-                false,
+                true,
                 false,
                 false
             ]
@@ -4909,8 +4884,8 @@
             ],
             "cert": [
                 "Very High",
-                "Very Low",
-                "Low"
+                "Low",
+                "Very High"
             ],
             "match": [
                 true,
@@ -5054,7 +5029,7 @@
             "cert": [
                 "Moderate",
                 "Low",
-                "Low"
+                "Moderate"
             ],
             "match": [
                 true,
@@ -5100,9 +5075,9 @@
                 "Inactive"
             ],
             "cert": [
+                "Low",
                 "Very Low",
-                "Very Low",
-                "Very Low"
+                "Low"
             ],
             "match": [
                 true,
@@ -5196,9 +5171,9 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
                 "Very Low",
-                "High"
+                "Very Low",
+                "Very Low"
             ],
             "match": [
                 false,
@@ -5221,7 +5196,7 @@
             ],
             "cert": [
                 "Very High",
-                "Very High",
+                "High",
                 "Very High"
             ],
             "match": [
@@ -5456,17 +5431,17 @@
             ],
             "pred": [
                 "Active",
-                "Inactive",
+                "Active",
                 "Active"
             ],
             "cert": [
                 "Very High",
-                "Moderate",
+                "Low",
                 "Very High"
             ],
             "match": [
                 true,
-                false,
+                true,
                 true
             ]
         },
@@ -5481,17 +5456,17 @@
             "pred": [
                 "Active",
                 "Active",
-                "Inactive"
+                "Active"
             ],
             "cert": [
-                "Very High",
+                "Low",
                 "Very High",
                 "Low"
             ],
             "match": [
                 true,
                 true,
-                false
+                true
             ]
         },
         {
@@ -5508,8 +5483,8 @@
                 "Active"
             ],
             "cert": [
-                "Very High",
-                "Very High",
+                "High",
+                "Moderate",
                 "High"
             ],
             "match": [
@@ -5551,18 +5526,18 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
+                "Active",
+                "Active",
                 "Active"
             ],
             "cert": [
-                "Low",
-                "Low",
+                "Very High",
+                "Very High",
                 "Very High"
             ],
             "match": [
-                false,
-                false,
+                true,
+                true,
                 true
             ]
         },
@@ -5623,19 +5598,19 @@
                 "Active"
             ],
             "pred": [
+                "Active",
                 "Inactive",
-                "Inactive",
-                "Inactive"
+                "Active"
             ],
             "cert": [
+                "Very High",
                 "High",
-                "High",
-                "Low"
+                "Very High"
             ],
             "match": [
+                true,
                 false,
-                false,
-                false
+                true
             ]
         },
         {
@@ -5671,17 +5646,17 @@
                 "Active"
             ],
             "pred": [
-                "Active",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
-                "Very High",
                 "Very Low",
-                "High"
+                "Very Low",
+                "Very Low"
             ],
             "match": [
-                true,
+                false,
                 false,
                 false
             ]
@@ -5743,19 +5718,19 @@
                 "Inactive"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
-                "Inactive"
+                "Active",
+                "Active",
+                "Active"
             ],
             "cert": [
-                "Very Low",
                 "Very High",
-                "Low"
+                "Low",
+                "Moderate"
             ],
             "match": [
-                true,
-                true,
-                true
+                false,
+                false,
+                false
             ]
         },
         {
@@ -5774,7 +5749,7 @@
             "cert": [
                 "Very High",
                 "High",
-                "Very High"
+                "High"
             ],
             "match": [
                 true,
@@ -6036,9 +6011,9 @@
                 "Inactive"
             ],
             "cert": [
+                "Low",
                 "Very High",
-                "Very Low",
-                "Moderate"
+                "Low"
             ],
             "match": [
                 true,
@@ -6055,19 +6030,19 @@
                 "Active"
             ],
             "pred": [
+                "Active",
                 "Inactive",
-                "Inactive",
-                "Inactive"
+                "Active"
             ],
             "cert": [
+                "High",
                 "Moderate",
-                "Low",
                 "High"
             ],
             "match": [
+                true,
                 false,
-                false,
-                false
+                true
             ]
         },
         {
@@ -6104,17 +6079,17 @@
             ],
             "pred": [
                 "Inactive",
-                "Inactive",
+                "Active",
                 "Inactive"
             ],
             "cert": [
                 "Very High",
-                "Low",
-                "Very Low"
+                "High",
+                "Very High"
             ],
             "match": [
                 false,
-                false,
+                true,
                 false
             ]
         },
@@ -6127,17 +6102,17 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Active",
                 "Active"
             ],
             "cert": [
-                "Very Low",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
             "match": [
-                false,
+                true,
                 true,
                 true
             ]
@@ -6206,7 +6181,7 @@
             "cert": [
                 "High",
                 "Very High",
-                "Moderate"
+                "Very High"
             ],
             "match": [
                 true,
@@ -6373,8 +6348,8 @@
             ],
             "cert": [
                 "Very High",
-                "Very Low",
-                "Low"
+                "Moderate",
+                "Very High"
             ],
             "match": [
                 true,
@@ -6420,7 +6395,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Moderate",
+                "Very High",
                 "Moderate",
                 "Very High"
             ],
@@ -6439,17 +6414,17 @@
                 "Inactive"
             ],
             "pred": [
-                "Active",
+                "Inactive",
                 "Inactive",
                 "Inactive"
             ],
             "cert": [
                 "Low",
-                "Very Low",
+                "Low",
                 "Low"
             ],
             "match": [
-                false,
+                true,
                 true,
                 true
             ]
@@ -6516,8 +6491,8 @@
                 "Active"
             ],
             "cert": [
-                "Moderate",
-                "Low",
+                "Very High",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -6583,17 +6558,17 @@
                 "Active"
             ],
             "pred": [
-                "Error",
+                "Active",
                 "Active",
                 "Active"
             ],
             "cert": [
-                "N/A",
+                "Very High",
                 "Very High",
                 "Very High"
             ],
             "match": [
-                false,
+                true,
                 true,
                 true
             ]
@@ -6613,8 +6588,8 @@
             ],
             "cert": [
                 "Very High",
-                "Moderate",
-                "Moderate"
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
@@ -6710,7 +6685,7 @@
             "cert": [
                 "Low",
                 "Moderate",
-                "Low"
+                "Moderate"
             ],
             "match": [
                 true,
@@ -6781,7 +6756,7 @@
             ],
             "cert": [
                 "Very High",
-                "Moderate",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -6804,9 +6779,9 @@
                 "Active"
             ],
             "cert": [
-                "High",
-                "Low",
-                "High"
+                "Very High",
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
@@ -6829,7 +6804,7 @@
             ],
             "cert": [
                 "Very High",
-                "High",
+                "Very High",
                 "Very High"
             ],
             "match": [
@@ -6852,9 +6827,9 @@
                 "Active"
             ],
             "cert": [
-                "Moderate",
-                "Moderate",
-                "Moderate"
+                "Very High",
+                "Very High",
+                "Very High"
             ],
             "match": [
                 true,
@@ -6876,9 +6851,9 @@
                 "Inactive"
             ],
             "cert": [
-                "High",
-                "Low",
-                "High"
+                "Very High",
+                "Moderate",
+                "Very High"
             ],
             "match": [
                 true,
@@ -6969,17 +6944,17 @@
             "pred": [
                 "Inactive",
                 "Inactive",
-                "Active"
+                "Inactive"
             ],
             "cert": [
+                "High",
                 "Very High",
-                "Very High",
-                "Moderate"
+                "High"
             ],
             "match": [
                 true,
                 true,
-                false
+                true
             ]
         },
         {
@@ -7159,17 +7134,17 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
+                "Active",
                 "Active",
                 "Active"
             ],
             "cert": [
-                "Very Low",
+                "High",
                 "Low",
                 "High"
             ],
             "match": [
-                false,
+                true,
                 true,
                 true
             ]
@@ -7502,7 +7477,7 @@
             "cert": [
                 "Very Low",
                 "Very Low",
-                "Low"
+                "Very Low"
             ],
             "match": [
                 true,
@@ -7524,7 +7499,7 @@
                 "Active"
             ],
             "cert": [
-                "Very High",
+                "Moderate",
                 "Low",
                 "Moderate"
             ],
@@ -7548,7 +7523,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Very Low",
+                "Low",
                 "Very Low",
                 "Low"
             ],
@@ -7620,7 +7595,7 @@
                 "Inactive"
             ],
             "cert": [
-                "Low",
+                "Very Low",
                 "Moderate",
                 "Very Low"
             ],
@@ -7688,18 +7663,18 @@
             ],
             "pred": [
                 "Active",
-                "Inactive",
-                "Active"
+                "Active",
+                "Inactive"
             ],
             "cert": [
                 "High",
-                "High",
+                "Moderate",
                 "High"
             ],
             "match": [
                 true,
-                false,
-                true
+                true,
+                false
             ]
         },
         {
@@ -7741,8 +7716,8 @@
             ],
             "cert": [
                 "Moderate",
-                "Low",
-                "Moderate"
+                "Moderate",
+                "Very High"
             ],
             "match": [
                 true,
@@ -7807,18 +7782,18 @@
                 "Active"
             ],
             "pred": [
-                "Inactive",
-                "Inactive",
+                "Active",
+                "Active",
                 "Inactive"
             ],
             "cert": [
-                "Very Low",
-                "Very Low",
+                "Low",
+                "High",
                 "Very Low"
             ],
             "match": [
-                false,
-                false,
+                true,
+                true,
                 false
             ]
         },

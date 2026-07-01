@@ -38,7 +38,7 @@ steps:
       - '2'
       - '--memory'
       - '2Gi'
-      - '--startup-cpu-boost'    # Temporarily allocates extra CPU on startup to boot faster
+      - '--cpu-boost'    # Temporarily allocates extra CPU on startup to boot faster
       - '--timeout'
       - '300'
  

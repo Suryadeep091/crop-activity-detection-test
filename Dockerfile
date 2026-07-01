@@ -1,4 +1,5 @@
 FROM python:3.10-slim
+FROM mcr.microsoft.com/playwright/python:v1.44.0-jammy
 
 # 1. Install system dependencies and build tools
 RUN apt-get update && apt-get install -y \
@@ -19,12 +20,11 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN playwright install --with-deps chromium
+# RUN playwright install --with-deps chromium
 # 3. Copy all project files (including location.py, etc.)
 COPY . .
 # ... after COPY . . ...
-# Explicitly force-copy the master file to prevent any ignore-rules from dropping it
-COPY Telangana_Tehsil_Master.csv /app/Telangana_Tehsil_Master.csv
+
 
 # 4. CRITICAL: Add /app to the Python path so local imports work
 ENV PYTHONPATH=/app

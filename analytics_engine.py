@@ -380,6 +380,12 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     impute_mask = df_all_updated['NDVI'].isna() & df_all_updated['NDVI_predicted'].notna()
     df_all_updated.loc[impute_mask, 'NDVI'] = df_all_updated.loc[impute_mask, 'NDVI_predicted']
     
+    if 'EVI' in df_all_updated.columns:
+        evi_impute_mask = df_all_updated['EVI'].isna() & df_all_updated['NDVI_predicted'].notna()
+        df_all_updated.loc[evi_impute_mask, 'EVI'] = np.clip(
+            0.665 * df_all_updated.loc[evi_impute_mask, 'NDVI_predicted'] + 0.005, 0.0, 1.0
+        )
+    
     return df_all_updated, df_imputed
 
 

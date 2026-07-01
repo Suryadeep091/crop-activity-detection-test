@@ -711,8 +711,8 @@ async def main():
                         </tr>
                         <tr>
                             <td><strong>EVI Status</strong></td>
-                            <td>EXCLUDED</td>
-                            <td>EVI completely omitted</td>
+                            <td>CALCULATED</td>
+                            <td>Derived from predicted NDVI (EVI = 0.665 * NDVI + 0.005)</td>
                         </tr>
                     </tbody>
                 </table>

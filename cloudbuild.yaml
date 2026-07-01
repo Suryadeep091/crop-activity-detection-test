@@ -38,6 +38,9 @@ steps:
       - '2'
       - '--memory'
       - '2Gi'
+      - '--startup-cpu-boost'    # Temporarily allocates extra CPU on startup to boot faster
+      - '--timeout'
+      - '300'
  
 # Ensures the 'latest' tag also gets pushed at the very end
 images:

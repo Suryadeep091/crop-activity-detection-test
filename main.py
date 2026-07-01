@@ -13,7 +13,6 @@ import os
 st.set_page_config(layout="wide")
 
 # --- DATA LOADING (CSV & JSON) ---
-@st.cache_data
 def load_reference_csv():
     # Load the CSV containing Khasra and GUID mapping
     # Based on your image_70371b.png

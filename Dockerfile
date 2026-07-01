@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install --with-deps chromium
 # 3. Copy all project files (including location.py, etc.)
 COPY . .
+# ... after COPY . . ...
+# Explicitly force-copy the master file to prevent any ignore-rules from dropping it
+COPY Telangana_Tehsil_Master.csv /app/Telangana_Tehsil_Master.csv
 
 # 4. CRITICAL: Add /app to the Python path so local imports work
 ENV PYTHONPATH=/app

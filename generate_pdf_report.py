@@ -7,7 +7,7 @@ import shutil
 
 # Path configurations
 JSON_FILE = 'analysis_stats.json'
-RVI_METRICS_FILE = r'c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\analysis\rvi_to_ndvi_expanded_metrics.json'
+RVI_METRICS_FILE = r'c:\Users\Suryadeep Singh\OneDrive\Old Repos\AdvaRisk - Test\analysis\rvi_to_ndvi_expanded_metrics.json'
 ARTIFACT_DIR = r"C:\Users\Suryadeep Singh\.gemini\antigravity-ide\brain\ea250939-4c8f-45b7-a97e-d60cb3693660"
 ASSETS_DIR = os.path.join(os.path.abspath(ARTIFACT_DIR), "assets")
 
@@ -576,15 +576,82 @@ async def main():
         </div>
     </div>
     
+    <!-- ==================== PAGE 5: PIPELINE FLOWCHART ==================== -->
+    <div class="page" style="padding-top: 10mm;">
+        <div class="section-header">
+            <div class="section-title">5. Multi-Season Crop Activity Detection Logic</div>
+            <div class="section-subtitle">Decision Architecture Flowchart</div>
+        </div>
+        
+        <p style="margin-bottom: 15px;">
+            The agricultural crop-activity detection pipeline processes co-registered multi-spectral and radar satellite observations to classify parcels and compute certainty metrics. The process is fully automated and is structured as follows:
+        </p>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 15px 0;">
+            <!-- Step 1 -->
+            <div style="width: 90%; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 30%; font-weight: 700; color: #1e3a8a; font-size: 9pt;">1. Data Acquisition</div>
+                <div style="width: 65%; font-size: 8.5pt; color: #475569;">Extracts daily Sentinel-1 (SAR) and Sentinel-2 (optical) observations from Google Earth Engine.</div>
+            </div>
+            
+            <div style="color: #64748b; font-size: 12pt; font-weight: bold; line-height: 1;">↓</div>
+            
+            <!-- Step 2 -->
+            <div style="width: 90%; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #10b981; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 30%; font-weight: 700; color: #065f46; font-size: 9pt;">2. Imputation & Smoothing</div>
+                <div style="width: 65%; font-size: 8.5pt; color: #475569;">Reconstructs cloud-obstructed optical NDVI using the <strong>BiGRU + RF Ensemble Model</strong>, followed by Whittaker smoothing.</div>
+            </div>
+            
+            <div style="color: #64748b; font-size: 12pt; font-weight: bold; line-height: 1;">↓</div>
+            
+            <!-- Step 3 -->
+            <div style="width: 90%; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #f59e0b; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 30%; font-weight: 700; color: #78350f; font-size: 9pt;">3. LULC Guardband Veto</div>
+                <div style="width: 65%; font-size: 8.5pt; color: #475569;">
+                    Evaluates dominant LULC classes. Hard non-crop dominates: <strong>Vetoed to Inactive</strong>. Arid/transitional dominates: <strong>Bypassed if crop peaks ≥35%</strong> (with certainty penalty).
+                </div>
+            </div>
+            
+            <div style="color: #64748b; font-size: 12pt; font-weight: bold; line-height: 1;">↓</div>
+            
+            <!-- Step 4 -->
+            <div style="width: 90%; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #8b5cf6; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 30%; font-weight: 700; color: #4c1d95; font-size: 9pt;">4. Cycle Detection</div>
+                <div style="width: 65%; font-size: 8.5pt; color: #475569;">Detects seasonal crop cycles (Kharif, Rabi, Zaid) using numerical derivatives of smoothed NDVI time-series.</div>
+            </div>
+            
+            <div style="color: #64748b; font-size: 12pt; font-weight: bold; line-height: 1;">↓</div>
+            
+            <!-- Step 5 -->
+            <div style="width: 90%; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #ec4899; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 30%; font-weight: 700; color: #831843; font-size: 9pt;">5. Verdict & Certainty</div>
+                <div style="width: 65%; font-size: 8.5pt; color: #475569;">Computes activity ratio and composite certainty score. Generates active/inactive verdict.</div>
+            </div>
+        </div>
+        
+        <div class="callout-box" style="margin-top: 10px; border-left-color: #8b5cf6; background-color: #fbfbfe;">
+            <div class="callout-title" style="color: #4c1d95;">Mathematical Certainty Scoring Logic</div>
+            <p style="font-size: 8.5pt; margin-bottom: 0; line-height: 1.4;">
+                Certainty represents the model's confidence in its classification. It is calculated using a composite base score scaled by three penalties:
+                <br>
+                1. <strong>Missing Optical Data Penalty (0.8x)</strong>: Applied when Sentinel-2 scene count is low.
+                <br>
+                2. <strong>Transitional non-crop Dominance Penalty (0.85x)</strong>: Applied when active crop signatures are found on fields dominated by bare land, shrubs, or grass (e.g. in Rajasthan).
+                <br>
+                3. <strong>Guardband Conflict Penalty (0.5x)</strong>: Applied if LULC classifications and indices are highly contradictory.
+            </p>
+        </div>
+    </div>
+    
     <!-- ==================== PAGE 6: RVI-TO-NDVI TRANSLATION MODEL ==================== -->
     <div class="page" style="padding-top: 10mm;">
         <div class="section-header">
-            <div class="section-title">5. Core Signal Imputation: RVI-to-NDVI translation model</div>
+            <div class="section-title">6. Core Signal Imputation: BiGRU + RF Ensemble model</div>
             <div class="section-subtitle">SAR-to-Optical Mapping</div>
         </div>
         
         <p>
-            Agricultural crop canopy monitoring is frequently hindered by optical cloud obstructions during key periods of the monsoon. To bridge these gaps, the pipeline uses a <strong>Random Forest Regressor</strong> to translate cloud-penetrating Sentinel-1 Radar Vegetation Index (RVI) values to Sentinel-2 optical NDVI values.
+            Agricultural crop canopy monitoring is frequently hindered by optical cloud obstructions during key periods of the monsoon. To bridge these gaps, the pipeline uses a <strong>BiGRU + Random Forest Ensemble Model</strong> (60% BiGRU, 40% Random Forest) to translate cloud-penetrating Sentinel-1 Radar Vegetation Index (RVI) values to Sentinel-2 optical NDVI values.
         </p>
         
         <div class="kpi-row" style="margin-bottom: 10px;">
@@ -615,17 +682,27 @@ async def main():
                         <tr>
                             <td><strong>Algorithm</strong></td>
                             <td>{rvi_model_type}</td>
-                            <td>Ensemble decision trees</td>
+                            <td>Hybrid Recurrent & Decision-Tree Ensemble</td>
                         </tr>
                         <tr>
-                            <td><strong>Number of Trees</strong></td>
-                            <td>100</td>
-                            <td>Decision trees in forest</td>
+                            <td><strong>Ensemble Weights</strong></td>
+                            <td>60% BiGRU / 40% Random Forest</td>
+                            <td>Weighted blending of predictions</td>
                         </tr>
                         <tr>
-                            <td><strong>Max Tree Depth</strong></td>
-                            <td>12</td>
-                            <td>Controls overfitting limits</td>
+                            <td><strong>Sequence Length</strong></td>
+                            <td>5 periods (bidirectional)</td>
+                            <td>Temporal context window size</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BiGRU Hidden Units</strong></td>
+                            <td>64 units, 2 layers</td>
+                            <td>Recurrent layer configuration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>RF Estimators</strong></td>
+                            <td>100 trees</td>
+                            <td>Forest base estimators</td>
                         </tr>
                         <tr>
                             <td><strong>Smoothing</strong></td>
@@ -717,7 +794,7 @@ async def main():
 
     # 4. Use Playwright Chrome Headless to compile HTML to PDF
     print("[PDF] Loading Playwright headless compiler...")
-    pdf_output_path = "AdvaRisk_Farm_Satellite_Analysis_2023-26.pdf"
+    pdf_output_path = "AdvaRisk_Farm_Satellite_analysis_2023-26.pdf"
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(

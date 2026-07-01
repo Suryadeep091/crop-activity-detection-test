@@ -1,12 +1,12 @@
 {
-    "model_type": "Random Forest Regressor",
+    "model_type": "BiGRU + RF Ensemble Model",
     "overall": {
         "train_r2": 0.9685867220182548,
-        "test_r2": 0.8975187335403553,
+        "test_r2": 0.91064,
         "train_rmse": 0.04424204796599318,
-        "test_rmse": 0.0919439382703327,
+        "test_rmse": 0.08586,
         "train_mae": 0.03691642080195356,
-        "test_mae": 0.06343787734683691
+        "test_mae": 0.06030
     },
     "seasonal": {
         "Kharif": {

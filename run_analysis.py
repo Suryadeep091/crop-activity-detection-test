@@ -19,7 +19,7 @@ plt.rcParams.update({
 
 # Path configurations
 JSON_FILE = '2023-26_analysis.json'
-ARTIFACT_DIR = r"C:\Users\Suryadeep Singh\.gemini\antigravity-ide\brain\f981e701-dfec-4253-b273-33defd8cc748"
+ARTIFACT_DIR = r"C:\Users\Suryadeep Singh\.gemini\antigravity-ide\brain\ea250939-4c8f-45b7-a97e-d60cb3693660"
 ARTIFACT_DIR = os.path.abspath(ARTIFACT_DIR)
 ASSETS_DIR = os.path.join(ARTIFACT_DIR, "assets")
 os.makedirs(ASSETS_DIR, exist_ok=True)

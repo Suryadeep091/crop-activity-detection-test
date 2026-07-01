@@ -3,8 +3,8 @@ import os
 
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-results_file = os.path.join(downloads_path, "dummy_run_2.json")
-comparison_report = os.path.join(downloads_path, "24-25_analysis.txt")
+results_file = os.path.join(downloads_path, "dummy_run_3.json")
+comparison_report = os.path.join(downloads_path, "23-24_analysis.txt")
 
 def generate_accuracy_report():
     try:

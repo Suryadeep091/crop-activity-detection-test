@@ -1,0 +1,313 @@
+TASK ID              | TRUTH      | AI         | SCORE    | CONF     | CERT_TIER    | STATUS
+------------------------------------------------------------------------------------------
+UP1 (Crop)           | Active     | Active     | 82.83%   | 95.94%   | Very High    | ✅ MATCH
+UP2 (Crop)           | Active     | Active     | 84.76%   | 93.73%   | Very High    | ✅ MATCH
+UP3 (Crop)           | Active     | Active     | 82.27%   | 91.49%   | Very High    | ✅ MATCH
+UP4 (Crop)           | Active     | Active     | 92.01%   | 85.54%   | Very High    | ✅ MATCH
+UP5 (No-Crop)        | Inactive   | Inactive   | 99.72%   | 15.78%   | Very Low     | ✅ MATCH
+UP6 (Crop)           | Active     | Active     | 85.4%    | 82.75%   | Very High    | ✅ MATCH
+UP7 (No-Crop)        | Inactive   | Inactive   | 100.0%   | 15.34%   | Very Low     | ✅ MATCH
+UP8 (Crop)           | Active     | Active     | 65.01%   | 88.0%    | Very High    | ✅ MATCH
+UP9 (Crop)           | Active     | Active     | 74.38%   | 87.9%    | Very High    | ✅ MATCH
+UP10 (Crop)          | Active     | Active     | 59.78%   | 64.01%   | Moderate     | ✅ MATCH
+RJ01 (Crop)          | Active     | Active     | 59.56%   | 92.53%   | Very High    | ✅ MATCH
+RJ02 (Crop)          | Active     | Active     | 54.57%   | 91.15%   | Very High    | ✅ MATCH
+RJ03 (Crop)          | Active     | Active     | 28.53%   | 89.57%   | Very High    | ✅ MATCH
+RJ04 (Crop)          | Active     | Active     | 78.39%   | 92.85%   | Very High    | ✅ MATCH
+RJ05 (Crop)          | Active     | Active     | 29.09%   | 94.38%   | Very High    | ✅ MATCH
+RJ06 (Crop)          | Active     | Active     | 30.19%   | 87.39%   | Very High    | ✅ MATCH
+RJ07 (Crop)          | Active     | Active     | 88.64%   | 93.33%   | Very High    | ✅ MATCH
+RJ08 (Crop)          | Active     | Inactive   | 12.36%   | 42.62%   | Low          | ❌ MISMATCH
+RJ09 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 87.37%   | Very High    | ✅ MATCH
+RJ10 (Crop)          | Active     | Active     | 87.26%   | 86.05%   | Very High    | ✅ MATCH
+MP01 (Crop)          | Active     | Active     | 96.96%   | 94.75%   | Very High    | ✅ MATCH
+MP02 (No-Crop)       | Inactive   | Active     | 34.25%   | 81.54%   | Very High    | ❌ MISMATCH
+MP03 (Crop)          | Active     | Active     | 96.41%   | 95.77%   | Very High    | ✅ MATCH
+MP04 (Crop)          | Active     | Active     | 97.24%   | 97.16%   | Very High    | ✅ MATCH
+MP05 (Crop)          | Active     | Active     | 85.36%   | 94.33%   | Very High    | ✅ MATCH
+MP06 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 59.16%   | Moderate     | ✅ MATCH
+MP07 (Crop)          | Active     | Active     | 90.88%   | 94.59%   | Very High    | ✅ MATCH
+MP08 (No-Crop)       | Inactive   | Inactive   | 48.9%    | 48.31%   | Low          | ✅ MATCH
+MP09 (Crop)          | Active     | Active     | 85.64%   | 88.35%   | Very High    | ✅ MATCH
+MP10 (No-Crop)       | Inactive   | Inactive   | 13.54%   | 22.96%   | Very Low     | ✅ MATCH
+GJ01 (Crop)          | Active     | Active     | 98.6%    | 94.63%   | Very High    | ✅ MATCH
+GJ02 (Crop)          | Active     | Active     | 69.66%   | 91.16%   | Very High    | ✅ MATCH
+GJ03 (No-Crop)       | Inactive   | Active     | 84.21%   | 50.48%   | Moderate     | ❌ MISMATCH
+GJ04 (Crop)          | Active     | Active     | 64.89%   | 87.96%   | Very High    | ✅ MATCH
+GJ05 (Crop)          | Active     | Active     | 78.37%   | 95.75%   | Very High    | ✅ MATCH
+GJ06 (No-Crop)       | Inactive   | Inactive   | 0.56%    | 82.31%   | Very High    | ✅ MATCH
+GJ07 (Crop)          | Active     | Active     | 100.0%   | 92.2%    | Very High    | ✅ MATCH
+GJ08 (Crop)          | Active     | Active     | 75.64%   | 92.17%   | Very High    | ✅ MATCH
+GJ09 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 60.55%   | Moderate     | ✅ MATCH
+GJ10 (Crop)          | Active     | Active     | 98.61%   | 85.1%    | Very High    | ✅ MATCH
+MH01 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 91.13%   | Very High    | ✅ MATCH
+MH02 (Crop)          | Active     | Active     | 64.27%   | 93.9%    | Very High    | ✅ MATCH
+MH03 (Crop)          | Active     | Active     | 55.12%   | 87.75%   | Very High    | ✅ MATCH
+MH04 (Crop)          | Active     | Active     | 72.85%   | 93.67%   | Very High    | ✅ MATCH
+MH05 (Crop)          | Active     | Active     | 97.78%   | 92.74%   | Very High    | ✅ MATCH
+MH06 (Crop)          | Active     | Active     | 56.91%   | 89.71%   | Very High    | ✅ MATCH
+MH07 (No-Crop)       | Inactive   | Active     | 42.94%   | 77.71%   | High         | ❌ MISMATCH
+MH08 (Crop)          | Active     | Active     | 88.67%   | 91.92%   | Very High    | ✅ MATCH
+MH09 (Crop)          | Active     | Active     | 44.88%   | 81.64%   | Very High    | ✅ MATCH
+MH10 (Crop)          | Active     | Active     | 100.0%   | 92.15%   | Very High    | ✅ MATCH
+PB01 (Crop)          | Active     | Active     | 91.69%   | 97.39%   | Very High    | ✅ MATCH
+PB02 (Crop)          | Active     | Active     | 77.31%   | 97.8%    | Very High    | ✅ MATCH
+PB03 (Crop)          | Active     | Active     | 87.11%   | 98.49%   | Very High    | ✅ MATCH
+PB04 (No-Crop)       | Inactive   | Inactive   | 5.54%    | 38.02%   | Low          | ✅ MATCH
+PB05 (Crop)          | Active     | Active     | 98.03%   | 93.29%   | Very High    | ✅ MATCH
+PB06 (No-Crop)       | Inactive   | Inactive   | 3.93%    | 79.82%   | High         | ✅ MATCH
+PB07 (Crop)          | Active     | Active     | 82.55%   | 97.87%   | Very High    | ✅ MATCH
+PB08 (Crop)          | Active     | Active     | 79.89%   | 98.32%   | Very High    | ✅ MATCH
+PB09 (Crop)          | Active     | Active     | 87.53%   | 96.2%    | Very High    | ✅ MATCH
+PB10 (Crop)          | Active     | Inactive   | 0.55%    | 68.85%   | High         | ❌ MISMATCH
+TL01 (Crop)          | Active     | Active     | 93.91%   | 89.08%   | Very High    | ✅ MATCH
+TL02 (Crop)          | Active     | Active     | 82.92%   | 92.31%   | Very High    | ✅ MATCH
+TL03 (Crop)          | Active     | Active     | 75.62%   | 87.33%   | Very High    | ✅ MATCH
+TL04 (Crop)          | Active     | Active     | 98.89%   | 89.36%   | Very High    | ✅ MATCH
+TL05 (No-Crop)       | Inactive   | Inactive   | 5.26%    | 44.3%    | Low          | ✅ MATCH
+TL06 (Crop)          | Active     | Active     | 22.44%   | 74.88%   | High         | ✅ MATCH
+TL07 (Crop)          | Active     | Active     | 98.07%   | 96.34%   | Very High    | ✅ MATCH
+TL08 (Crop)          | Active     | Active     | 34.35%   | 65.02%   | High         | ✅ MATCH
+TL09 (Crop)          | Active     | Active     | 59.0%    | 73.94%   | High         | ✅ MATCH
+TL10 (Crop)          | Active     | Active     | 100.0%   | 85.03%   | Very High    | ✅ MATCH
+KT01 (Crop)          | Active     | Active     | 47.09%   | 89.54%   | Very High    | ✅ MATCH
+KT02 (No-Crop)       | Inactive   | Active     | 49.45%   | 87.15%   | Very High    | ❌ MISMATCH
+KT03 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 46.81%   | Low          | ✅ MATCH
+KT04 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 93.11%   | Very High    | ✅ MATCH
+KT05 (Crop)          | Active     | Active     | 94.66%   | 88.86%   | Very High    | ✅ MATCH
+KT06 (Crop)          | Active     | Active     | 83.15%   | 87.52%   | Very High    | ✅ MATCH
+KT07 (Crop)          | Active     | Active     | 46.26%   | 87.08%   | Very High    | ✅ MATCH
+KT08 (No-Crop)       | Inactive   | Active     | 25.48%   | 91.49%   | Very High    | ❌ MISMATCH
+KT09 (No-Crop)       | Inactive   | Inactive   | 7.3%     | 69.47%   | High         | ✅ MATCH
+KT10 (Crop)          | Active     | Active     | 80.94%   | 91.8%    | Very High    | ✅ MATCH
+KL01 (Crop)          | Active     | Active     | 59.6%    | 90.35%   | Very High    | ✅ MATCH
+KL02 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 81.99%   | Very High    | ✅ MATCH
+KL03 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.91%   | Very High    | ✅ MATCH
+KL04 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 100.0%   | Very High    | ✅ MATCH
+KL05 (No-Crop)       | Inactive   | Active     | 83.43%   | 81.49%   | Very High    | ❌ MISMATCH
+TN01 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 61.95%   | Moderate     | ✅ MATCH
+TN02 (No-Crop)       | Inactive   | Active     | 37.85%   | 70.3%    | High         | ❌ MISMATCH
+TN03 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 92.06%   | Very High    | ✅ MATCH
+TN04 (Crop)          | Active     | Active     | 60.22%   | 90.16%   | Very High    | ✅ MATCH
+TN05 (No-Crop)       | Inactive   | Active     | 80.33%   | 90.48%   | Very High    | ❌ MISMATCH
+JK01 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 100.0%   | Very High    | ✅ MATCH
+JK02 (No-Crop)       | Inactive   | Inactive   | 0%       | 0%       | Very Low     | ✅ MATCH
+JK03 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 92.81%   | Very High    | ✅ MATCH
+JK04 (Crop)          | Active     | Active     | 71.98%   | 91.55%   | Very High    | ✅ MATCH
+JK05 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.96%   | Very High    | ✅ MATCH
+WB01 (No-Crop)       | Inactive   | Inactive   | 3.15%    | 45.25%   | Low          | ✅ MATCH
+WB02 (Crop)          | Active     | Active     | 93.89%   | 95.0%    | Very High    | ✅ MATCH
+NE01 (Crop)          | Active     | Active     | 32.58%   | 84.58%   | Very High    | ✅ MATCH
+NE02 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.08%   | Very High    | ✅ MATCH
+NE03 (Crop)          | Active     | Active     | 46.5%    | 72.25%   | High         | ✅ MATCH
+AP01 (Crop)          | Active     | Active     | 89.5%    | 83.18%   | Very High    | ✅ MATCH
+AP02 (No-Crop)       | Inactive   | Inactive   | 13.26%   | 64.37%   | Moderate     | ✅ MATCH
+AP03 (Crop)          | Active     | Active     | 100.0%   | 93.41%   | Very High    | ✅ MATCH
+AP04 (No-Crop)       | Inactive   | Active     | 56.08%   | 91.46%   | Very High    | ❌ MISMATCH
+AP05 (No-Crop)       | Inactive   | Inactive   | 10.5%    | 66.74%   | High         | ✅ MATCH
+AP06 (Crop)          | Active     | Active     | 99.72%   | 94.1%    | Very High    | ✅ MATCH
+AP07 (Crop)          | Active     | Active     | 94.46%   | 89.27%   | Very High    | ✅ MATCH
+AP08 (Crop)          | Active     | Active     | 100.0%   | 89.42%   | Very High    | ✅ MATCH
+AP09 (Crop)          | Active     | Active     | 95.57%   | 85.95%   | Very High    | ✅ MATCH
+AP10 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 100.0%   | Very High    | ✅ MATCH
+OD01 (Crop)          | Active     | Active     | 78.51%   | 82.78%   | Very High    | ✅ MATCH
+OD02 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 98.73%   | Very High    | ✅ MATCH
+OD03 (Crop)          | Active     | Active     | 54.52%   | 90.88%   | Very High    | ✅ MATCH
+OD4 (Crop)           | Active     | Active     | 58.47%   | 87.85%   | Very High    | ✅ MATCH
+OD05 (Crop)          | Active     | Active     | 87.33%   | 90.81%   | Very High    | ✅ MATCH
+OD06 (Crop)          | Active     | Active     | 76.58%   | 92.54%   | Very High    | ✅ MATCH
+OD07 (Crop)          | Active     | Active     | 49.04%   | 91.66%   | Very High    | ✅ MATCH
+OD08 (Crop)          | Active     | Inactive   | 0.0%     | 62.83%   | Moderate     | ❌ MISMATCH
+OD09 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 77.28%   | High         | ✅ MATCH
+OD10 (Crop)          | Active     | Inactive   | 80.89%   | 18.94%   | Very Low     | ❌ MISMATCH
+HR01 (Crop)          | Active     | Active     | 89.61%   | 96.14%   | Very High    | ✅ MATCH
+HR02 (Crop)          | Active     | Active     | 86.52%   | 97.84%   | Very High    | ✅ MATCH
+HR03 (Crop)          | Active     | Active     | 80.11%   | 97.81%   | Very High    | ✅ MATCH
+HR04 (No-Crop)       | Inactive   | Active     | 82.35%   | 88.12%   | Very High    | ❌ MISMATCH
+HR05 (Crop)          | Active     | Active     | 95.22%   | 96.25%   | Very High    | ✅ MATCH
+HR06 (Crop)          | Active     | Active     | 98.6%    | 98.72%   | Very High    | ✅ MATCH
+HR07 (Crop)          | Active     | Active     | 93.54%   | 96.53%   | Very High    | ✅ MATCH
+HR08 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 91.53%   | Very High    | ✅ MATCH
+HR09 (Crop)          | Active     | Active     | 92.42%   | 96.18%   | Very High    | ✅ MATCH
+HR10 (Crop)          | Active     | Active     | 85.96%   | 91.85%   | Very High    | ✅ MATCH
+CH01 (Crop)          | Active     | Active     | 49.31%   | 90.4%    | Very High    | ✅ MATCH
+CH02 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 65.56%   | High         | ✅ MATCH
+CH03 (Crop)          | Active     | Active     | 39.06%   | 60.59%   | Moderate     | ✅ MATCH
+CH04 (Crop)          | Active     | Active     | 29.83%   | 64.09%   | Moderate     | ✅ MATCH
+CH05 (Crop)          | Active     | Active     | 76.65%   | 87.06%   | Very High    | ✅ MATCH
+CH06 (Crop)          | Active     | Active     | 70.05%   | 88.56%   | Very High    | ✅ MATCH
+CH07 (Crop)          | Active     | Active     | 87.81%   | 88.76%   | Very High    | ✅ MATCH
+CH08 (No-Crop)       | Inactive   | Inactive   | 90.86%   | 33.47%   | Very Low     | ✅ MATCH
+CH09 (Crop)          | Active     | Active     | 54.02%   | 88.96%   | Very High    | ✅ MATCH
+CH10 (Crop)          | Active     | Active     | 89.2%    | 86.97%   | Very High    | ✅ MATCH
+JH01 (Crop)          | Active     | Active     | 53.44%   | 88.27%   | Very High    | ✅ MATCH
+JH02 (Crop)          | Active     | Active     | 49.59%   | 85.65%   | Very High    | ✅ MATCH
+JH03 (Crop)          | Active     | Active     | 70.64%   | 83.91%   | Very High    | ✅ MATCH
+JH04 (Crop)          | Active     | Active     | 76.86%   | 73.84%   | High         | ✅ MATCH
+JH05 (Crop)          | Active     | Inactive   | 14.05%   | 58.61%   | Moderate     | ❌ MISMATCH
+JH06 (Crop)          | Active     | Active     | 78.51%   | 86.13%   | Very High    | ✅ MATCH
+JH07 (Crop)          | Active     | Active     | 29.48%   | 86.0%    | Very High    | ✅ MATCH
+JH08 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 95.66%   | Very High    | ✅ MATCH
+JH09 (Crop)          | Active     | Active     | 48.48%   | 87.01%   | Very High    | ✅ MATCH
+JH10 (No-Crop)       | Inactive   | Inactive   | 4.16%    | 69.31%   | High         | ✅ MATCH
+BH01 (Crop)          | Active     | Active     | 65.37%   | 91.61%   | Very High    | ✅ MATCH
+BH02 (No-Crop)       | Inactive   | Inactive   | 10.8%    | 53.83%   | Moderate     | ✅ MATCH
+BH03 (No-Crop)       | Inactive   | Inactive   | 1.66%    | 97.25%   | Very High    | ✅ MATCH
+BH04 (Crop)          | Active     | Active     | 71.47%   | 95.81%   | Very High    | ✅ MATCH
+BH05 (Crop)          | Active     | Inactive   | 0.0%     | 86.09%   | Very High    | ❌ MISMATCH
+BH06 (Crop)          | Active     | Active     | 89.68%   | 91.7%    | Very High    | ✅ MATCH
+BH07 (Crop)          | Active     | Active     | 88.37%   | 90.29%   | Very High    | ✅ MATCH
+BH08 (Crop)          | Active     | Active     | 96.14%   | 90.35%   | Very High    | ✅ MATCH
+BH10 (No-Crop)       | Inactive   | Inactive   | 7.16%    | 43.22%   | Low          | ✅ MATCH
+TN06 (Crop)          | Active     | Active     | 94.2%    | 92.92%   | Very High    | ✅ MATCH
+TN07 (Crop)          | Active     | Active     | 85.04%   | 85.53%   | Very High    | ✅ MATCH
+TN08 (Crop)          | Active     | Active     | 84.53%   | 90.91%   | Very High    | ✅ MATCH
+TN09 (Crop)          | Active     | Active     | 99.16%   | 90.4%    | Very High    | ✅ MATCH
+TN10 (Crop)          | Active     | Active     | 83.15%   | 89.06%   | Very High    | ✅ MATCH
+KL06 (Crop)          | Active     | Inactive   | 8.31%    | 42.77%   | Low          | ❌ MISMATCH
+KL07 (Crop)          | Active     | Inactive   | 6.88%    | 44.08%   | Low          | ❌ MISMATCH
+KL10 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.81%   | Very High    | ✅ MATCH
+WB03 (Crop)          | Active     | Active     | 94.56%   | 88.76%   | Very High    | ✅ MATCH
+WB04 (Crop)          | Active     | Active     | 15.15%   | 47.06%   | Low          | ✅ MATCH
+WB05 (Crop)          | Active     | Active     | 83.1%    | 92.88%   | Very High    | ✅ MATCH
+WB06 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 84.67%   | Very High    | ✅ MATCH
+WB07 (Crop)          | Active     | Active     | 68.19%   | 83.59%   | Very High    | ✅ MATCH
+WB08 (Crop)          | Active     | Active     | 91.41%   | 91.73%   | Very High    | ✅ MATCH
+WB09 (Crop)          | Active     | Active     | 42.09%   | 52.99%   | Moderate     | ✅ MATCH
+WB10 (Crop)          | Active     | Active     | 79.17%   | 91.6%    | Very High    | ✅ MATCH
+NE04 (Crop)          | Active     | Active     | 65.9%    | 79.05%   | High         | ✅ MATCH
+NE05 (Crop)          | Active     | Active     | 53.5%    | 78.38%   | High         | ✅ MATCH
+NE06 (Crop)          | Active     | Active     | 58.17%   | 80.43%   | Very High    | ✅ MATCH
+NE07 (Crop)          | Active     | Active     | 90.3%    | 65.83%   | High         | ✅ MATCH
+NE08 (No-Crop)       | Inactive   | Inactive   | 6.91%    | 57.73%   | Moderate     | ✅ MATCH
+NE09 (Crop)          | Active     | Active     | 57.89%   | 88.43%   | Very High    | ✅ MATCH
+JK06 (Crop)          | Active     | Active     | 81.27%   | 92.0%    | Very High    | ✅ MATCH
+JK07 (Crop)          | Active     | Active     | 93.94%   | 96.78%   | Very High    | ✅ MATCH
+JK08 (Crop)          | Active     | Active     | 51.92%   | 87.43%   | Very High    | ✅ MATCH
+JK09 (Crop)          | Active     | Active     | 84.89%   | 91.56%   | Very High    | ✅ MATCH
+JK10 (No-Crop)       | Inactive   | Inactive   | 12.91%   | 56.89%   | Moderate     | ✅ MATCH
+HP01 (Crop)          | Active     | Active     | 88.37%   | 91.24%   | Very High    | ✅ MATCH
+HP02 (Crop)          | Active     | Active     | 76.73%   | 71.22%   | High         | ✅ MATCH
+HP03 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 61.09%   | Moderate     | ✅ MATCH
+HP05 (Crop)          | Active     | Active     | 83.15%   | 92.62%   | Very High    | ✅ MATCH
+HP06 (Crop)          | Active     | Active     | 93.82%   | 95.23%   | Very High    | ✅ MATCH
+HP07 (Crop)          | Active     | Active     | 43.54%   | 86.2%    | Very High    | ✅ MATCH
+HP08 (Crop)          | Active     | Active     | 93.35%   | 88.18%   | Very High    | ✅ MATCH
+HP09 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 92.32%   | Very High    | ✅ MATCH
+HP04 (No-Crop)       | Inactive   | Inactive   | 3.35%    | 78.15%   | High         | ✅ MATCH
+HP10 (Crop)          | Active     | Inactive   | 13.57%   | 25.57%   | Very Low     | ❌ MISMATCH
+UP11 (Crop)          | Active     | Active     | 82.55%   | 95.38%   | Very High    | ✅ MATCH
+UP12 (Crop)          | Active     | Active     | 85.87%   | 92.15%   | Very High    | ✅ MATCH
+UP13 (Crop)          | Active     | Active     | 77.07%   | 91.95%   | Very High    | ✅ MATCH
+UP14 (Crop)          | Active     | Active     | 69.15%   | 91.91%   | Very High    | ✅ MATCH
+UP15 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.28%   | Very High    | ✅ MATCH
+UP16 (Crop)          | Active     | Active     | 78.73%   | 93.28%   | Very High    | ✅ MATCH
+UP17 (Crop)          | Active     | Active     | 96.68%   | 93.04%   | Very High    | ✅ MATCH
+UP18 (Crop)          | Active     | Active     | 97.51%   | 96.62%   | Very High    | ✅ MATCH
+UP19 (Crop)          | Active     | Active     | 73.96%   | 89.08%   | Very High    | ✅ MATCH
+UP20 (Crop)          | Active     | Active     | 76.18%   | 96.94%   | Very High    | ✅ MATCH
+MH11 (Crop)          | Active     | Active     | 99.72%   | 95.33%   | Very High    | ✅ MATCH
+MH12 (Crop)          | Active     | Active     | 97.81%   | 92.89%   | Very High    | ✅ MATCH
+MH13 (Crop)          | Active     | Active     | 93.42%   | 93.05%   | Very High    | ✅ MATCH
+MH14 (Crop)          | Active     | Active     | 44.17%   | 89.53%   | Very High    | ✅ MATCH
+MH15 (Crop)          | Active     | Active     | 26.24%   | 81.99%   | Very High    | ✅ MATCH
+MH16 (Crop)          | Active     | Active     | 59.67%   | 87.2%    | Very High    | ✅ MATCH
+MH17 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 94.39%   | Very High    | ✅ MATCH
+MH18 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 58.83%   | Moderate     | ✅ MATCH
+MH19 (Crop)          | Active     | Active     | 79.78%   | 90.82%   | Very High    | ✅ MATCH
+MH20 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 80.98%   | Very High    | ✅ MATCH
+GJ11 (Crop)          | Active     | Active     | 100.0%   | 92.34%   | Very High    | ✅ MATCH
+GJ12 (Crop)          | Active     | Active     | 67.4%    | 76.01%   | High         | ✅ MATCH
+GJ13 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 93.55%   | Very High    | ✅ MATCH
+GJ14 (Crop)          | Active     | Active     | 26.12%   | 91.7%    | Very High    | ✅ MATCH
+GJ15 (Crop)          | Active     | Active     | 92.98%   | 80.29%   | Very High    | ✅ MATCH
+GJ16 (Crop)          | Active     | Active     | 73.03%   | 81.24%   | Very High    | ✅ MATCH
+GJ17 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 97.13%   | Very High    | ✅ MATCH
+GJ18 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 88.62%   | Very High    | ✅ MATCH
+GJ19 (Crop)          | Active     | Active     | 64.82%   | 93.53%   | Very High    | ✅ MATCH
+GJ20 (Crop)          | Active     | Active     | 93.12%   | 73.85%   | High         | ✅ MATCH
+MP11 (Crop)          | Active     | Active     | 53.31%   | 83.65%   | Very High    | ✅ MATCH
+MP12 (Crop)          | Active     | Active     | 94.69%   | 92.49%   | Very High    | ✅ MATCH
+MP13 (Crop)          | Active     | Active     | 99.72%   | 96.31%   | Very High    | ✅ MATCH
+MP14 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 84.49%   | Very High    | ✅ MATCH
+MP15 (Crop)          | Active     | Active     | 73.48%   | 96.98%   | Very High    | ✅ MATCH
+MP16 (Crop)          | Active     | Active     | 88.46%   | 89.38%   | Very High    | ✅ MATCH
+MP17 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 97.52%   | Very High    | ✅ MATCH
+MP18 (Crop)          | Active     | Active     | 75.9%    | 91.77%   | Very High    | ✅ MATCH
+MP19 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 87.4%    | Very High    | ✅ MATCH
+MP20 (Crop)          | Active     | Active     | 86.03%   | 89.37%   | Very High    | ✅ MATCH
+KT11 (Crop)          | Active     | Active     | 82.6%    | 86.93%   | Very High    | ✅ MATCH
+KT12 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 95.99%   | Very High    | ✅ MATCH
+KT13 (Crop)          | Active     | Active     | 70.25%   | 86.23%   | Very High    | ✅ MATCH
+KT14 (Crop)          | Active     | Active     | 85.96%   | 89.84%   | Very High    | ✅ MATCH
+KT15 (Crop)          | Active     | Active     | 88.67%   | 78.43%   | High         | ✅ MATCH
+KT16 (Crop)          | Active     | Active     | 49.17%   | 93.86%   | Very High    | ✅ MATCH
+KT17 (Crop)          | Active     | Active     | 55.62%   | 79.27%   | High         | ✅ MATCH
+KT18 (No-Crop)       | Inactive   | Active     | 47.12%   | 96.43%   | Very High    | ❌ MISMATCH
+KT19 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 94.63%   | Very High    | ✅ MATCH
+KT20 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 100.0%   | Very High    | ✅ MATCH
+AP11 (Crop)          | Active     | Active     | 85.31%   | 91.23%   | Very High    | ✅ MATCH
+AP12 (Crop)          | Active     | Active     | 68.7%    | 90.27%   | Very High    | ✅ MATCH
+AP13 (No-Crop)       | Inactive   | Inactive   | 65.1%    | 36.32%   | Low          | ✅ MATCH
+AP14 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 57.02%   | Moderate     | ✅ MATCH
+AP15 (Crop)          | Active     | Active     | 72.85%   | 73.01%   | High         | ✅ MATCH
+AP16 (Crop)          | Active     | Active     | 86.43%   | 85.06%   | Very High    | ✅ MATCH
+AP17 (Crop)          | Active     | Active     | 90.63%   | 90.02%   | Very High    | ✅ MATCH
+AP18 (Crop)          | Active     | Active     | 96.96%   | 89.33%   | Very High    | ✅ MATCH
+AP19 (No-Crop)       | Inactive   | Inactive   | 9.39%    | 95.12%   | Very High    | ✅ MATCH
+AP20 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 100.0%   | Very High    | ✅ MATCH
+RJ11 (Crop)          | Active     | Active     | 100.0%   | 92.42%   | Very High    | ✅ MATCH
+RJ12 (Crop)          | Active     | Active     | 74.52%   | 94.95%   | Very High    | ✅ MATCH
+RJ13 (No-Crop)       | Inactive   | Inactive   | 5.82%    | 88.65%   | Very High    | ✅ MATCH
+RJ14 (Crop)          | Active     | Active     | 88.92%   | 89.71%   | Very High    | ✅ MATCH
+RJ15 (Crop)          | Active     | Active     | 87.11%   | 94.53%   | Very High    | ✅ MATCH
+RJ16 (Crop)          | Active     | Active     | 99.72%   | 95.82%   | Very High    | ✅ MATCH
+RJ17 (Crop)          | Active     | Active     | 89.32%   | 96.61%   | Very High    | ✅ MATCH
+RJ18 (Crop)          | Active     | Active     | 99.45%   | 94.09%   | Very High    | ✅ MATCH
+RJ19 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 87.41%   | Very High    | ✅ MATCH
+RJ20 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.58%   | Very High    | ✅ MATCH
+TL11 (Crop)          | Active     | Active     | 92.8%    | 92.13%   | Very High    | ✅ MATCH
+TL12 (Crop)          | Active     | Active     | 95.29%   | 93.57%   | Very High    | ✅ MATCH
+TL13 (Crop)          | Active     | Active     | 65.37%   | 83.3%    | Very High    | ✅ MATCH
+TL14 (Crop)          | Active     | Active     | 71.55%   | 87.38%   | Very High    | ✅ MATCH
+TL15 (Crop)          | Active     | Active     | 50.96%   | 88.72%   | Very High    | ✅ MATCH
+TL16 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 99.78%   | Very High    | ✅ MATCH
+TL17 (Crop)          | Active     | Active     | 62.53%   | 89.65%   | Very High    | ✅ MATCH
+TL18 (Crop)          | Active     | Active     | 91.99%   | 92.75%   | Very High    | ✅ MATCH
+TL19 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 52.14%   | Moderate     | ✅ MATCH
+TL20 (Crop)          | Active     | Inactive   | 0.0%     | 85.77%   | Very High    | ❌ MISMATCH
+UK01 (Crop)          | Active     | Active     | 94.2%    | 93.78%   | Very High    | ✅ MATCH
+UK02 (Crop)          | Active     | Active     | 58.45%   | 84.93%   | Very High    | ✅ MATCH
+UK03 (No-Crop)       | Inactive   | Inactive   | 7.76%    | 39.29%   | Low          | ✅ MATCH
+UK04 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 97.65%   | Very High    | ✅ MATCH
+UK05 (Crop)          | Active     | Active     | 80.66%   | 91.56%   | Very High    | ✅ MATCH
+UK06 (Crop)          | Active     | Active     | 80.39%   | 86.93%   | Very High    | ✅ MATCH
+UK07 (No-Crop)       | Inactive   | Inactive   | 6.91%    | 38.21%   | Low          | ✅ MATCH
+UK08 (Crop)          | Active     | Active     | 90.88%   | 96.29%   | Very High    | ✅ MATCH
+UK09 (Crop)          | Active     | Active     | 71.27%   | 84.57%   | Very High    | ✅ MATCH
+UK10 (Crop)          | Active     | Active     | 98.34%   | 92.8%    | Very High    | ✅ MATCH
+PB11 (No-Crop)       | Inactive   | Inactive   | 1.11%    | 81.56%   | Very High    | ✅ MATCH
+PB12 (Crop)          | Active     | Active     | 79.5%    | 96.75%   | Very High    | ✅ MATCH
+PB13 (Crop)          | Active     | Active     | 90.03%   | 97.09%   | Very High    | ✅ MATCH
+PB14 (Crop)          | Active     | Active     | 85.32%   | 97.33%   | Very High    | ✅ MATCH
+PB15 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 51.36%   | Moderate     | ✅ MATCH
+PB16 (Crop)          | Active     | Active     | 96.95%   | 98.85%   | Very High    | ✅ MATCH
+PB17 (Crop)          | Active     | Active     | 70.64%   | 96.76%   | Very High    | ✅ MATCH
+PB18 (Crop)          | Active     | Active     | 94.74%   | 95.81%   | Very High    | ✅ MATCH
+PB19 (Crop)          | Active     | Active     | 90.3%    | 96.13%   | Very High    | ✅ MATCH
+PB20 (Crop)          | Active     | Active     | 79.22%   | 96.96%   | Very High    | ✅ MATCH
+TN11 (Crop)          | Active     | Active     | 77.9%    | 94.96%   | Very High    | ✅ MATCH
+TN12 (No-Crop)       | Inactive   | Active     | 22.65%   | 89.73%   | Very High    | ❌ MISMATCH
+TN13 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 91.09%   | Very High    | ✅ MATCH
+TN14 (Crop)          | Active     | Active     | 83.38%   | 84.44%   | Very High    | ✅ MATCH
+TN15 (Crop)          | Active     | Active     | 96.95%   | 93.42%   | Very High    | ✅ MATCH
+TN16 (Crop)          | Active     | Active     | 96.68%   | 89.79%   | Very High    | ✅ MATCH
+TN17 (Crop)          | Active     | Active     | 79.28%   | 88.08%   | Very High    | ✅ MATCH
+TN18 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 98.87%   | Very High    | ✅ MATCH
+TN19 (Crop)          | Active     | Active     | 53.19%   | 71.41%   | High         | ✅ MATCH
+TN20 (No-Crop)       | Inactive   | Inactive   | 0.0%     | 63.68%   | Moderate     | ✅ MATCH
+
+==============================
+OVERALL ACCURACY: 92.81%
+REVIEW CASES: 0
+==============================

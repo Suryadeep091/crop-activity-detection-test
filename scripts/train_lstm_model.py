@@ -92,9 +92,9 @@ def create_sequences(df, feature_cols, target_col, seq_length=5):
     return np.array(X_seq), np.array(y_seq)
 
 def main():
-    dataset_path = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\data\model_training_dataset.csv"
-    models_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\models"
-    analysis_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\analysis"
+    dataset_path = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/data/model_training_dataset.csv"
+    models_dir = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/models"
+    analysis_dir = r"/home/surya/Downloads/Old Repos/AdvaRisk - Test/analysis"
     
     os.makedirs(models_dir, exist_ok=True)
     os.makedirs(analysis_dir, exist_ok=True)
@@ -254,6 +254,160 @@ def main():
         json.dump(lstm_metrics, f, indent=4)
         
     print(f"Metrics saved to: {metrics_path}")
+
+    from captum.attr import IntegratedGradients
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    # --- WORKAROUND FOR CUDNN RNN BACKWARD EVAL ERROR ---
+    # 1. Temporarily switch the model to train mode so cuDNN allows backward passes
+    model.train()
+    
+    # 2. Manually freeze the dropout layers so they act as if they are in eval mode
+    # This ensures your feature attributions aren't corrupted by random dropout masks
+    for module in model.modules():
+        if isinstance(module, nn.Dropout):
+            module.eval()
+    # ---------------------------------------------------
+
+    # Initialize Integrated Gradients with your BiGRU model
+    ig = IntegratedGradients(model)
+
+    # Grab a batch of sequences from your DataLoader
+    batch_x, _ = next(iter(test_loader))
+    batch_x = batch_x.to(device).requires_grad_()
+
+    print("Computing Integrated Gradients attributions...")
+    # Calculate attributions for a target prediction (target=0 because output_dim is 1)
+    attributions, delta = ig.attribute(batch_x, target=0, return_convergence_delta=True)
+
+    # Revert model safely back to standard eval mode
+    model.eval()
+
+    # Average attributions across the test batch for visualization
+    mean_attributions = attributions.cpu().detach().numpy().mean(axis=0)
+
+    # Plot as a 2D Heatmap (Time vs. Feature)
+    plt.figure(figsize=(14, 7))
+    sns.heatmap(
+        mean_attributions.T, 
+        xticklabels=[f"t={i}" for i in range(seq_length)], 
+        yticklabels=feature_cols, 
+        cmap="PiYG", 
+        center=0,
+        cbar_kws={'label': 'Attribution Intensity'}
+    )
+    plt.title("BiGRU Feature Attribution Map Across Temporal Window")
+    plt.xlabel("Sequence Time Step")
+    plt.ylabel("Features")
+    plt.tight_layout()
+    
+    # Save the attribution heatmap to your analysis directory
+    heatmap_path = os.path.join(analysis_dir, "bigru_feature_attribution_heatmap.png")
+    plt.savefig(heatmap_path, dpi=300)
+    plt.close()
+    print(f"Attribution heatmap successfully saved to: {heatmap_path}")
+
+    # 1. Take the absolute values of the attributions so negative/positive don't cancel out
+    # 2. Average them across the 5 time steps (axis=1)
+    global_bigru_importance = np.mean(np.abs(mean_attributions), axis=1)
+
+    # Sort them for a clean bar plot
+    indices = np.argsort(global_bigru_importance)[::-1]
+    sorted_features = [feature_cols[i] for i in indices]
+    sorted_importance = global_bigru_importance[indices]
+
+    # Plot a simple horizontal bar chart
+    plt.figure(figsize=(10, 6))
+    plt.barh(range(len(sorted_features)), sorted_importance[::-1], color='mediumseagreen')
+    plt.yticks(range(len(sorted_features)), sorted_features[::-1])
+    plt.xlabel("Average Absolute Attribution (Importance)")
+    plt.title("Overall Feature Importance in the BiGRU Model")
+    plt.grid(True, linestyle='--', alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+    
+    import matplotlib.pyplot as plt
+
+    # 1. Take absolute attributions to prevent negative/positive scores from canceling out
+    # mean_attributions shape from your script: (24, 5) or (5, 24) depending on how you arrayed it.
+    # We ensure it computes across the time dimension (axis=1) for all 24 features.
+    if mean_attributions.shape[0] == len(feature_cols):
+        global_bigru_importance = np.mean(np.abs(mean_attributions), axis=1)
+    else:
+        global_bigru_importance = np.mean(np.abs(mean_attributions), axis=0)
+
+    # 2. Sort all 24 features in descending order
+    indices = np.argsort(global_bigru_importance)  # Ascending order for bottom-to-top plot orientation
+    sorted_features = [feature_cols[i] for i in indices]
+    sorted_importance = global_bigru_importance[indices]
+
+    # 3. Plot the complete chart
+    plt.figure(figsize=(12, 10))  # Expanded height to easily accommodate all 24 feature labels
+    plt.barh(range(len(sorted_features)), sorted_importance, color='mediumseagreen', edgecolor='black', alpha=0.8)
+    plt.yticks(range(len(sorted_features)), sorted_features, fontsize=10)
+    plt.xlabel("Global Average Absolute Attribution Intensity", fontsize=12)
+    plt.ylabel("Features", fontsize=12)
+    plt.title("BiGRU Deep Learning Branch: Global Feature Importance (All 24 Features)", fontsize=14, fontweight='bold')
+    plt.grid(True, linestyle='--', alpha=0.3, axis='x')
+    plt.tight_layout()
+
+    # Save full chart to analysis directory
+    plt.savefig(os.path.join(analysis_dir, "bigru_global_importance_all_features.png"), dpi=300)
+    plt.show()
+    plt.close()
+
+    import matplotlib.pyplot as plt
+
+    # Ensure attributions match feature array layout (24 rows, 5 columns)
+    if mean_attributions.shape[0] != len(feature_cols):
+        mean_attributions = mean_attributions.T
+
+    # Define chronological time steps matching your create_sequences sequence framework
+    time_labels = ['t-2 (Past)', 't-1', 't (Target Day)', 't+1', 't+2 (Future)']
+
+    # Group your features into thematic subsets for clean, side-by-side plotting
+    groups = {
+        "Radar Indices & Key Lags/Leads": ['raw_RVI', 'RVI_lag_6', 'RVI_lag_12', 'RVI_lead_6', 'RVI_lead_12'],
+        "Geographic & Dynamic Weather Trends": ['latitude', 'longitude', 'doy_sin', 'doy_cos', 'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg'],
+        "Static LULC Context/Guardbands": ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice', 'is_kharif', 'is_rabi', 'is_zaid']
+    }
+
+    fig, axes = plt.subplots(3, 1, figsize=(14, 18), sharex=True)
+    fig.suptitle("BiGRU Temporal Attention Profile Across All 24 Features", fontsize=16, fontweight='bold', y=0.96)
+
+    # Generate unique color mappings from a colormap
+    cmap = plt.get_cmap('tab20')
+
+    color_idx = 0
+    for ax_idx, (group_title, f_list) in enumerate(groups.items()):
+        ax = axes[ax_idx]
+        ax.axhline(0, color='black', linestyle='-', alpha=0.4, linewidth=1.2) # Baseline zero importance
+        
+        for f_name in f_list:
+            if f_name in feature_cols:
+                f_idx = feature_cols.index(f_name)
+                temporal_profile = mean_attributions[f_idx, :]
+                
+                # Plot temporal line
+                ax.plot(range(5), temporal_profile, marker='o', linewidth=2, label=f_name, color=cmap(color_idx % 20))
+                color_idx += 1
+                
+        ax.set_title(group_title, fontsize=13, fontweight='semibold', pad=10)
+        ax.set_ylabel("Attribution Magnitude", fontsize=11)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.18, 1.02), fontsize=9, framealpha=0.9)
+
+    plt.xticks(range(5), time_labels, fontsize=11)
+    plt.xlabel("Timeline Position inside Sequence Window (T=5)", fontsize=12, labelpad=10)
+    plt.tight_layout()
+    fig.subplots_adjust(top=0.92, right=0.85, hspace=0.25)
+
+    # Save full multi-line chart to analysis directory
+    plt.savefig(os.path.join(analysis_dir, "bigru_temporal_profile_all_features.png"), dpi=300)
+    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     main()

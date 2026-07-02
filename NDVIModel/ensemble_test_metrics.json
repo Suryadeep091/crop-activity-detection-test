@@ -1,0 +1,8 @@
+{
+    "ensemble_strategy": "BiGRU-only Dynamic Fusion with Velocity (No Static LULC)",
+    "absolute_test_scores": {
+        "r2": 0.6432481311973064,
+        "rmse": 0.17154734012780345,
+        "mae": 0.11555066111193482
+    }
+}

@@ -55,4 +55,4 @@ def convert_kmz_in_downloads(kmz_filename, json_filename):
 
 # --- Run the conversion ---
 # Change 'parcels.kmz' to match the exact name of your file inside Downloads
-convert_kmz_in_downloads("Test_model_parcels.kmz", "_test_parcels_output.json")
+convert_kmz_in_downloads("kk.kmz", "test_parcels_output.json")

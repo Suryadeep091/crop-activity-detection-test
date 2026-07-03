@@ -967,7 +967,7 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
         # df_all at this point contains the original S2 (NDVI/EVI) and S1 (RVI) rows
         # exactly as returned by Earth Engine, before any resampling, outer-join with DW,
         # or Whittaker smoothing. This is the earliest possible capture point.
-        _raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI', 'NDVI_predicted'] if c in df_all.columns]
+        _raw_index_cols = [c for c in ['NDVI', 'EVI', 'RVI', 'VV', 'VH', 'NDVI_predicted'] if c in df_all.columns]
         raw_indices_df = (
             df_all[['date'] + _raw_index_cols]
             .copy()
@@ -1243,7 +1243,8 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
         raw_indices_export['date'] = pd.to_datetime(raw_indices_export['date']).dt.strftime('%Y-%m-%d')
         raw_indices_list = raw_indices_export.to_dict(orient="records")
 
-        indices_data = dataset_df[['date', 'NDVI', 'EVI', 'RVI']].copy()
+        _indices_cols = [c for c in ['date', 'NDVI', 'EVI', 'RVI', 'VV', 'VH'] if c in dataset_df.columns]
+        indices_data = dataset_df[_indices_cols].copy()
         indices_data['date'] = indices_data['date'].dt.strftime('%Y-%m-%d')
         # Convert to list of dicts: [{'date': '2025-01-01', 'NDVI': 0.45, ...}, ...]
         indices_raw_list = indices_data.to_dict(orient="records")

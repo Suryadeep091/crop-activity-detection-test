@@ -334,7 +334,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         # 3. Upload to GCS (using your existing function)
         pickle_url = upload_private_to_gcs(
             data=pickle_bytes, 
-            destination_blob_name=f"model_data/{task_id}_23-24.pkl", 
+            destination_blob_name=f"model_data/{task_id}_24-25.pkl", 
             content_type="application/octet-stream", # Standard for binary files
             is_file=False
         )
@@ -352,7 +352,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         }
         
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Model_Analysis/test_{task_id}_23-24.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"Model_Analysis/test_{task_id}_24-25.pdf", "application/pdf", is_file=True)
 
         # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):

@@ -57,7 +57,7 @@ def main():
                 
             # Rename columns to show they are raw
             rename_dict = {}
-            for col in ['NDVI', 'EVI', 'RVI']:
+            for col in ['NDVI', 'EVI', 'RVI', 'VV', 'VH']:
                 if col in df_raw.columns:
                     rename_dict[col] = f"raw_{col}"
             df_raw = df_raw.rename(columns=rename_dict)
@@ -133,7 +133,7 @@ def main():
             
             # Reorder columns nicely
             cols_order = ['task_id', 'date', 'latitude', 'longitude'] + \
-                         [f'raw_{c}' for c in ['NDVI', 'EVI', 'RVI']] + \
+                         [f'raw_{c}' for c in ['NDVI', 'EVI', 'RVI', 'VV', 'VH']] + \
                          dw_cols + \
                          ['Rainfall_mm', 'Max_temp_celsius', 'Min_temp_celsius']
             

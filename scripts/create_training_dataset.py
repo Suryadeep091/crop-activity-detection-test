@@ -42,7 +42,7 @@ def main():
         df_daily['longitude'] = df_parcel['longitude'].iloc[0]
         
         # Merge raw observations
-        df_parcel_clean = df_parcel[['date', 'raw_NDVI', 'raw_EVI', 'raw_RVI'] + dw_cols + ['Rainfall_mm', 'Max_temp_celsius', 'Min_temp_celsius']]
+        df_parcel_clean = df_parcel[['date', 'raw_NDVI', 'raw_EVI', 'raw_RVI', 'raw_VV', 'raw_VH'] + dw_cols + ['Rainfall_mm', 'Max_temp_celsius', 'Min_temp_celsius']]
         df_daily = df_daily.merge(df_parcel_clean, on='date', how='left')
         
         # 2. Interpolate Dynamic World columns daily (to get daily continuous probs)
@@ -57,9 +57,11 @@ def main():
         df_daily['MaxTemp_7d_avg'] = df_daily['Max_temp_celsius'].rolling(window=7, min_periods=1).mean()
         df_daily['MinTemp_7d_avg'] = df_daily['Min_temp_celsius'].rolling(window=7, min_periods=1).mean()
         
-        # 4. Create daily interpolated columns for NDVI and RVI to calculate lags/leads
+        # 4. Create daily interpolated columns for NDVI, RVI, VV, and VH to calculate lags/leads
         df_daily['interp_NDVI'] = df_daily['raw_NDVI'].interpolate(method='linear', limit_direction='both').fillna(0)
         df_daily['interp_RVI'] = df_daily['raw_RVI'].interpolate(method='linear', limit_direction='both').fillna(0)
+        df_daily['interp_VV'] = df_daily['raw_VV'].interpolate(method='linear', limit_direction='both').fillna(0)
+        df_daily['interp_VH'] = df_daily['raw_VH'].interpolate(method='linear', limit_direction='both').fillna(0)
         
         # Calculate lags and leads (shift shifts dates)
         # Shift 6 and 12 days for NDVI
@@ -73,6 +75,18 @@ def main():
         df_daily['RVI_lag_6'] = df_daily['interp_RVI'].shift(6).fillna(method='bfill').fillna(0)
         df_daily['RVI_lead_6'] = df_daily['interp_RVI'].shift(-6).fillna(method='ffill').fillna(0)
         df_daily['RVI_lead_12'] = df_daily['interp_RVI'].shift(-12).fillna(method='ffill').fillna(0)
+
+        # Shift 6 and 12 days for VV
+        df_daily['VV_lag_12'] = df_daily['interp_VV'].shift(12).fillna(method='bfill').fillna(0)
+        df_daily['VV_lag_6'] = df_daily['interp_VV'].shift(6).fillna(method='bfill').fillna(0)
+        df_daily['VV_lead_6'] = df_daily['interp_VV'].shift(-6).fillna(method='ffill').fillna(0)
+        df_daily['VV_lead_12'] = df_daily['interp_VV'].shift(-12).fillna(method='ffill').fillna(0)
+
+        # Shift 6 and 12 days for VH
+        df_daily['VH_lag_12'] = df_daily['interp_VH'].shift(12).fillna(method='bfill').fillna(0)
+        df_daily['VH_lag_6'] = df_daily['interp_VH'].shift(6).fillna(method='bfill').fillna(0)
+        df_daily['VH_lead_6'] = df_daily['interp_VH'].shift(-6).fillna(method='ffill').fillna(0)
+        df_daily['VH_lead_12'] = df_daily['interp_VH'].shift(-12).fillna(method='ffill').fillna(0)
         
         # 5. Extract circular DOY and India-specific seasons
         doys = df_daily['date'].dt.dayofyear
@@ -88,8 +102,8 @@ def main():
         # 6. Temporal Alignment: Pair raw NDVI and raw RVI observations within 3 days
         # Get raw NDVI observation dates
         df_raw_ndvi = df_daily[df_daily['raw_NDVI'].notna()][['date', 'raw_NDVI', 'raw_EVI']]
-        # Get raw RVI observation dates
-        df_raw_rvi = df_daily[df_daily['raw_RVI'].notna()][['date', 'raw_RVI']]
+        # Get raw RVI observation dates (which will contain VV and VH as they are aligned in raw sentinel-1 images)
+        df_raw_rvi = df_daily[df_daily['raw_RVI'].notna()][['date', 'raw_RVI', 'raw_VV', 'raw_VH']]
         
         if df_raw_ndvi.empty or df_raw_rvi.empty:
             continue
@@ -109,6 +123,8 @@ def main():
                     'raw_NDVI': row_ndvi['raw_NDVI'],
                     'raw_EVI': row_ndvi['raw_EVI'],
                     'raw_RVI': df_raw_rvi.loc[best_idx, 'raw_RVI'],
+                    'raw_VV': df_raw_rvi.loc[best_idx, 'raw_VV'] if 'raw_VV' in df_raw_rvi.columns else np.nan,
+                    'raw_VH': df_raw_rvi.loc[best_idx, 'raw_VH'] if 'raw_VH' in df_raw_rvi.columns else np.nan,
                     'time_diff_days': (d1 - d2).days
                 })
                 
@@ -120,7 +136,7 @@ def main():
         df_pairs = df_pairs.drop_duplicates(subset=['ndvi_date', 'rvi_date'])
         
         # 7. Merge daily engineered features using the ndvi_date (which will be the main record 'date')
-        df_daily_features = df_daily.drop(columns=['raw_NDVI', 'raw_EVI', 'raw_RVI', 'interp_NDVI', 'interp_RVI'])
+        df_daily_features = df_daily.drop(columns=['raw_NDVI', 'raw_EVI', 'raw_RVI', 'raw_VV', 'raw_VH', 'interp_NDVI', 'interp_RVI', 'interp_VV', 'interp_VH'])
         
         # Rename ndvi_date to date for merging
         df_pairs = df_pairs.rename(columns={'ndvi_date': 'date'})
@@ -139,13 +155,15 @@ def main():
         # Organize and reorder columns
         cols_order = [
             'task_id', 'date', 'rvi_date', 'time_diff_days', 'latitude', 'longitude',
-            'raw_NDVI', 'raw_EVI', 'raw_RVI',
+            'raw_NDVI', 'raw_EVI', 'raw_RVI', 'raw_VV', 'raw_VH',
             'is_kharif', 'is_rabi', 'is_zaid',
             'doy_sin', 'doy_cos',
             'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg'
         ] + dw_cols + [
             'NDVI_lag_12', 'NDVI_lag_6', 'NDVI_lead_6', 'NDVI_lead_12',
-            'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12'
+            'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12',
+            'VV_lag_12', 'VV_lag_6', 'VV_lead_6', 'VV_lead_12',
+            'VH_lag_12', 'VH_lag_6', 'VH_lead_6', 'VH_lead_12'
         ]
         
         # Make sure all columns exist

@@ -370,7 +370,7 @@ def process_parcel_data(run_id, coordinates, end_str):
             vv = ee.Image(10).pow(img.select('VV').divide(10))
             vh = ee.Image(10).pow(img.select('VH').divide(10))
             rvi = vh.multiply(4).divide(vv.add(vh)).rename('RVI')
-            return img.addBands(rvi).select(['RVI'])
+            return img.addBands(rvi).select(['RVI', 'VV', 'VH'])
 
         # Get Sentinel-1 collection
         s1_col = (
@@ -434,7 +434,7 @@ def process_parcel_data(run_id, coordinates, end_str):
         print("Extracting Sentinel-2 data...")
         df_s2 = extract_timeseries(s2_col, ['NDVI','EVI'])
         print("Extracting Sentinel-1 data...")
-        df_s1 = extract_timeseries(s1_col, ['RVI'])
+        df_s1 = extract_timeseries(s1_col, ['RVI', 'VV', 'VH'])
         print("Extracting Dynamic World data...")
         df_dw = extract_timeseries(dw_col, DW_BANDS)
         

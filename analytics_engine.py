@@ -964,6 +964,11 @@ def compute_analytics_from_extracted(task_id, coords, end_date_str, extraction_r
     try:
         df_all, summary_dict, df_dw_raw = extraction_result
 
+        # Safely initialize missing Sentinel-1 columns to prevent KeyError crashes in analytics
+        for c in ['RVI', 'VV', 'VH']:
+            if c not in df_all.columns:
+                df_all[c] = np.nan
+
         # --- ENSEMBLE IMPUTATION ---
         df_all, df_imputed = impute_missing_ndvi_using_ensemble(
             df_all, df_dw_raw, coords, end_date_str, df_weather=df_weather

@@ -8,7 +8,7 @@ from datetime import datetime  # Added for absolute timestamps
 # --- CONFIGURATION ---
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
 input_json_path = os.path.join(downloads_path, "test_parcels_output.json")
-output_json_path = os.path.join(downloads_path, "test_model_analysis_25-26_old.json")
+output_json_path = os.path.join(downloads_path, "test_model_analysis_25-26.json")
 
 # TARGETING THE LIVE EXTRACTION ENDPOINT
 API_URL = "https://test-terradrishti-413500342905.asia-south1.run.app/test/accuracy"
@@ -42,7 +42,7 @@ def run_live_batch_test():
         payload = {
             "task_id": task_id,
             "kml_coordinates": kml,
-            "end_date": "2025-06-25" # Consistent date for accuracy benchmarking
+            "end_date": "2026-06-25" # Consistent date for accuracy benchmarking
         }
 
         try:

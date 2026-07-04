@@ -238,6 +238,8 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     df_daily['MinTemp_7d_avg'] = df_daily['Min_temp_celsius'].rolling(window=7, min_periods=1).mean()
     
     # Calculate daily interpolated RVI for lags/leads
+    # Preserve original sparse S1 observations BEFORE interpolation fills gaps
+    df_daily['_sparse_raw_RVI'] = df_daily['raw_RVI'].copy()
     df_daily['interp_RVI'] = df_daily['raw_RVI'].interpolate(method='linear', limit_direction='both').fillna(0)
     df_daily['raw_RVI'] = df_daily['interp_RVI']
     df_daily['RVI_lag_12'] = df_daily['interp_RVI'].shift(12).ffill().bfill().fillna(0)
@@ -262,8 +264,9 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     # Filter daily features to union dates
     df_obs = df_daily[df_daily['date'].isin(union_dates)].sort_values('date').reset_index(drop=True)
     
-    # Find indices of dates where RVI is present but NDVI is missing
-    impute_idx = df_obs[df_obs['raw_RVI'].notna() & df_obs['raw_NDVI'].isna()].index.tolist()
+    # Find indices of dates where S1 had an actual overpass but S2 NDVI was missing
+    # Use the original sparse raw_RVI (before interpolation) to detect true S1 overpass dates
+    impute_idx = df_obs[df_obs['_sparse_raw_RVI'].notna() & df_obs['raw_NDVI'].isna()].index.tolist()
     
     if not impute_idx:
         print("[Ensemble Imputation] No dates found with RVI but no NDVI.")

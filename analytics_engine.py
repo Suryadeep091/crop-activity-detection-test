@@ -180,6 +180,10 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     lon = sum(lons) / len(lons)
     
     # 3. Create continuous daily series
+    if 'RVI' not in df_all.columns or df_all['RVI'].isna().all():
+        print("[Ensemble Imputation] Warning: No Sentinel-1 RVI observations found. Skipping imputation.")
+        return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
+        
     df_all_norm = df_all.copy()
     df_all_norm['date'] = pd.to_datetime(df_all_norm['date']).dt.normalize()
     df_dw_norm = df_dw_raw.copy()

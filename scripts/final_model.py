@@ -125,17 +125,11 @@ def main():
     df['RVI_velocity_6'] = df['raw_RVI'] - df['RVI_lag_6']
     df['RVI_velocity_12'] = df['raw_RVI'] - df['RVI_lag_12']
     
-    # Sentinel-1 Polarization Velocities & Differences
+    # Sentinel-1 Polarization Velocities
     df['VV_velocity_6'] = df['raw_VV'] - df['VV_lag_6']
     df['VV_velocity_12'] = df['raw_VV'] - df['VV_lag_12']
     df['VH_velocity_6'] = df['raw_VH'] - df['VH_lag_6']
     df['VH_velocity_12'] = df['raw_VH'] - df['VH_lag_12']
-    
-    # Cross-Polarization Difference (equivalent to log ratio in dB)
-    df['raw_diff'] = df['raw_VH'] - df['raw_VV']
-    df['diff_lag_6'] = df['VH_lag_6'] - df['VV_lag_6']
-    df['diff_lead_6'] = df['VH_lead_6'] - df['VV_lead_6']
-    df['diff_velocity_6'] = df['raw_diff'] - df['diff_lag_6']
     
     print("Grouping 9 LULC classes into 3 tiers and compressing into a single expected_baseline_ndvi feature...")
     tier_0_cols = ['water', 'bare', 'snow_and_ice']
@@ -157,7 +151,6 @@ def main():
         'VV_velocity_6', 'VV_velocity_12', # VV dynamics
         'raw_VH', 'VH_lag_12', 'VH_lag_6', 'VH_lead_6', 'VH_lead_12',
         'VH_velocity_6', 'VH_velocity_12', # VH dynamics
-        'raw_diff', 'diff_lag_6', 'diff_lead_6', 'diff_velocity_6', # Polarization Differences
         'doy_sin', 'doy_cos', 'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
         'is_kharif', 'is_rabi', 'is_zaid',
         'expected_baseline_ndvi'

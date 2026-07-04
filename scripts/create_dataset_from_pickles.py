@@ -13,8 +13,8 @@ def compute_centroid(coords):
     return sum(lats) / len(lats), sum(lons) / len(lons)
 
 def main():
-    pickle_dir = r"C:\Users\Suryadeep Singh\Downloads\pickle_files"
-    output_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\data"
+    pickle_dir = "/home/surya/Downloads/Old Repos/AdvaRisk - Test/model_data"
+    output_dir = "/home/surya/Downloads/Old Repos/AdvaRisk - Test/data"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "raw_observations_dataset.csv")
     

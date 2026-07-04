@@ -1,8 +1,8 @@
 {
     "ensemble_strategy": "BiGRU-only Dynamic Fusion with Vague LULC Tiers",
     "absolute_test_scores": {
-        "r2": 0.7695356143405706,
-        "rmse": 0.13788047512636592,
-        "mae": 0.087433359008756
+        "r2": 0.838078074617995,
+        "rmse": 0.1104759949367174,
+        "mae": 0.07027363631452571
     }
 }

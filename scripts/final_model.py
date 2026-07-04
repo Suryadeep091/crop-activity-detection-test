@@ -125,6 +125,12 @@ def main():
     df['RVI_velocity_6'] = df['raw_RVI'] - df['RVI_lag_6']
     df['RVI_velocity_12'] = df['raw_RVI'] - df['RVI_lag_12']
     
+    # Sentinel-1 Polarization Velocities
+    df['VV_velocity_6'] = df['raw_VV'] - df['VV_lag_6']
+    df['VV_velocity_12'] = df['raw_VV'] - df['VV_lag_12']
+    df['VH_velocity_6'] = df['raw_VH'] - df['VH_lag_6']
+    df['VH_velocity_12'] = df['raw_VH'] - df['VH_lag_12']
+    
     print("Grouping 9 LULC classes into 3 tiers and compressing into a single expected_baseline_ndvi feature...")
     tier_0_cols = ['water', 'bare', 'snow_and_ice']
     tier_1_cols = ['shrub_and_scrub', 'built', 'flooded_vegetation', 'crops']
@@ -137,10 +143,14 @@ def main():
     # Compute a single expected baseline NDVI from the 3 LULC tiers
     df['expected_baseline_ndvi'] = 0.0531 * df['tier_0_frac'] + 0.3817 * df['tier_1_frac'] + 0.6207 * df['tier_2_frac']
 
-    # Dynamic features plus a single compressed land cover feature
+    # Dynamic features plus a single compressed land cover feature and Sentinel-1 polarizations
     shared_dynamic_pool = [
         'raw_RVI', 'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12',
-        'RVI_velocity_6', 'RVI_velocity_12', # Dynamic trend features
+        'RVI_velocity_6', 'RVI_velocity_12', # RVI dynamics
+        'raw_VV', 'VV_lag_12', 'VV_lag_6', 'VV_lead_6', 'VV_lead_12',
+        'VV_velocity_6', 'VV_velocity_12', # VV dynamics
+        'raw_VH', 'VH_lag_12', 'VH_lag_6', 'VH_lead_6', 'VH_lead_12',
+        'VH_velocity_6', 'VH_velocity_12', # VH dynamics
         'doy_sin', 'doy_cos', 'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
         'is_kharif', 'is_rabi', 'is_zaid',
         'expected_baseline_ndvi'

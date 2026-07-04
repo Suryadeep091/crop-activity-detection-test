@@ -4,8 +4,8 @@ import numpy as np
 import time
 
 def main():
-    raw_csv_path = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\data\raw_observations_dataset.csv"
-    output_dir = r"c:\Users\Suryadeep Singh\Downloads\AdvaRisk - Test\data"
+    raw_csv_path = "/home/surya/Downloads/Old Repos/AdvaRisk - Test/data/raw_observations_dataset.csv"
+    output_dir = "/home/surya/Downloads/Old Repos/AdvaRisk - Test/data"
     output_file = os.path.join(output_dir, "model_training_dataset.csv")
     
     print(f"Loading raw observations from: {raw_csv_path}")

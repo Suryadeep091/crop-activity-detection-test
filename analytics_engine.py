@@ -196,17 +196,19 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     dw_cols = ['water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice']
     
     # Merge raw vegetation indices
-    veg_cols = [c for c in ['raw_NDVI', 'raw_EVI', 'raw_RVI', 'raw_VV', 'raw_VH', 'NDVI', 'EVI', 'RVI', 'VV', 'VH'] if c in df_all_norm.columns]
+    veg_cols = [c for c in ['raw_NDVI', 'raw_EVI', 'raw_RVI', 'NDVI', 'EVI', 'RVI'] if c in df_all_norm.columns]
     df_veg_to_merge = df_all_norm[['date'] + veg_cols].copy()
-    
-    # Ensure raw names are mapped
-    for c in ['NDVI', 'RVI', 'VV', 'VH']:
-        if f'raw_{c}' not in df_veg_to_merge.columns and c in df_veg_to_merge.columns:
-            df_veg_to_merge[f'raw_{c}'] = df_veg_to_merge[c]
-        if f'raw_{c}' not in df_veg_to_merge.columns:
-            df_veg_to_merge[f'raw_{c}'] = np.nan
-            
-    df_daily = df_daily.merge(df_veg_to_merge[['date', 'raw_NDVI', 'raw_RVI', 'raw_VV', 'raw_VH']], on='date', how='left')
+    if 'raw_NDVI' not in df_veg_to_merge.columns and 'NDVI' in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_NDVI'] = df_veg_to_merge['NDVI']
+    if 'raw_RVI' not in df_veg_to_merge.columns and 'RVI' in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_RVI'] = df_veg_to_merge['RVI']
+        
+    if 'raw_NDVI' not in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_NDVI'] = np.nan
+    if 'raw_RVI' not in df_veg_to_merge.columns:
+        df_veg_to_merge['raw_RVI'] = np.nan
+        
+    df_daily = df_daily.merge(df_veg_to_merge[['date', 'raw_NDVI', 'raw_RVI']], on='date', how='left')
     
     # Merge Dynamic World columns
     available_dw = [c for c in dw_cols if c in df_dw_norm.columns]
@@ -231,35 +233,13 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     df_daily['MaxTemp_7d_avg'] = df_daily['Max_temp_celsius'].rolling(window=7, min_periods=1).mean()
     df_daily['MinTemp_7d_avg'] = df_daily['Min_temp_celsius'].rolling(window=7, min_periods=1).mean()
     
-    # Calculate daily interpolated RVI, VV, and VH for lags/leads
+    # Calculate daily interpolated RVI for lags/leads
     df_daily['interp_RVI'] = df_daily['raw_RVI'].interpolate(method='linear', limit_direction='both').fillna(0)
     df_daily['raw_RVI'] = df_daily['interp_RVI']
     df_daily['RVI_lag_12'] = df_daily['interp_RVI'].shift(12).ffill().bfill().fillna(0)
     df_daily['RVI_lag_6'] = df_daily['interp_RVI'].shift(6).ffill().bfill().fillna(0)
     df_daily['RVI_lead_6'] = df_daily['interp_RVI'].shift(-6).ffill().bfill().fillna(0)
     df_daily['RVI_lead_12'] = df_daily['interp_RVI'].shift(-12).ffill().bfill().fillna(0)
-    
-    df_daily['interp_VV'] = df_daily['raw_VV'].interpolate(method='linear', limit_direction='both').fillna(0)
-    df_daily['raw_VV'] = df_daily['interp_VV']
-    df_daily['VV_lag_12'] = df_daily['interp_VV'].shift(12).ffill().bfill().fillna(0)
-    df_daily['VV_lag_6'] = df_daily['interp_VV'].shift(6).ffill().bfill().fillna(0)
-    df_daily['VV_lead_6'] = df_daily['interp_VV'].shift(-6).ffill().bfill().fillna(0)
-    df_daily['VV_lead_12'] = df_daily['interp_VV'].shift(-12).ffill().bfill().fillna(0)
-    
-    df_daily['interp_VH'] = df_daily['raw_VH'].interpolate(method='linear', limit_direction='both').fillna(0)
-    df_daily['raw_VH'] = df_daily['interp_VH']
-    df_daily['VH_lag_12'] = df_daily['interp_VH'].shift(12).ffill().bfill().fillna(0)
-    df_daily['VH_lag_6'] = df_daily['interp_VH'].shift(6).ffill().bfill().fillna(0)
-    df_daily['VH_lead_6'] = df_daily['interp_VH'].shift(-6).ffill().bfill().fillna(0)
-    df_daily['VH_lead_12'] = df_daily['interp_VH'].shift(-12).ffill().bfill().fillna(0)
-    
-    # Calculate velocities/derivatives
-    df_daily['RVI_velocity_6'] = df_daily['raw_RVI'] - df_daily['RVI_lag_6']
-    df_daily['RVI_velocity_12'] = df_daily['raw_RVI'] - df_daily['RVI_lag_12']
-    df_daily['VV_velocity_6'] = df_daily['raw_VV'] - df_daily['VV_lag_6']
-    df_daily['VV_velocity_12'] = df_daily['raw_VV'] - df_daily['VV_lag_12']
-    df_daily['VH_velocity_6'] = df_daily['raw_VH'] - df_daily['VH_lag_6']
-    df_daily['VH_velocity_12'] = df_daily['raw_VH'] - df_daily['VH_lag_12']
     
     # Extract cyclic DOY and seasonal flags
     doys = df_daily['date'].dt.dayofyear
@@ -269,12 +249,6 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     df_daily['is_kharif'] = ((months >= 6) & (months <= 10)).astype(int)
     df_daily['is_rabi'] = ((months >= 11) | (months <= 3)).astype(int)
     df_daily['is_zaid'] = ((months == 4) | (months == 5)).astype(int)
-    
-    # Compute expected baseline NDVI
-    df_daily['tier_0_frac'] = df_daily[['water', 'bare', 'snow_and_ice']].sum(axis=1)
-    df_daily['tier_1_frac'] = df_daily[['shrub_and_scrub', 'built', 'flooded_vegetation', 'crops']].sum(axis=1)
-    df_daily['tier_2_frac'] = df_daily[['grass', 'trees']].sum(axis=1)
-    df_daily['expected_baseline_ndvi'] = 0.0531 * df_daily['tier_0_frac'] + 0.3817 * df_daily['tier_1_frac'] + 0.6207 * df_daily['tier_2_frac']
     
     # Get target union dates
     union_mask = df_all_norm['NDVI'].notna() | df_all_norm['RVI'].notna()
@@ -293,13 +267,13 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
         
     print(f"[Ensemble Imputation] Imputing NDVI for {len(impute_idx)} dates...")
     
-    # Scale features (Exactly matching the 31 features used in retrained final model)
+    # Scale features
     feature_cols = [
-        'raw_RVI', 'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12', 'RVI_velocity_6', 'RVI_velocity_12',
-        'raw_VV', 'VV_lag_12', 'VV_lag_6', 'VV_lead_6', 'VV_lead_12', 'VV_velocity_6', 'VV_velocity_12',
-        'raw_VH', 'VH_lag_12', 'VH_lag_6', 'VH_lead_6', 'VH_lead_12', 'VH_velocity_6', 'VH_velocity_12',
-        'doy_sin', 'doy_cos', 'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
-        'is_kharif', 'is_rabi', 'is_zaid', 'expected_baseline_ndvi'
+        'latitude', 'longitude', 'raw_RVI',
+        'is_kharif', 'is_rabi', 'is_zaid', 'doy_sin', 'doy_cos',
+        'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
+        'water', 'trees', 'grass', 'flooded_vegetation', 'crops', 'shrub_and_scrub', 'built', 'bare', 'snow_and_ice',
+        'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12'
     ]
     
     # Load models
@@ -308,8 +282,9 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     
     scaler_path = os.path.join(models_dir, "lstm_scaler.pkl")
     bigru_path = os.path.join(models_dir, "rvi_to_ndvi_lstm.pt")
+    rf_path = os.path.join(models_dir, "rvi_to_ndvi_model.pkl")
     
-    if not (os.path.exists(scaler_path) and os.path.exists(bigru_path)):
+    if not (os.path.exists(scaler_path) and os.path.exists(bigru_path) and os.path.exists(rf_path)):
         print("[Ensemble Imputation] Warning: Model files not found. Skipping imputation.")
         return df_all, pd.DataFrame(columns=['date', 'NDVI_predicted'])
         
@@ -382,8 +357,13 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
         if len(impute_idx) == 1:
             preds_bigru = np.array([preds_bigru])
             
-    # Use the retrained high-accuracy absolute BiGRU model (83.81% R2) directly
-    preds_ensemble = np.clip(preds_bigru, 0.0, 1.0)
+    # Run RF predictions
+    rf_model = joblib.load(rf_path)
+    preds_rf = rf_model.predict(raw_features_sorted)
+    
+    # Blending Ensemble (0.4 RF + 0.6 BiGRU)
+    preds_ensemble = 0.4 * preds_rf + 0.6 * preds_bigru
+    preds_ensemble = np.clip(preds_ensemble, 0.0, 1.0)
     
     # Build predicted dataframe
     impute_dates = df_obs.loc[impute_idx, 'date'].values

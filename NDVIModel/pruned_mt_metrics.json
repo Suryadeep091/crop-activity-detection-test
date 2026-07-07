@@ -1,0 +1,52 @@
+{
+    "architecture": "Pruned-MultiTowerBiGRU-5tower",
+    "dropped_features": [
+        "RVI_velocity_12",
+        "VV_lag_6",
+        "VV_lag_12",
+        "VV_lead_6",
+        "VV_lead_12",
+        "VV_velocity_12",
+        "raw_VH",
+        "VH_lag_6",
+        "VH_lag_12",
+        "VH_lead_6",
+        "VH_lead_12",
+        "VH_velocity_12",
+        "RVI_velocity_12"
+    ],
+    "retained_features": [
+        "raw_RVI",
+        "RVI_lag_6",
+        "RVI_lag_12",
+        "RVI_lead_6",
+        "RVI_lead_12",
+        "RVI_velocity_6",
+        "raw_VV",
+        "VV_velocity_6",
+        "VH_velocity_6",
+        "Rainfall_15d_sum",
+        "MaxTemp_7d_avg",
+        "MinTemp_7d_avg",
+        "doy_sin",
+        "doy_cos",
+        "is_kharif",
+        "is_rabi",
+        "is_zaid",
+        "expected_baseline_ndvi"
+    ],
+    "results": [
+        {
+            "seq_length": 5,
+            "r2": 0.7966915965080261,
+            "rmse": 0.11385494513156817,
+            "mae": 0.07618889957666397
+        },
+        {
+            "seq_length": 13,
+            "r2": 0.8071998953819275,
+            "rmse": 0.11087353652200062,
+            "mae": 0.07345463335514069
+        }
+    ]
+}

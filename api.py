@@ -352,7 +352,7 @@ async def test_accuracy_by_geometry(request: GeometryRequest):
         }
         
         local_pdf_path = await generate_intelligence_report(full_data)
-        report_url = upload_private_to_gcs(local_pdf_path, f"Test_model_new/test_{task_id}_25-26.pdf", "application/pdf", is_file=True)
+        report_url = upload_private_to_gcs(local_pdf_path, f"model_data/test_{task_id}_25-26.pdf", "application/pdf", is_file=True)
 
         # Cleanup ephemeral PDF
         if os.path.exists(local_pdf_path):

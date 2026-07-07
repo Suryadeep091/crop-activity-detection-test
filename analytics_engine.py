@@ -296,11 +296,11 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
         
     print(f"[Ensemble Imputation] Imputing NDVI for {len(impute_idx)} dates...")
     
-    # Scale features (Exactly matching the 17 pruned features used in retrained pruned multi-tower model)
+    # Scale features (Exactly matching the 30 features used in retrained final model)
     feature_cols = [
-        'raw_RVI', 'RVI_lag_6', 'RVI_lag_12', 'RVI_lead_6', 'RVI_lead_12', 'RVI_velocity_6',
-        'raw_VV', 'VV_velocity_6',
-        'VH_velocity_6',
+        'raw_RVI', 'RVI_lag_6', 'RVI_lag_12', 'RVI_lead_6', 'RVI_lead_12', 'RVI_velocity_6', 'RVI_velocity_12',
+        'raw_VV', 'VV_lag_6', 'VV_lag_12', 'VV_lead_6', 'VV_lead_12', 'VV_velocity_6', 'VV_velocity_12',
+        'raw_VH', 'VH_lag_6', 'VH_lag_12', 'VH_lead_6', 'VH_lead_12', 'VH_velocity_6', 'VH_velocity_12',
         'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
         'doy_sin', 'doy_cos', 'is_kharif', 'is_rabi', 'is_zaid', 'expected_baseline_ndvi'
     ]
@@ -348,12 +348,12 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     X_seq = np.array(X_seq)
     raw_features_sorted = np.array(raw_features_sorted)
     
-    # Run Pruned Multi-Tower BiGRU predictions
+    # Run Full Multi-Tower BiGRU predictions
     class MultiTowerBiGRU(nn.Module):
         def __init__(
             self,
-            rvi_dim=6, vv_dim=2, vh_dim=1, wx_dim=3, ctx_dim=6,
-            rvi_hidden=32, vv_hidden=16, vh_hidden=16, wx_hidden=16, ctx_hidden=16,
+            rvi_dim=7, vv_dim=7, vh_dim=7, wx_dim=3, ctx_dim=6,
+            rvi_hidden=48, vv_hidden=32, vh_hidden=32, wx_hidden=24, ctx_hidden=24,
             fusion_dropout1=0.3, fusion_dropout2=0.2,
         ):
             super().__init__()
@@ -363,7 +363,7 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
             self.tower_wx  = nn.GRU(wx_dim,  wx_hidden,  num_layers=1, batch_first=True, bidirectional=True)
             self.tower_ctx = nn.GRU(ctx_dim, ctx_hidden, num_layers=1, batch_first=True, bidirectional=True)
 
-            fusion_in = (rvi_hidden + vv_hidden + vh_hidden + wx_hidden + ctx_hidden) * 2  # 192
+            fusion_in = (rvi_hidden + vv_hidden + vh_hidden + wx_hidden + ctx_hidden) * 2  # 320
 
             self.norm   = nn.LayerNorm(fusion_in)
             self.fc1    = nn.Linear(fusion_in, 128)
@@ -390,20 +390,20 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
             return self.fc_out(h)
             
     bigru_model = MultiTowerBiGRU(
-        rvi_dim=6, vv_dim=2, vh_dim=1, wx_dim=3, ctx_dim=6
+        rvi_dim=7, vv_dim=7, vh_dim=7, wx_dim=3, ctx_dim=6
     )
     bigru_model.load_state_dict(torch.load(bigru_path, map_location='cpu'))
     bigru_model.eval()
     
     # Split index ranges to feed multi-tower input streams
-    # 17 features: RVI(0:6), VV(6:8), VH(8:9), Wx(9:12), Ctx(12:18)
+    # 30 features: RVI(0:7), VV(7:14), VH(14:21), Wx(21:24), Ctx(24:30)
     with torch.no_grad():
         x_seq_tensor = torch.tensor(X_seq, dtype=torch.float32)
-        x_rvi = x_seq_tensor[:, :, 0:6]
-        x_vv  = x_seq_tensor[:, :, 6:8]
-        x_vh  = x_seq_tensor[:, :, 8:9]
-        x_wx  = x_seq_tensor[:, :, 9:12]
-        x_ctx = x_seq_tensor[:, :, 12:18]
+        x_rvi = x_seq_tensor[:, :, 0:7]
+        x_vv  = x_seq_tensor[:, :, 7:14]
+        x_vh  = x_seq_tensor[:, :, 14:21]
+        x_wx  = x_seq_tensor[:, :, 21:24]
+        x_ctx = x_seq_tensor[:, :, 24:30]
         
         preds_bigru = bigru_model(x_rvi, x_vv, x_vh, x_wx, x_ctx).numpy().squeeze()
         if len(impute_idx) == 1:

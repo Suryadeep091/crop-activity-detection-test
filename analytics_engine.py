@@ -296,13 +296,13 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
         
     print(f"[Ensemble Imputation] Imputing NDVI for {len(impute_idx)} dates...")
     
-    # Scale features (Exactly matching the 31 features used in retrained final model)
+    # Scale features (Exactly matching the 17 pruned features used in retrained pruned multi-tower model)
     feature_cols = [
-        'raw_RVI', 'RVI_lag_12', 'RVI_lag_6', 'RVI_lead_6', 'RVI_lead_12', 'RVI_velocity_6', 'RVI_velocity_12',
-        'raw_VV', 'VV_lag_12', 'VV_lag_6', 'VV_lead_6', 'VV_lead_12', 'VV_velocity_6', 'VV_velocity_12',
-        'raw_VH', 'VH_lag_12', 'VH_lag_6', 'VH_lead_6', 'VH_lead_12', 'VH_velocity_6', 'VH_velocity_12',
-        'doy_sin', 'doy_cos', 'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
-        'is_kharif', 'is_rabi', 'is_zaid', 'expected_baseline_ndvi'
+        'raw_RVI', 'RVI_lag_6', 'RVI_lag_12', 'RVI_lead_6', 'RVI_lead_12', 'RVI_velocity_6',
+        'raw_VV', 'VV_velocity_6',
+        'VH_velocity_6',
+        'Rainfall_15d_sum', 'MaxTemp_7d_avg', 'MinTemp_7d_avg',
+        'doy_sin', 'doy_cos', 'is_kharif', 'is_rabi', 'is_zaid', 'expected_baseline_ndvi'
     ]
     
     # Load models
@@ -322,8 +322,8 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     df_obs_scaled = df_obs.copy()
     df_obs_scaled[feature_cols] = scaler.transform(df_obs[feature_cols])
     
-    # Build sequences for the impute indices
-    seq_length = 5
+    # Build sequences for the impute indices using seq_length=13 (±6 satellite visits)
+    seq_length = 13
     target_offset = seq_length // 2
     X_seq = []
     raw_features_sorted = []
@@ -339,7 +339,7 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
         seq = []
         for s_idx in range(start_idx, end_idx + 1):
             if s_idx < 0 or s_idx >= n_obs:
-                seq.append(np.zeros(features_scaled.shape[1]))
+                seq.append(features_scaled[0] if n_obs > 0 else np.zeros(features_scaled.shape[1]))
             else:
                 seq.append(features_scaled[s_idx])
         X_seq.append(np.array(seq))
@@ -348,44 +348,68 @@ def impute_missing_ndvi_using_ensemble(df_all, df_dw_raw, coords, end_date_str, 
     X_seq = np.array(X_seq)
     raw_features_sorted = np.array(raw_features_sorted)
     
-    # Run BiGRU predictions
-    class NDVI_BiGRU(nn.Module):
-        def __init__(self, input_dim, hidden_dim=64, num_layers=2, output_dim=1):
-            super(NDVI_BiGRU, self).__init__()
-            self.hidden_dim = hidden_dim
-            self.num_layers = num_layers
-            self.gru = nn.GRU(
-                input_dim, 
-                hidden_dim, 
-                num_layers, 
-                batch_first=True, 
-                dropout=0.3 if num_layers > 1 else 0.0,
-                bidirectional=True
-            )
-            self.hidden_fc = nn.Linear(hidden_dim * 2, 64)
-            self.relu = nn.ReLU()
-            self.dropout = nn.Dropout(0.3)
-            self.fc = nn.Linear(64, output_dim)
+    # Run Pruned Multi-Tower BiGRU predictions
+    class MultiTowerBiGRU(nn.Module):
+        def __init__(
+            self,
+            rvi_dim=6, vv_dim=2, vh_dim=1, wx_dim=3, ctx_dim=6,
+            rvi_hidden=32, vv_hidden=16, vh_hidden=16, wx_hidden=16, ctx_hidden=16,
+            fusion_dropout1=0.3, fusion_dropout2=0.2,
+        ):
+            super().__init__()
+            self.tower_rvi = nn.GRU(rvi_dim, rvi_hidden, num_layers=1, batch_first=True, bidirectional=True)
+            self.tower_vv  = nn.GRU(vv_dim,  vv_hidden,  num_layers=1, batch_first=True, bidirectional=True)
+            self.tower_vh  = nn.GRU(vh_dim,  vh_hidden,  num_layers=1, batch_first=True, bidirectional=True)
+            self.tower_wx  = nn.GRU(wx_dim,  wx_hidden,  num_layers=1, batch_first=True, bidirectional=True)
+            self.tower_ctx = nn.GRU(ctx_dim, ctx_hidden, num_layers=1, batch_first=True, bidirectional=True)
+
+            fusion_in = (rvi_hidden + vv_hidden + vh_hidden + wx_hidden + ctx_hidden) * 2  # 192
+
+            self.norm   = nn.LayerNorm(fusion_in)
+            self.fc1    = nn.Linear(fusion_in, 128)
+            self.fc2    = nn.Linear(128, 32)
+            self.fc_out = nn.Linear(32, 1)
+            self.relu   = nn.ReLU()
+            self.drop1  = nn.Dropout(fusion_dropout1)
+            self.drop2  = nn.Dropout(fusion_dropout2)
+
+        def _center(self, gru_out, seq_len):
+            return gru_out[:, seq_len // 2, :]
+
+        def forward(self, x_rvi, x_vv, x_vh, x_wx, x_ctx):
+            seq = x_rvi.size(1)
+            h1 = self._center(self.tower_rvi(x_rvi)[0], seq)
+            h2 = self._center(self.tower_vv(x_vv)[0],   seq)
+            h3 = self._center(self.tower_vh(x_vh)[0],   seq)
+            h4 = self._center(self.tower_wx(x_wx)[0],   seq)
+            h5 = self._center(self.tower_ctx(x_ctx)[0], seq)
+            h = torch.cat([h1, h2, h3, h4, h5], dim=-1)
+            h = self.norm(h)
+            h = self.drop1(self.relu(self.fc1(h)))
+            h = self.drop2(self.relu(self.fc2(h)))
+            return self.fc_out(h)
             
-        def forward(self, x):
-            out, _ = self.gru(x)
-            out = out[:, x.size(1) // 2, :]
-            out = self.hidden_fc(out)
-            out = self.relu(out)
-            out = self.dropout(out)
-            out = self.fc(out)
-            return out
-            
-    bigru_model = NDVI_BiGRU(input_dim=len(feature_cols), hidden_dim=64, num_layers=2)
+    bigru_model = MultiTowerBiGRU(
+        rvi_dim=6, vv_dim=2, vh_dim=1, wx_dim=3, ctx_dim=6
+    )
     bigru_model.load_state_dict(torch.load(bigru_path, map_location='cpu'))
     bigru_model.eval()
     
+    # Split index ranges to feed multi-tower input streams
+    # 17 features: RVI(0:6), VV(6:8), VH(8:9), Wx(9:12), Ctx(12:18)
     with torch.no_grad():
-        preds_bigru = bigru_model(torch.tensor(X_seq, dtype=torch.float32)).numpy().squeeze()
+        x_seq_tensor = torch.tensor(X_seq, dtype=torch.float32)
+        x_rvi = x_seq_tensor[:, :, 0:6]
+        x_vv  = x_seq_tensor[:, :, 6:8]
+        x_vh  = x_seq_tensor[:, :, 8:9]
+        x_wx  = x_seq_tensor[:, :, 9:12]
+        x_ctx = x_seq_tensor[:, :, 12:18]
+        
+        preds_bigru = bigru_model(x_rvi, x_vv, x_vh, x_wx, x_ctx).numpy().squeeze()
         if len(impute_idx) == 1:
             preds_bigru = np.array([preds_bigru])
             
-    # Use the retrained high-accuracy absolute BiGRU model (83.81% R2) directly
+    # Directly clip absolute prediction bounds
     preds_ensemble = np.clip(preds_bigru, 0.0, 1.0)
     
     # Build predicted dataframe
